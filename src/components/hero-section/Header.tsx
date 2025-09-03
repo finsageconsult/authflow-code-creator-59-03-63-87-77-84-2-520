@@ -56,7 +56,7 @@ const Header = () => {
             className="px-3.5 py-2.5 rounded-[39px] min-h-[38px] w-[150px] text-white bg-[#447f73]"
             onClick={() => window.location.href = '/book-demo'}
           >
-            Book a Demo (HR)
+            Book a Demo
           </Button>
         </div>
 
@@ -93,7 +93,7 @@ const Header = () => {
                 className="text-primary-foreground px-3.5 py-2.5 rounded-[39px] w-full mt-4 bg-[#447f73]"
                 onClick={() => window.location.href = '/book-demo'}
               >
-                Book a Demo (HR)
+                Book a Demo
               </Button>
             </div>
           </div>}
