@@ -20,15 +20,13 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center justify-end gap-6 flex-1">
-          <div className="flex items-center gap-6 font-normal whitespace-nowrap">
-            <div className="flex items-center gap-6">
-              <a href="#about" className="text-foreground hover:text-primary transition-colors">
-                About
-              </a>
-              <a href="#contact" className="text-foreground hover:text-primary transition-colors">
-                Contact
-              </a>
-            </div>
+          <div className="flex items-center gap-6">
+            <a href="#about" className="text-foreground hover:text-primary transition-colors">
+              About
+            </a>
+            <a href="#contact" className="text-foreground hover:text-primary transition-colors">
+              Contact
+            </a>
             <div className="w-0 shrink-0 h-[31px] border-l-2 border-foreground" aria-hidden="true" />
             
             <a href="#individuals" className="text-foreground hover:text-primary transition-colors">
@@ -42,15 +40,15 @@ const Header = () => {
             >
               For Employers
             </Button>
+            
+            <Button 
+              variant="ghost"
+              className="text-foreground hover:text-primary transition-colors"
+              onClick={() => window.location.href = '/login'}
+            >
+              Log In
+            </Button>
           </div>
-          
-          <Button 
-            variant="ghost"
-            className="text-foreground hover:text-primary transition-colors"
-            onClick={() => window.location.href = '/login'}
-          >
-            Log In
-          </Button>
           
           <Button 
             className="px-3.5 py-2.5 rounded-[39px] min-h-[38px] w-[150px] text-white bg-[#447f73]"
