@@ -76,7 +76,7 @@ export const HRCreditAllocation = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="allocate" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
           <TabsTrigger value="allocate">Allocate Credits</TabsTrigger>
           <TabsTrigger value="usage">Usage Overview</TabsTrigger>
           <TabsTrigger value="alerts">Low Balance Alerts</TabsTrigger>
@@ -91,7 +91,7 @@ export const HRCreditAllocation = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Employee</Label>
                   <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
@@ -224,10 +224,10 @@ export const HRCreditAllocation = () => {
               {getLowBalanceEmployees().length > 0 ? (
                 <div className="space-y-4">
                   {getLowBalanceEmployees().map((employee) => (
-                    <div key={employee.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div key={employee.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 md:p-4 border rounded-lg">
                       <div>
-                        <div className="font-medium">{employee.name}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="font-medium text-sm md:text-base">{employee.name}</div>
+                        <div className="text-xs md:text-sm text-muted-foreground">
                           1-on-1: {getEmployeeBalance(employee.id, 'SESSION_1_1')} credits, 
                           Webinar: {getEmployeeBalance(employee.id, 'WEBINAR')} credits
                         </div>
@@ -236,6 +236,7 @@ export const HRCreditAllocation = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setSelectedEmployee(employee.id)}
+                        className="self-start sm:self-center"
                       >
                         Allocate Credits
                       </Button>
