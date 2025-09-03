@@ -32,26 +32,13 @@ const Header = () => {
             For Individuals
           </a>
           
-          <Button 
-            variant="ghost"
-            className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:text-accent-foreground transition-colors bg-transparent"
-            onClick={() => window.location.href = '/employers'}
-          >
+          <Button variant="ghost" className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:text-accent-foreground transition-colors bg-transparent" onClick={() => window.location.href = '/employers'}>
             For Employers
           </Button>
           
-          <Button 
-            variant="ghost"
-            className="text-foreground hover:text-primary transition-colors"
-            onClick={() => window.location.href = '/login'}
-          >
-            Log In
-          </Button>
           
-          <Button 
-            className="px-3.5 py-2.5 rounded-[39px] min-h-[38px] w-[150px] text-white bg-[#447f73]"
-            onClick={() => window.location.href = '/book-demo'}
-          >
+          
+          <Button className="px-3.5 py-2.5 rounded-[39px] min-h-[38px] w-[150px] text-white bg-[#447f73]" onClick={() => window.location.href = '/book-demo'}>
             Book a Demo
           </Button>
         </div>
@@ -69,26 +56,15 @@ const Header = () => {
                 For Individuals
               </a>
               
-              <Button 
-                variant="outline"
-                className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:bg-accent hover:text-accent-foreground transition-colors w-full justify-center"
-                onClick={() => window.location.href = '/employers'}
-              >
+              <Button variant="outline" className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:bg-accent hover:text-accent-foreground transition-colors w-full justify-center" onClick={() => window.location.href = '/employers'}>
                 For Employers
               </Button>
               
-              <Button 
-                variant="ghost"
-                className="py-2 text-foreground hover:text-primary transition-colors w-full justify-start"
-                onClick={() => window.location.href = '/login'}
-              >
+              <Button variant="ghost" className="py-2 text-foreground hover:text-primary transition-colors w-full justify-start" onClick={() => window.location.href = '/login'}>
                 Log In
               </Button>
               
-              <Button 
-                className="text-primary-foreground px-3.5 py-2.5 rounded-[39px] w-full mt-4 bg-[#447f73]"
-                onClick={() => window.location.href = '/book-demo'}
-              >
+              <Button className="text-primary-foreground px-3.5 py-2.5 rounded-[39px] w-full mt-4 bg-[#447f73]" onClick={() => window.location.href = '/book-demo'}>
                 Book a Demo
               </Button>
             </div>
