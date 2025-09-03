@@ -58,6 +58,57 @@ export type Database = {
           },
         ]
       }
+      anonymized_insights: {
+        Row: {
+          active_participants: number | null
+          avg_confidence_level: number | null
+          avg_stress_level: number | null
+          completion_rates: Json | null
+          created_at: string
+          id: string
+          insight_date: string
+          mood_distribution: Json | null
+          one_on_one_booking_rate: number | null
+          organization_id: string
+          tool_usage_rate: number | null
+          top_concerns: Json | null
+          total_employees: number | null
+          webinar_attendance_rate: number | null
+        }
+        Insert: {
+          active_participants?: number | null
+          avg_confidence_level?: number | null
+          avg_stress_level?: number | null
+          completion_rates?: Json | null
+          created_at?: string
+          id?: string
+          insight_date?: string
+          mood_distribution?: Json | null
+          one_on_one_booking_rate?: number | null
+          organization_id: string
+          tool_usage_rate?: number | null
+          top_concerns?: Json | null
+          total_employees?: number | null
+          webinar_attendance_rate?: number | null
+        }
+        Update: {
+          active_participants?: number | null
+          avg_confidence_level?: number | null
+          avg_stress_level?: number | null
+          completion_rates?: Json | null
+          created_at?: string
+          id?: string
+          insight_date?: string
+          mood_distribution?: Json | null
+          one_on_one_booking_rate?: number | null
+          organization_id?: string
+          tool_usage_rate?: number | null
+          top_concerns?: Json | null
+          total_employees?: number | null
+          webinar_attendance_rate?: number | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -548,6 +599,113 @@ export type Database = {
           },
         ]
       }
+      program_communications: {
+        Row: {
+          communication_type: string
+          created_at: string
+          created_by: string
+          id: string
+          message_body: string
+          organization_id: string
+          recipient_count: number | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string | null
+          subject: string
+          webinar_id: string | null
+        }
+        Insert: {
+          communication_type: string
+          created_at?: string
+          created_by: string
+          id?: string
+          message_body: string
+          organization_id: string
+          recipient_count?: number | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject: string
+          webinar_id?: string | null
+        }
+        Update: {
+          communication_type?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          message_body?: string
+          organization_id?: string
+          recipient_count?: number | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string
+          webinar_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_communications_webinar_id_fkey"
+            columns: ["webinar_id"]
+            isOneToOne: false
+            referencedRelation: "webinars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          anonymized_concerns: string[] | null
+          category: string | null
+          coach_id: string | null
+          created_at: string
+          description: string | null
+          employee_id: string
+          hr_id: string
+          id: string
+          organization_id: string
+          priority: string | null
+          resolved_at: string | null
+          status: string | null
+          ticket_type: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          anonymized_concerns?: string[] | null
+          category?: string | null
+          coach_id?: string | null
+          created_at?: string
+          description?: string | null
+          employee_id: string
+          hr_id: string
+          id?: string
+          organization_id: string
+          priority?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          ticket_type?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          anonymized_concerns?: string[] | null
+          category?: string | null
+          coach_id?: string | null
+          created_at?: string
+          description?: string | null
+          employee_id?: string
+          hr_id?: string
+          id?: string
+          organization_id?: string
+          priority?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          ticket_type?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           auth_id: string | null
@@ -594,6 +752,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      webinars: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          credits_required: number | null
+          current_participants: number | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          instructor_bio: string | null
+          instructor_name: string | null
+          max_participants: number | null
+          meeting_link: string | null
+          organization_id: string
+          recording_link: string | null
+          scheduled_date: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          credits_required?: number | null
+          current_participants?: number | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          instructor_bio?: string | null
+          instructor_name?: string | null
+          max_participants?: number | null
+          meeting_link?: string | null
+          organization_id: string
+          recording_link?: string | null
+          scheduled_date: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          credits_required?: number | null
+          current_participants?: number | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          instructor_bio?: string | null
+          instructor_name?: string | null
+          max_participants?: number | null
+          meeting_link?: string | null
+          organization_id?: string
+          recording_link?: string | null
+          scheduled_date?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
