@@ -1283,6 +1283,48 @@ export type Database = {
           },
         ]
       }
+      scheduled_reports: {
+        Row: {
+          created_at: string
+          email: string
+          frequency: string
+          id: string
+          is_active: boolean
+          last_sent_at: string | null
+          next_run_at: string
+          organization_id: string
+          report_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          frequency: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_run_at: string
+          organization_id: string
+          report_type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_run_at?: string
+          organization_id?: string
+          report_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tickets: {
         Row: {
           anonymized_concerns: string[] | null
@@ -1494,6 +1536,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_next_run_at: {
+        Args: { freq: string; last_sent?: string }
+        Returns: string
+      }
       create_notification: {
         Args: {
           notification_message: string
