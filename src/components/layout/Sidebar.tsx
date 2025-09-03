@@ -20,7 +20,11 @@ import {
   Wrench,
   CreditCard,
   Shield,
-  GraduationCap
+  GraduationCap,
+  BarChart3,
+  Coins,
+  FileText,
+  ShieldCheck
 } from 'lucide-react';
 
 const menuItems = [
@@ -84,6 +88,45 @@ const menuItems = [
   }
 ];
 
+const adminMenuItems = [
+  {
+    title: 'Dashboard',
+    url: '/admin-dashboard',
+    icon: LayoutDashboard,
+    roles: ['ADMIN']
+  },
+  {
+    title: 'Analytics',
+    url: '/admin-dashboard?tab=analytics',
+    icon: BarChart3,
+    roles: ['ADMIN']
+  },
+  {
+    title: 'Credits Engine',
+    url: '/admin-dashboard?tab=credits',
+    icon: Coins,
+    roles: ['ADMIN']
+  },
+  {
+    title: 'Content CMS',
+    url: '/admin-dashboard?tab=content',
+    icon: FileText,
+    roles: ['ADMIN']
+  },
+  {
+    title: 'Security Audit',
+    url: '/admin-dashboard?tab=security',
+    icon: ShieldCheck,
+    roles: ['ADMIN']
+  },
+  {
+    title: 'Organizations',
+    url: '/admin/organizations',
+    icon: Shield,
+    roles: ['ADMIN']
+  }
+];
+
 export const Sidebar = () => {
   const { state } = useSidebar();
   const location = useLocation();
@@ -95,8 +138,9 @@ export const Sidebar = () => {
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50';
 
-  // Filter menu items based on user role
-  const filteredMenuItems = menuItems.filter(item => 
+  // Filter menu items based on user role - use admin menu for admin users
+  const currentMenuItems = userProfile?.role === 'ADMIN' ? adminMenuItems : menuItems;
+  const filteredMenuItems = currentMenuItems.filter(item => 
     userProfile ? hasRole(userProfile, item.roles) : false
   );
 
@@ -115,7 +159,7 @@ export const Sidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredMenuItems.map((item) => {
-                const itemUrl = item.getRoleUrl && userProfile ? item.getRoleUrl(userProfile.role) : item.url;
+                const itemUrl = (item as any).getRoleUrl && userProfile ? (item as any).getRoleUrl(userProfile.role) : item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>

@@ -14,12 +14,11 @@ import {
   DollarSign,
   Calendar
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AdminCreditIssuance } from '@/components/credits/AdminCreditIssuance';
 import { ContentCatalog } from '@/components/cms/ContentCatalog';
 import { OrgAnalyticsDashboard } from '@/components/analytics/OrgAnalyticsDashboard';
 import { SecurityAuditDashboard } from '@/components/security/SecurityAuditDashboard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PlatformStats {
   totalOrganizations: number;
@@ -31,6 +30,8 @@ interface PlatformStats {
 export const AdminDashboard = () => {
   const { userProfile } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
   const [stats, setStats] = useState<PlatformStats>({
     totalOrganizations: 0,
     totalUsers: 0,
@@ -142,6 +143,24 @@ export const AdminDashboard = () => {
     return <div>Loading admin dashboard...</div>;
   }
 
+  // Render different views based on active tab
+  if (activeTab === 'analytics') {
+    return <OrgAnalyticsDashboard />;
+  }
+
+  if (activeTab === 'credits') {
+    return <AdminCreditIssuance />;
+  }
+
+  if (activeTab === 'content') {
+    return <ContentCatalog />;
+  }
+
+  if (activeTab === 'security') {
+    return <SecurityAuditDashboard />;
+  }
+
+  // Default overview content
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -158,17 +177,6 @@ export const AdminDashboard = () => {
           </Badge>
         </div>
       </div>
-
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="credits">Credits Engine</TabsTrigger>
-          <TabsTrigger value="content">Content CMS</TabsTrigger>
-          <TabsTrigger value="security">Security Audit</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
 
       {/* Platform Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -263,24 +271,6 @@ export const AdminDashboard = () => {
           </div>
         </CardContent>
       </Card>
-      </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <OrgAnalyticsDashboard />
-        </TabsContent>
-
-        <TabsContent value="credits" className="space-y-6">
-          <AdminCreditIssuance />
-        </TabsContent>
-
-        <TabsContent value="content" className="space-y-6">
-          <ContentCatalog />
-        </TabsContent>
-
-        <TabsContent value="security" className="space-y-6">
-          <SecurityAuditDashboard />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };
