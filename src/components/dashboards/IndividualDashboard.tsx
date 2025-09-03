@@ -239,17 +239,17 @@ export const IndividualDashboard = () => {
   };
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <div className="min-h-screen w-full relative">
+    <SidebarProvider>
+      <div className="min-h-screen w-full flex">
         {/* Sidebar */}
         <IndividualSidebar />
 
         {/* Main Content */}
-        <main className="transition-all duration-200 ease-in-out md:pl-0 lg:pl-64 min-h-screen">
+        <main className="flex-1 min-h-screen">
           {/* Header with Sidebar Trigger */}
           <header className="sticky top-0 z-40 h-14 md:h-16 flex items-center justify-between border-b px-4 md:px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center gap-3 min-w-0 w-full">
-              <SidebarTrigger className="md:block xl:hidden shrink-0" />
+              <SidebarTrigger className="lg:hidden shrink-0" />
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0">
                 <h1 className="text-base md:text-lg lg:text-xl xl:text-2xl font-bold truncate">
                   Welcome, {userProfile?.name?.split(' ')[0]}!
