@@ -26,7 +26,7 @@ import {
 const menuItems = [
   {
     title: 'Dashboard',
-    url: '/dashboard',
+    url: '/individual-dashboard',
     icon: LayoutDashboard,
     roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL'],
     getRoleUrl: (role: string) => {

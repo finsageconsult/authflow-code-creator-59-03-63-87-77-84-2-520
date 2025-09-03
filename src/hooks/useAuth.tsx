@@ -50,8 +50,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Auto-redirect to role-specific dashboard after login
-      if (profile && (location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/dashboard')) {
-        const dashboardUrl = getRoleDashboardUrl(profile.role);
+      if (location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/dashboard') {
+        const dashboardUrl = profile ? getRoleDashboardUrl(profile.role) : '/individual-dashboard';
         navigate(dashboardUrl, { replace: true });
       }
     } catch (error) {

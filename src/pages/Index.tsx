@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import Home from '@/components/Home';
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, userProfile, loading } = useAuth();
 
   if (loading) {
     return (
@@ -16,9 +16,15 @@ const Index = () => {
     );
   }
 
-  // If user is authenticated, redirect to dashboard
+  // If user is authenticated, redirect to role-based dashboard
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    const role = userProfile?.role ?? 'INDIVIDUAL';
+    const url = role === 'ADMIN' ? '/admin-dashboard'
+      : role === 'HR' ? '/hr-dashboard'
+      : role === 'EMPLOYEE' ? '/employee-dashboard'
+      : role === 'COACH' ? '/coach-dashboard'
+      : '/individual-dashboard';
+    return <Navigate to={url} replace />;
   }
 
   // Show landing page with auth button for non-authenticated users
