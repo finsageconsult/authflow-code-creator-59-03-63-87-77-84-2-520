@@ -90,10 +90,14 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
+      console.log('Calling verify-access-code edge function with code:', accessCode.trim());
+      
       // Call edge function to verify access code
       const { data: response, error: functionError } = await supabase.functions.invoke('verify-access-code', {
         body: { code: accessCode.trim() }
       });
+
+      console.log('Edge function response:', { response, functionError });
 
       if (functionError) {
         console.error('Function error:', functionError);
@@ -101,8 +105,8 @@ export default function Auth() {
         return;
       }
 
-      if (!response.success) {
-        toast.error(response.error);
+      if (!response || !response.success) {
+        toast.error(response?.error || 'Invalid access code. Please check and try again.');
         return;
       }
 

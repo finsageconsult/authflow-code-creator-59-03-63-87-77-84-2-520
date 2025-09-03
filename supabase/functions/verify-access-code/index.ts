@@ -17,10 +17,15 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { code }: VerifyAccessCodeRequest = await req.json();
+    console.log("Received request to verify code:", code);
 
     if (!code || !code.trim()) {
+      console.log("No code provided");
       return new Response(
-        JSON.stringify({ error: "Access code is required" }),
+        JSON.stringify({ 
+          success: false, 
+          error: "Access code is required" 
+        }),
         {
           status: 400,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -29,22 +34,52 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Create Supabase client with service role to bypass RLS
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    console.log("Supabase URL exists:", !!supabaseUrl);
+    console.log("Service key exists:", !!supabaseServiceKey);
+
     const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      supabaseUrl ?? "",
+      supabaseServiceKey ?? ""
     );
 
-    console.log("Verifying access code:", code);
+    console.log("Querying access code:", code.trim());
 
     // Verify access code exists and is valid
     const { data: codeData, error: codeError } = await supabaseAdmin
       .from('access_codes')
-      .select('*, organizations(*)')
+      .select(`
+        *,
+        organizations (
+          id,
+          name,
+          plan,
+          status
+        )
+      `)
       .eq('code', code.trim())
       .single();
 
-    if (codeError || !codeData) {
-      console.log("Access code not found:", codeError);
+    console.log("Query result:", { codeData, codeError });
+
+    if (codeError) {
+      console.log("Database error:", codeError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Invalid access code. Please check and try again." 
+        }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    if (!codeData) {
+      console.log("No code data found");
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -58,8 +93,12 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Check if code is expired
-    if (new Date(codeData.expires_at) < new Date()) {
-      console.log("Access code expired:", codeData.expires_at);
+    const expiresAt = new Date(codeData.expires_at);
+    const now = new Date();
+    console.log("Expiry check:", { expiresAt, now, expired: expiresAt < now });
+    
+    if (expiresAt < now) {
+      console.log("Access code expired");
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -73,8 +112,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Check if code is used up
+    console.log("Usage check:", { used: codeData.used_count, max: codeData.max_uses });
     if (codeData.used_count >= codeData.max_uses) {
-      console.log("Access code used up:", codeData.used_count, ">=", codeData.max_uses);
+      console.log("Access code used up");
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -96,7 +136,7 @@ const handler = async (req: Request): Promise<Response> => {
           code: codeData.code,
           role: codeData.role,
           organization_id: codeData.organization_id,
-          organization_name: codeData.organizations.name,
+          organization_name: codeData.organizations?.name || 'Unknown Organization',
           expires_at: codeData.expires_at
         }
       }),
