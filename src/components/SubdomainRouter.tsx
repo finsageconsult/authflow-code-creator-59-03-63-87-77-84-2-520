@@ -10,6 +10,34 @@ import Organizations from '@/pages/admin/Organizations';
 import OrganizationDetail from '@/pages/admin/OrganizationDetail';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
+
+const getRoleDashboardUrl = (role: string) => {
+  switch (role) {
+    case 'ADMIN': return '/admin-dashboard';
+    case 'HR': return '/hr-dashboard';
+    case 'EMPLOYEE': return '/employee-dashboard';
+    case 'COACH': return '/coach-dashboard';
+    default: return '/individual-dashboard';
+  }
+};
+
+const RoleRedirect = () => {
+  const { user, userProfile, profileReady } = useAuth();
+  useEffect(() => {
+    if (!user || !profileReady) return;
+    const target = getRoleDashboardUrl(userProfile?.role || 'INDIVIDUAL');
+    window.location.replace(target);
+  }, [user, userProfile, profileReady]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin" />
+    </div>
+  );
+};
 
 export const SubdomainRouter = () => {
   return (
