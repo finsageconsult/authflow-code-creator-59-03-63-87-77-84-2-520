@@ -23,7 +23,7 @@ interface HRStats {
 }
 
 export const HRDashboard = () => {
-  const { userProfile, organization } = useAuth();
+  const { userProfile, organization, profileReady } = useAuth();
   const [stats, setStats] = useState<HRStats>({
     totalEmployees: 0,
     activeEmployees: 0,
@@ -34,9 +34,19 @@ export const HRDashboard = () => {
 
   useEffect(() => {
     const fetchHRStats = async () => {
-      if (!userProfile?.organization_id) return;
-
       try {
+        if (!userProfile?.organization_id) {
+          // No organization assigned - show default state
+          setStats({
+            totalEmployees: 0,
+            activeEmployees: 0,
+            creditsAllocated: 0,
+            upcomingWebinars: 0
+          });
+          setLoading(false);
+          return;
+        }
+
         // Fetch employees in organization
         const { count: employeeCount } = await supabase
           .from('users')
@@ -57,7 +67,7 @@ export const HRDashboard = () => {
           .from('org_plans')
           .select('credit_allotment_1on1, credit_allotment_webinar')
           .eq('organization_id', userProfile.organization_id)
-          .single();
+          .maybeSingle();
 
         const totalCredits = orgPlan ? 
           orgPlan.credit_allotment_1on1 + orgPlan.credit_allotment_webinar : 0;
@@ -75,8 +85,16 @@ export const HRDashboard = () => {
       }
     };
 
-    fetchHRStats();
-  }, [userProfile?.organization_id]);
+    // Only run when profile is ready
+    if (profileReady) {
+      fetchHRStats();
+    }
+  }, [profileReady, userProfile?.organization_id]);
+
+  // Show loading while auth is not ready or data is loading
+  if (!profileReady || loading) {
+    return <div>Loading HR dashboard...</div>;
+  }
 
   const hrStats = [
     {
