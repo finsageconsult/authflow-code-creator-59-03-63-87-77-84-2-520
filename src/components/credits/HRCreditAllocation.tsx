@@ -76,10 +76,10 @@ export const HRCreditAllocation = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="allocate" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
-          <TabsTrigger value="allocate">Allocate Credits</TabsTrigger>
-          <TabsTrigger value="usage">Usage Overview</TabsTrigger>
-          <TabsTrigger value="alerts">Low Balance Alerts</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto sm:h-10">
+          <TabsTrigger value="allocate" className="text-xs sm:text-sm py-2 sm:py-0">Allocate Credits</TabsTrigger>
+          <TabsTrigger value="usage" className="text-xs sm:text-sm py-2 sm:py-0">Usage Overview</TabsTrigger>
+          <TabsTrigger value="alerts" className="text-xs sm:text-sm py-2 sm:py-0">Low Balance Alerts</TabsTrigger>
         </TabsList>
 
         <TabsContent value="allocate" className="space-y-4">
