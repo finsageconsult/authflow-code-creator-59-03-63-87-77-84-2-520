@@ -1,1 +1,7 @@
 project_id = "grjyybmjrzrurlzdqmqc"
+
+[functions.verify-access-code]
+verify_jwt = false
+
+[functions.consume-access-code]
+verify_jwt = false

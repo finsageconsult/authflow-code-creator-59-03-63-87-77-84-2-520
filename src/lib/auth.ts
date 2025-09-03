@@ -46,67 +46,35 @@ export const signUp = async (email: string, password: string, name: string) => {
         const accessCodeData = JSON.parse(pendingAccessCode);
         
         // Wait a moment for the trigger to create the user profile
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Update the user profile with organization and role from access code
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({
-            organization_id: accessCodeData.organizationId,
+        // Use edge function to consume access code and update user profile
+        const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
+          body: {
+            userId: data.user.id,
+            code: accessCodeData.code,
             role: accessCodeData.role,
-            status: 'ACTIVE'
-          })
-          .eq('auth_id', data.user.id);
-
-        if (updateError) {
-          console.error('Error updating user with access code:', updateError);
-          // Retry once more in case the trigger hasn't completed
-          setTimeout(async () => {
-            const { error: retryError } = await supabase
-              .from('users')
-              .update({
-                organization_id: accessCodeData.organizationId,
-                role: accessCodeData.role,
-                status: 'ACTIVE'
-              })
-              .eq('auth_id', data.user.id);
-            
-            if (!retryError) {
-              // Update access code usage
-              const { data: codeData, error: fetchError } = await supabase
-                .from('access_codes')
-                .select('used_count')
-                .eq('code', accessCodeData.code)
-                .single();
-                
-              if (!fetchError && codeData) {
-                await supabase
-                  .from('access_codes')
-                  .update({ used_count: codeData.used_count + 1 })
-                  .eq('code', accessCodeData.code);
-              }
-            }
-          }, 2000);
-        } else {
-          // Get current usage and increment by 1
-          const { data: codeData, error: fetchError } = await supabase
-            .from('access_codes')
-            .select('used_count')
-            .eq('code', accessCodeData.code)
-            .single();
-            
-          if (!fetchError && codeData) {
-            await supabase
-              .from('access_codes')
-              .update({ used_count: codeData.used_count + 1 })
-              .eq('code', accessCodeData.code);
+            organizationId: accessCodeData.organizationId
           }
-          
-          // Clear the pending access code
-          sessionStorage.removeItem('pendingAccessCode');
+        });
+
+        if (consumeError) {
+          console.error('Error consuming access code:', consumeError);
+          throw new Error('Failed to consume access code');
         }
+
+        if (!consumeResponse?.success) {
+          console.error('Access code consumption failed:', consumeResponse?.error);
+          throw new Error(consumeResponse?.error || 'Failed to consume access code');
+        }
+
+        // Clear the pending access code on success
+        sessionStorage.removeItem('pendingAccessCode');
+        console.log('Access code consumed successfully:', consumeResponse);
+        
       } catch (parseError) {
-        console.error('Error parsing pending access code:', parseError);
+        console.error('Error processing access code:', parseError);
+        throw parseError;
       }
     }
   }
