@@ -17,6 +17,8 @@ import {
   Heart,
   Target
 } from 'lucide-react';
+import { CreditWallet } from '@/components/credits/CreditWallet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MoodCheckIn {
   mood: 'happy' | 'neutral' | 'sad' | null;
@@ -234,10 +236,18 @@ export const EmployeeDashboard = () => {
             {organization?.name} Employee
           </p>
           <Badge variant="secondary" className="bg-green-100 text-green-800">
-            15 Credits Available
+            Employee Dashboard
           </Badge>
         </div>
       </div>
+
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="credits">My Credits</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-6">
 
       {/* Personalized Recommendations */}
       <Card>
@@ -358,6 +368,12 @@ export const EmployeeDashboard = () => {
           </CardContent>
         </Card>
       </div>
+      </TabsContent>
+
+      <TabsContent value="credits" className="space-y-6">
+        <CreditWallet />
+      </TabsContent>
+      </Tabs>
     </div>
   );
 };

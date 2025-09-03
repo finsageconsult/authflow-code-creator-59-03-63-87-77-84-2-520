@@ -15,6 +15,8 @@ import {
   Calendar
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AdminCreditIssuance } from '@/components/credits/AdminCreditIssuance';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PlatformStats {
   totalOrganizations: number;
@@ -154,6 +156,14 @@ export const AdminDashboard = () => {
         </div>
       </div>
 
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="credits">Credits Engine</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+
       {/* Platform Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {platformStats.map((stat, index) => (
@@ -247,6 +257,12 @@ export const AdminDashboard = () => {
           </div>
         </CardContent>
       </Card>
+      </TabsContent>
+
+      <TabsContent value="credits" className="space-y-6">
+        <AdminCreditIssuance />
+      </TabsContent>
+      </Tabs>
     </div>
   );
 };

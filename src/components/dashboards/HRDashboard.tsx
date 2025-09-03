@@ -14,6 +14,8 @@ import {
   Mail,
   FileText
 } from 'lucide-react';
+import { HRCreditAllocation } from '@/components/credits/HRCreditAllocation';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface HRStats {
   totalEmployees: number;
@@ -224,6 +226,14 @@ export const HRDashboard = () => {
         </Card>
       )}
 
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="credits">Credit Management</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+
       {/* HR Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {hrStats.map((stat, index) => (
@@ -356,6 +366,12 @@ export const HRDashboard = () => {
           </div>
         </CardContent>
       </Card>
+      </TabsContent>
+
+      <TabsContent value="credits" className="space-y-6">
+        <HRCreditAllocation />
+      </TabsContent>
+      </Tabs>
     </div>
   );
 };
