@@ -11,6 +11,7 @@ import { PixelPledgeSection } from './pixel-pledge-section';
 import { PixelPerfectionSection } from './pixel-perfection-section';
 import { ImpactSection } from './impact-section';
 import { useSmoothScroll } from '@/hooks/useSmoothScroll';
+import { BrandFooter } from './ui/brand-footer';
 
 import './Home.css';
 
@@ -55,6 +56,8 @@ const Home = props => {
       <div className="smooth-scroll">
         <PixelPledgeSection />
       </div>
+      
+      <BrandFooter variant="full" />
     </div>
   );
 };

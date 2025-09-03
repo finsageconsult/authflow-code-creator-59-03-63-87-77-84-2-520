@@ -248,9 +248,12 @@ export const EmployeeDashboard = () => {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">How are you feeling today?</h1>
+          <h1 className="text-3xl font-bold" role="heading" aria-level={1}>How are you feeling today?</h1>
           <p className="text-muted-foreground">
-            Let's check in with your financial mood and get personalized recommendations
+            Take a moment to check in with yourself - we're here to support your financial journey, wherever you are
+          </p>
+          <p className="text-sm text-primary/80 font-medium italic">
+            Financial wellness is workplace wellness.
           </p>
         </div>
 
@@ -381,9 +384,13 @@ export const EmployeeDashboard = () => {
               onClick={handleCheckIn} 
               className="w-full"
               disabled={!checkIn.mood}
+              aria-label="Complete check-in to receive personalized recommendations"
             >
-              Get My Recommendations
+              Get My Personalized Recommendations
             </Button>
+            <p className="text-xs text-center text-muted-foreground mt-2">
+              We're here to support you - there are no wrong answers ❤️
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -395,14 +402,15 @@ export const EmployeeDashboard = () => {
       {/* Header */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">
-            Welcome back, {userProfile?.name?.split(' ')[0]}!
+          <h1 className="text-3xl font-bold" role="heading" aria-level={1}>
+            Welcome back, {userProfile?.name?.split(' ')[0]}! 🌟
           </h1>
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => setHasCheckedIn(false)}
             className="text-xs"
+            aria-label="Retake mood check-in to update recommendations"
           >
             Retake Check-in
           </Button>
@@ -418,24 +426,24 @@ export const EmployeeDashboard = () => {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList>
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="analytics">My Progress</TabsTrigger>
-          <TabsTrigger value="credits">My Credits</TabsTrigger>
+        <TabsList role="tablist" aria-label="Employee dashboard navigation">
+          <TabsTrigger value="dashboard" role="tab" aria-controls="dashboard-panel">Dashboard</TabsTrigger>
+          <TabsTrigger value="analytics" role="tab" aria-controls="analytics-panel">My Progress</TabsTrigger>
+          <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="space-y-6">
+        <TabsContent value="dashboard" className="space-y-6" role="tabpanel" id="dashboard-panel" aria-labelledby="dashboard-tab">
 
       {/* Personalized Recommendations */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            Recommended For You
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Based on your mood check-in and interests
-          </p>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Thoughtfully Recommended For You
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Based on your check-in, here are some gentle next steps to support your financial journey
+            </p>
         </CardHeader>
         <CardContent className="space-y-4">
           {recommendations.map((rec, index) => (
@@ -451,13 +459,17 @@ export const EmployeeDashboard = () => {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">{rec.description}</p>
-                <p className="text-xs text-blue-600 font-medium mb-2">{rec.reason}</p>
+                <p className="text-xs text-blue-600 font-medium mb-2" role="note" aria-label="Personalized recommendation reason">
+                  {rec.reason}
+                </p>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span>⭐ {rec.rating}</span>
                   <span>{rec.participants} participants</span>
                 </div>
               </div>
-              <Button>
+              <Button 
+                aria-label={`${rec.type === 'tool' ? 'Use' : 'Book'} ${rec.title} - ${rec.description}`}
+              >
                 {rec.type === 'tool' ? 'Use Tool' : 'Book Now'}
               </Button>
             </div>
@@ -492,9 +504,15 @@ export const EmployeeDashboard = () => {
               </div>
             ))}
             {upcomingBookings.length === 0 && (
-              <p className="text-center text-muted-foreground py-4">
-                No upcoming sessions
-              </p>
+              <div className="text-center py-6 space-y-2">
+                <p className="text-muted-foreground">No upcoming sessions yet</p>
+                <p className="text-xs text-primary/70 italic">
+                  Ready to take the next step? Book a session when you feel comfortable.
+                </p>
+                <Button size="sm" variant="outline" className="mt-2">
+                  Browse Available Sessions
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

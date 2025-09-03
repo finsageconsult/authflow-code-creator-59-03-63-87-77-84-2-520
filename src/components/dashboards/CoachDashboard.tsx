@@ -135,31 +135,34 @@ export const CoachDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-3xl font-bold" role="heading" aria-level={1}>
           Coach Dashboard
         </h1>
         <div className="flex items-center gap-2">
           <p className="text-muted-foreground">
-            Financial Coach - {userProfile?.name}
+            Supporting Financial Wellness - {userProfile?.name}
           </p>
           <Badge variant="secondary" className="bg-green-100 text-green-800">
             Certified Coach
           </Badge>
         </div>
+        <p className="text-sm text-primary/70 italic">
+          Empowering clients because financial wellness is workplace wellness.
+        </p>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="sessions">Sessions</TabsTrigger>
-          <TabsTrigger value="clients">Clients</TabsTrigger>
-          <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="availability">Availability</TabsTrigger>
-          <TabsTrigger value="payouts">Payouts</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-7" role="tablist" aria-label="Coach dashboard navigation">
+          <TabsTrigger value="overview" role="tab" aria-controls="overview-panel">Overview</TabsTrigger>
+          <TabsTrigger value="analytics" role="tab" aria-controls="analytics-panel">Analytics</TabsTrigger>
+          <TabsTrigger value="sessions" role="tab" aria-controls="sessions-panel">Sessions</TabsTrigger>
+          <TabsTrigger value="clients" role="tab" aria-controls="clients-panel">Clients</TabsTrigger>
+          <TabsTrigger value="content" role="tab" aria-controls="content-panel">Content</TabsTrigger>
+          <TabsTrigger value="availability" role="tab" aria-controls="availability-panel">Availability</TabsTrigger>
+          <TabsTrigger value="payouts" role="tab" aria-controls="payouts-panel">Payouts</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview" className="space-y-6" role="tabpanel" id="overview-panel" aria-labelledby="overview-tab">
           {/* Coach Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {coachStats.map((stat, index) => (
@@ -210,13 +213,13 @@ export const CoachDashboard = () => {
           {/* Outcomes Tracking */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Client Outcomes This Month
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Achievements that feed into the recommendation engine
-              </p>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Client Outcomes This Month
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Celebrating the positive impact you're making in your clients' financial lives
+            </p>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -241,17 +244,17 @@ export const CoachDashboard = () => {
           <SessionManager />
         </TabsContent>
 
-        <TabsContent value="clients" className="space-y-6">
+        <TabsContent value="clients" className="space-y-6" role="tabpanel" id="clients-panel" aria-labelledby="clients-tab">
           {/* Client List */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                My Clients
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Clients assigned to you for coaching sessions
-              </p>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              My Clients
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              The individuals you're supporting on their financial wellness journey
+            </p>
             </CardHeader>
             <CardContent className="space-y-4">
               {recentClients.map((client) => (

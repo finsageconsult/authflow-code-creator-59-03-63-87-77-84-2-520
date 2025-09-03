@@ -39,12 +39,15 @@ export const WhatWeOffer: React.FC = () => {
     <section className="flex w-full max-w-[966px] flex-col items-center gap-[38px] mx-auto my-0 px-5 py-10 max-md:gap-[30px] max-md:px-[15px] max-md:py-[30px] max-sm:gap-6 max-sm:px-2.5 max-sm:py-5">
       <header className="flex w-full max-w-xl flex-col items-center gap-3">
         <div className="w-full max-w-xl h-[49px] relative">
-          <h1 className="w-full text-[#357369] text-center text-[38px] font-bold leading-[49px] h-[49px] max-md:text-[32px] max-md:leading-10 max-sm:text-[28px] max-sm:leading-9">
+          <h1 className="w-full text-[#357369] text-center text-[38px] font-bold leading-[49px] h-[49px] max-md:text-[32px] max-md:leading-10 max-sm:text-[28px] max-sm:leading-9" role="heading" aria-level={2}>
             What We Offer
           </h1>
         </div>
         <p className="w-full text-[#2E7265] text-center text-sm font-normal leading-[25px] max-md:text-[13px] max-md:leading-[22px] max-sm:text-xs max-sm:leading-5">
-          Practical, high-impact financial wellness solutions for modern workplaces
+          Supportive, personalized financial wellness solutions that meet your team where they are
+        </p>
+        <p className="w-full text-[#357369] text-center text-xs font-medium italic leading-5 opacity-80">
+          Because financial wellness is workplace wellness.
         </p>
       </header>
 
