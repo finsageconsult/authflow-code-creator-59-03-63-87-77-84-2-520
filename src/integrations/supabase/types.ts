@@ -571,6 +571,36 @@ export type Database = {
         }
         Relationships: []
       }
+      encrypted_questionnaire_responses: {
+        Row: {
+          created_at: string
+          encryption_key_id: string
+          id: string
+          response_data_encrypted: string
+          response_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          encryption_key_id: string
+          id?: string
+          response_data_encrypted: string
+          response_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          encryption_key_id?: string
+          id?: string
+          response_data_encrypted?: string
+          response_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       financial_tools: {
         Row: {
           access_level: string | null
@@ -1230,6 +1260,42 @@ export type Database = {
           },
         ]
       }
+      privacy_consents: {
+        Row: {
+          consent_given: boolean
+          consent_type: string
+          consent_version: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          consent_given?: boolean
+          consent_type: string
+          consent_version: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          consent_given?: boolean
+          consent_type?: string
+          consent_version?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       program_communications: {
         Row: {
           communication_type: string
@@ -1321,6 +1387,45 @@ export type Database = {
           organization_id?: string
           report_type?: string
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      security_audit_logs: {
+        Row: {
+          created_at: string
+          event_details: Json
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          risk_level: string
+          success: boolean
+          target_user_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_details?: Json
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          risk_level?: string
+          success: boolean
+          target_user_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_details?: Json
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          risk_level?: string
+          success?: boolean
+          target_user_id?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -1565,6 +1670,19 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      log_security_event: {
+        Args: {
+          p_event_details?: Json
+          p_event_type: string
+          p_ip_address?: unknown
+          p_risk_level?: string
+          p_success?: boolean
+          p_target_user_id?: string
+          p_user_agent?: string
+          p_user_id?: string
+        }
+        Returns: string
       }
     }
     Enums: {

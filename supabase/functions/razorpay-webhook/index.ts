@@ -47,10 +47,23 @@ const handler = async (req: Request): Promise<Response> => {
       .join('');
     
     if (signature !== expectedSignature) {
-      console.error("Invalid signature");
+      console.error("Invalid signature - potential security threat");
+      
+      // Log security event for invalid webhook signature
+      await supabase.rpc('log_security_event', {
+        p_event_type: 'webhook_invalid_signature',
+        p_event_details: { 
+          webhook_type: 'razorpay',
+          expected_signature: expectedSignature.substring(0, 10) + '...',
+          received_signature: signature.substring(0, 10) + '...'
+        },
+        p_success: false,
+        p_risk_level: 'high'
+      });
+      
       return new Response("Invalid signature", { status: 400 });
     }
-
+    
     const event = JSON.parse(body);
     console.log("Processing webhook event:", event.event);
 
@@ -58,6 +71,17 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+    
+    // Log successful webhook verification
+    await supabase.rpc('log_security_event', {
+      p_event_type: 'webhook_verified',
+      p_event_details: { 
+        webhook_type: 'razorpay',
+        event_type: event.event 
+      },
+      p_success: true,
+      p_risk_level: 'low'
+    });
 
     switch (event.event) {
       case 'payment.authorized':
