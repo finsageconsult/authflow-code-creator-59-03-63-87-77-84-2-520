@@ -1,7 +1,6 @@
 import React from 'react';
 import TrustIndicator from './TrustIndicator';
 import CTAButtons from './CTAButtons';
-
 const HeroContent = () => {
   return <main className="flex items-center gap-[40px] mt-[76px] max-md:flex-col max-md:gap-[30px] max-md:max-w-full max-md:mt-10 overflow-hidden">
       <section className="flex-1 flex flex-col">
@@ -12,9 +11,7 @@ const HeroContent = () => {
           <p className="font-manrope text-[16px] sm:text-[17px] md:text-[18px] lg:text-[19px] xl:text-[19.72px] font-medium mt-[17px] leading-relaxed w-full sm:w-full md:w-[350px] lg:w-[376.83px]">
             Give your employees the tools to stress less, save more, and live better
           </p>
-          <p className="font-manrope text-[14px] sm:text-[15px] md:text-[16px] font-semibold mt-[8px] text-primary/80 italic leading-relaxed">
-            Financial wellness is workplace wellness.
-          </p>
+          
         </div>
         <TrustIndicator />
         <CTAButtons />
@@ -24,5 +21,4 @@ const HeroContent = () => {
       </aside>
     </main>;
 };
-
 export default HeroContent;
