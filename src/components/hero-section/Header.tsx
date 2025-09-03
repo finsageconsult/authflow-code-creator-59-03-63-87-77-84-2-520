@@ -33,8 +33,8 @@ const Header = () => {
           </a>
           
           <Button 
-            variant="outline"
-            className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:text-accent-foreground transition-colors"
+            variant="ghost"
+            className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:text-accent-foreground transition-colors bg-transparent"
             onClick={() => window.location.href = '/employers'}
           >
             For Employers
