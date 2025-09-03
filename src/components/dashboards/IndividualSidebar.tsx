@@ -60,7 +60,7 @@ const menuItems = [
 ]
 
 export function IndividualSidebar() {
-  const { state } = useSidebar()
+  const { state, isMobile } = useSidebar()
   const location = useLocation()
   const currentParam = new URLSearchParams(location.search).get('tab') || 'programs'
 
@@ -68,7 +68,7 @@ export function IndividualSidebar() {
 
   return (
     <Sidebar
-      className={state === "collapsed" ? "w-14" : "w-60"}
+      className={`${state === "collapsed" ? "w-14" : "w-60"} ${isMobile ? "data-[state=open]:w-60" : ""}`}
       collapsible="icon"
     >
       <SidebarContent>
@@ -82,7 +82,7 @@ export function IndividualSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink
+                     <NavLink
                       to={`${item.url}?tab=${item.param}`}
                       className={({ isActive: linkActive }) => 
                         isActive(item.param) 
@@ -90,8 +90,10 @@ export function IndividualSidebar() {
                           : "hover:bg-muted/50"
                       }
                     >
-                      <item.icon className="mr-2 h-4 w-4 flex-shrink-0" />
-                      {state !== "collapsed" && <span>{item.title}</span>}
+                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      {(state !== "collapsed" || isMobile) && (
+                        <span className="ml-2 truncate">{item.title}</span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

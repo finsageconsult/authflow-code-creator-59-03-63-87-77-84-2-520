@@ -234,29 +234,33 @@ export const IndividualDashboard = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+    <SidebarProvider defaultOpen={false}>
+      <div className="min-h-screen flex w-full bg-background">
         {/* Sidebar */}
         <IndividualSidebar />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Header with Sidebar Trigger */}
-          <header className="h-12 flex items-center border-b px-4">
-            <SidebarTrigger className="mr-4" />
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <h1 className="text-lg md:text-2xl font-bold">
-                Welcome to Finsage, {userProfile?.name?.split(' ')[0]}!
-              </h1>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
-                Individual Learner
-              </Badge>
+          <header className="h-14 lg:h-16 flex items-center justify-between border-b px-4 lg:px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="lg:hidden" />
+              <div className="flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-3">
+                <h1 className="text-base lg:text-xl xl:text-2xl font-bold truncate">
+                  Welcome, {userProfile?.name?.split(' ')[0]}!
+                </h1>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs w-fit">
+                  Individual Learner
+                </Badge>
+              </div>
             </div>
           </header>
 
           {/* Content */}
-          <main className="flex-1 p-4 md:p-6">
-            {renderContent()}
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto">
+            <div className="max-w-7xl mx-auto">
+              {renderContent()}
+            </div>
           </main>
         </div>
       </div>
