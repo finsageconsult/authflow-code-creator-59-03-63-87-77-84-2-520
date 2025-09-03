@@ -32,6 +32,8 @@ export const CoachDashboard = () => {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'overview';
   
+  console.log('CoachDashboard loaded with activeTab:', activeTab);
+  
   const [stats] = useState<CoachStats>({
     totalClients: 23,
     upcomingSessions: 8,
