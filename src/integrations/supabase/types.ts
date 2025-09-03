@@ -364,6 +364,193 @@ export type Database = {
         }
         Relationships: []
       }
+      individual_bookings: {
+        Row: {
+          coach_id: string | null
+          created_at: string
+          duration_minutes: number
+          feedback: string | null
+          id: string
+          meeting_link: string | null
+          notes: string | null
+          program_id: string
+          purchase_id: string
+          rating: number | null
+          scheduled_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coach_id?: string | null
+          created_at?: string
+          duration_minutes?: number
+          feedback?: string | null
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          program_id: string
+          purchase_id: string
+          rating?: number | null
+          scheduled_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coach_id?: string | null
+          created_at?: string
+          duration_minutes?: number
+          feedback?: string | null
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          program_id?: string
+          purchase_id?: string
+          rating?: number | null
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "individual_bookings_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "individual_bookings_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "individual_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "individual_bookings_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "individual_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      individual_programs: {
+        Row: {
+          category: string
+          content_url: string | null
+          created_at: string
+          description: string | null
+          duration: string
+          id: string
+          is_active: boolean
+          level: string
+          price: number
+          rating: number | null
+          students: number | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration: string
+          id?: string
+          is_active?: boolean
+          level?: string
+          price: number
+          rating?: number | null
+          students?: number | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: string
+          id?: string
+          is_active?: boolean
+          level?: string
+          price?: number
+          rating?: number | null
+          students?: number | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      individual_purchases: {
+        Row: {
+          access_granted_at: string | null
+          amount_paid: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          last_accessed_at: string | null
+          order_id: string | null
+          program_id: string
+          progress: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_granted_at?: string | null
+          amount_paid: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          order_id?: string | null
+          program_id: string
+          progress?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_granted_at?: string | null
+          amount_paid?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          order_id?: string | null
+          program_id?: string
+          progress?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "individual_purchases_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "individual_purchases_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "individual_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_line_items: {
         Row: {
           created_at: string | null
