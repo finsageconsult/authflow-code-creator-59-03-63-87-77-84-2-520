@@ -211,7 +211,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
   return (
     <div className="space-y-6">
       {/* Header with Create Button */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold">Programs & Courses</h2>
           <p className="text-sm text-muted-foreground">
@@ -220,7 +220,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" />
               Create Program
             </Button>
@@ -232,8 +232,8 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
                   <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
@@ -243,7 +243,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                   />
                 </div>
                 
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
@@ -304,7 +304,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                   />
                 </div>
 
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <Label htmlFor="tags">Tags (comma-separated)</Label>
                   <Input
                     id="tags"
@@ -314,7 +314,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                   />
                 </div>
 
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <Label htmlFor="thumbnail_url">Thumbnail URL</Label>
                   <Input
                     id="thumbnail_url"
@@ -324,7 +324,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                   />
                 </div>
 
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <Label htmlFor="content_url">Content URL</Label>
                   <Input
                     id="content_url"
@@ -334,7 +334,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                   />
                 </div>
 
-                <div className="col-span-2 flex items-center space-x-2">
+                <div className="sm:col-span-2 flex items-center space-x-2">
                   <Switch
                     id="is_active"
                     checked={formData.is_active}
@@ -344,7 +344,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -352,10 +352,11 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                     setIsCreateDialogOpen(false);
                     setEditingProgram(null);
                   }}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" className="w-full sm:w-auto">
                   {editingProgram ? 'Update' : 'Create'} Program
                 </Button>
               </div>
@@ -365,44 +366,44 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
       </div>
 
       {/* Programs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         {filteredPrograms.map((program) => (
           <Card key={program.id} className={`${!program.is_active ? 'opacity-60' : ''}`}>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg leading-tight">{program.title}</CardTitle>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline">{program.category}</Badge>
-                    <Badge variant="secondary">{program.level}</Badge>
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-base sm:text-lg leading-tight line-clamp-2">{program.title}</CardTitle>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <Badge variant="outline" className="text-xs">{program.category}</Badge>
+                    <Badge variant="secondary" className="text-xs">{program.level}</Badge>
                     {!program.is_active && (
-                      <Badge variant="destructive">Inactive</Badge>
+                      <Badge variant="destructive" className="text-xs">Inactive</Badge>
                     )}
                   </div>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4">
               <p className="text-sm text-muted-foreground line-clamp-2">
                 {program.description}
               </p>
               
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4 text-sm">
                 <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{program.duration}</span>
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                  <span className="text-xs sm:text-sm truncate">{program.duration}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span>₹{(program.price / 100).toLocaleString()}</span>
+                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                  <span className="text-xs sm:text-sm">₹{(program.price / 100).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  <span>{program.rating}</span>
+                  <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
+                  <span className="text-xs sm:text-sm">{program.rating}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span>{program.students}</span>
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                  <span className="text-xs sm:text-sm">{program.students}</span>
                 </div>
               </div>
 
@@ -419,12 +420,12 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                 )}
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => handleEdit(program)}
-                  className="flex-1 gap-1"
+                  className="flex-1 gap-1 text-xs sm:text-sm"
                 >
                   <Edit className="h-3 w-3" />
                   Edit
@@ -433,7 +434,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                   size="sm"
                   variant={program.is_active ? "destructive" : "default"}
                   onClick={() => toggleActive(program)}
-                  className="flex-1 gap-1"
+                  className="flex-1 gap-1 text-xs sm:text-sm"
                 >
                   <Archive className="h-3 w-3" />
                   {program.is_active ? 'Deactivate' : 'Activate'}

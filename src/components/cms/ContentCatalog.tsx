@@ -159,8 +159,8 @@ export const ContentCatalog = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
+          <div className="flex flex-col gap-4">
+            <div className="w-full">
               <Input
                 placeholder="Search content by title, tags, or description..."
                 value={searchTerm}
@@ -168,51 +168,60 @@ export const ContentCatalog = () => {
                 className="w-full"
               />
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="investing">Investing</SelectItem>
-                <SelectItem value="tax">Tax Planning</SelectItem>
-                <SelectItem value="budgeting">Budgeting</SelectItem>
-                <SelectItem value="debt">Debt Management</SelectItem>
-                <SelectItem value="retirement">Retirement</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" className="gap-2">
-              <Filter className="h-4 w-4" />
-              Advanced Filters
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="investing">Investing</SelectItem>
+                  <SelectItem value="tax">Tax Planning</SelectItem>
+                  <SelectItem value="budgeting">Budgeting</SelectItem>
+                  <SelectItem value="debt">Debt Management</SelectItem>
+                  <SelectItem value="retirement">Retirement</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" className="gap-2 w-full sm:w-auto">
+                <Filter className="h-4 w-4" />
+                Advanced Filters
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Content Management Tabs */}
       <Tabs defaultValue="programs" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="programs" className="gap-2">
-            <BookOpen className="h-4 w-4" />
-            Programs
-          </TabsTrigger>
-          <TabsTrigger value="webinars" className="gap-2">
-            <Video className="h-4 w-4" />
-            Webinars
-          </TabsTrigger>
-          <TabsTrigger value="offerings" className="gap-2">
-            <Users className="h-4 w-4" />
-            Coaching
-          </TabsTrigger>
-          <TabsTrigger value="tools" className="gap-2">
-            <Calculator className="h-4 w-4" />
-            Tools
-          </TabsTrigger>
-          <TabsTrigger value="assets" className="gap-2">
-            <Tag className="h-4 w-4" />
-            Assets
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList className="grid w-full min-w-fit grid-cols-5 lg:w-full">
+            <TabsTrigger value="programs" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Programs</span>
+              <span className="sm:hidden">Programs</span>
+            </TabsTrigger>
+            <TabsTrigger value="webinars" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <Video className="h-4 w-4" />
+              <span className="hidden sm:inline">Webinars</span>
+              <span className="sm:hidden">Webinars</span>
+            </TabsTrigger>
+            <TabsTrigger value="offerings" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Coaching</span>
+              <span className="sm:hidden">Coaching</span>
+            </TabsTrigger>
+            <TabsTrigger value="tools" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <Calculator className="h-4 w-4" />
+              <span className="hidden sm:inline">Tools</span>
+              <span className="sm:hidden">Tools</span>
+            </TabsTrigger>
+            <TabsTrigger value="assets" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <Tag className="h-4 w-4" />
+              <span className="hidden sm:inline">Assets</span>
+              <span className="sm:hidden">Assets</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="programs">
           <ProgramManager searchTerm={searchTerm} category={selectedCategory} />
