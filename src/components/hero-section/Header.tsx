@@ -28,14 +28,18 @@ const Header = () => {
           </a>
           <div className="w-0 shrink-0 h-[31px] border-l-2 border-foreground" aria-hidden="true" />
           
-          <a href="#individuals" className="text-foreground hover:text-primary transition-colors">
+          <Button 
+            variant="ghost"
+            className="text-foreground hover:text-primary transition-colors"
+            onClick={() => window.location.href = '/auth?role=individual'}
+          >
             For Individuals
-          </a>
+          </Button>
           
           <Button 
             variant="ghost"
             className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:text-accent-foreground transition-colors bg-transparent"
-            onClick={() => window.location.href = '/employers'}
+            onClick={() => window.location.href = '/auth?role=employer'}
           >
             For Employers
           </Button>
@@ -58,14 +62,18 @@ const Header = () => {
               <a href="#contact" className="py-2 text-foreground hover:text-primary transition-colors">
                 Contact
               </a>
-              <a href="#individuals" className="py-2 text-foreground hover:text-primary transition-colors">
+              <Button 
+                variant="ghost"
+                className="py-2 text-foreground hover:text-primary transition-colors w-full justify-start"
+                onClick={() => window.location.href = '/auth?role=individual'}
+              >
                 For Individuals
-              </a>
+              </Button>
               
               <Button 
                 variant="outline"
                 className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:bg-accent hover:text-accent-foreground transition-colors w-full justify-center"
-                onClick={() => window.location.href = '/employers'}
+                onClick={() => window.location.href = '/auth?role=employer'}
               >
                 For Employers
               </Button>

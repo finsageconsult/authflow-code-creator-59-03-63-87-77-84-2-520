@@ -27,21 +27,8 @@ const Index = () => {
     return <Navigate to={url} replace />;
   }
 
-  // Show landing page with auth button for non-authenticated users
-  return (
-    <div className="relative">
-      <div className="absolute top-4 right-4 z-10">
-        <Button 
-          onClick={() => window.location.href = '/auth'}
-          variant="outline"
-          className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
-        >
-          Sign In
-        </Button>
-      </div>
-      <Home />
-    </div>
-  );
+  // Show landing page for non-authenticated users
+  return <Home />;
 };
 
 export default Index;
