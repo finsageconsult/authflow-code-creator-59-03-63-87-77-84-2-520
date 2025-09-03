@@ -3,7 +3,7 @@ import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroup
 import { useAuth } from '@/hooks/useAuth';
 import { hasRole } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock, DollarSign } from 'lucide-react';
 const menuItems = [{
   title: 'Dashboard',
   url: '/individual-dashboard',
@@ -92,6 +92,43 @@ const adminMenuItems = [{
   icon: Shield,
   roles: ['ADMIN']
 }];
+
+const coachMenuItems = [{
+  title: 'Dashboard',
+  url: '/coach-dashboard',
+  icon: LayoutDashboard,
+  roles: ['COACH']
+}, {
+  title: 'Analytics',
+  url: '/coach-dashboard?tab=analytics',
+  icon: BarChart3,
+  roles: ['COACH']
+}, {
+  title: 'Sessions',
+  url: '/coach-dashboard?tab=sessions',
+  icon: Calendar,
+  roles: ['COACH']
+}, {
+  title: 'Clients',
+  url: '/coach-dashboard?tab=clients',
+  icon: UserCheck,
+  roles: ['COACH']
+}, {
+  title: 'Content',
+  url: '/coach-dashboard?tab=content',
+  icon: FileText,
+  roles: ['COACH']
+}, {
+  title: 'Availability',
+  url: '/coach-dashboard?tab=availability',
+  icon: Clock,
+  roles: ['COACH']
+}, {
+  title: 'Payouts',
+  url: '/coach-dashboard?tab=payouts',
+  icon: DollarSign,
+  roles: ['COACH']
+}];
 export const Sidebar = () => {
   const {
     state,
@@ -118,8 +155,9 @@ export const Sidebar = () => {
     isActive: boolean;
   }) => isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50';
 
-  // Filter menu items based on user role - use admin menu for admin users
-  const currentMenuItems = userProfile?.role === 'ADMIN' ? adminMenuItems : menuItems;
+  // Filter menu items based on user role - use specific menus for admin and coach users
+  const currentMenuItems = userProfile?.role === 'ADMIN' ? adminMenuItems : 
+                           userProfile?.role === 'COACH' ? coachMenuItems : menuItems;
   const filteredMenuItems = currentMenuItems.filter(item => userProfile ? hasRole(userProfile, item.roles) : false);
   const isCollapsed = state === 'collapsed';
   const handleNavClick = (url: string) => {
