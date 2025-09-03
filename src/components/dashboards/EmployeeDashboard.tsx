@@ -18,6 +18,7 @@ import {
   Target
 } from 'lucide-react';
 import { CreditWallet } from '@/components/credits/CreditWallet';
+import { EmployeeAnalyticsDashboard } from '@/components/analytics/EmployeeAnalyticsDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MoodCheckIn {
@@ -419,6 +420,7 @@ export const EmployeeDashboard = () => {
       <Tabs defaultValue="dashboard" className="w-full">
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="analytics">My Progress</TabsTrigger>
           <TabsTrigger value="credits">My Credits</TabsTrigger>
         </TabsList>
 

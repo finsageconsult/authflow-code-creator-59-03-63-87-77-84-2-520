@@ -17,6 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { AdminCreditIssuance } from '@/components/credits/AdminCreditIssuance';
 import { ContentCatalog } from '@/components/cms/ContentCatalog';
+import { OrgAnalyticsDashboard } from '@/components/analytics/OrgAnalyticsDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PlatformStats {
@@ -160,6 +161,7 @@ export const AdminDashboard = () => {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="credits">Credits Engine</TabsTrigger>
           <TabsTrigger value="content">Content CMS</TabsTrigger>
         </TabsList>
@@ -260,6 +262,10 @@ export const AdminDashboard = () => {
         </CardContent>
       </Card>
       </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <OrgAnalyticsDashboard />
+        </TabsContent>
 
         <TabsContent value="credits" className="space-y-6">
           <AdminCreditIssuance />
