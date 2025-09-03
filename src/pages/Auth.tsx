@@ -90,39 +90,33 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      // Verify access code exists and is valid
-      const { data: codeData, error: codeError } = await supabase
-        .from('access_codes')
-        .select('*, organizations(*)')
-        .eq('code', accessCode.trim())
-        .single();
+      // Call edge function to verify access code
+      const { data: response, error: functionError } = await supabase.functions.invoke('verify-access-code', {
+        body: { code: accessCode.trim() }
+      });
 
-      if (codeError || !codeData) {
-        toast.error('Invalid access code. Please check and try again.');
+      if (functionError) {
+        console.error('Function error:', functionError);
+        toast.error('Failed to verify access code. Please try again.');
         return;
       }
 
-      // Check if code is expired
-      if (new Date(codeData.expires_at) < new Date()) {
-        toast.error('This access code has expired. Please contact your administrator.');
+      if (!response.success) {
+        toast.error(response.error);
         return;
       }
 
-      // Check if code is used up
-      if (codeData.used_count >= codeData.max_uses) {
-        toast.error('This access code has been used up. Please contact your administrator.');
-        return;
-      }
+      const codeData = response.data;
 
       // Store access code in session storage for signup process
       sessionStorage.setItem('pendingAccessCode', JSON.stringify({
         code: accessCode,
         role: codeData.role,
         organizationId: codeData.organization_id,
-        organizationName: codeData.organizations.name
+        organizationName: codeData.organization_name
       }));
 
-      toast.success(`Access code verified! You'll join ${codeData.organizations.name} as ${codeData.role}`);
+      toast.success(`Access code verified! You'll join ${codeData.organization_name} as ${codeData.role}`);
       
       // Switch to signup tab
       setIsSignUp(true);
