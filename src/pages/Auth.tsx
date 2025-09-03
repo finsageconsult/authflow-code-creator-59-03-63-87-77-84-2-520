@@ -16,6 +16,10 @@ export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [activeTab, setActiveTab] = useState('email');
   const [accessCode, setAccessCode] = useState('');
+  const [accessCodeData, setAccessCodeData] = useState({
+    email: '',
+    name: ''
+  });
   const [formData, setFormData] = useState({
     email: '',
     password: '',
