@@ -14,6 +14,7 @@ import { Loader2, Key } from 'lucide-react';
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [activeTab, setActiveTab] = useState('email');
   const [accessCode, setAccessCode] = useState('');
   const [formData, setFormData] = useState({
     email: '',
@@ -27,6 +28,7 @@ export default function Auth() {
     const codeFromUrl = searchParams.get('code');
     if (codeFromUrl) {
       setAccessCode(codeFromUrl);
+      setActiveTab('access-code');
     }
   }, [searchParams]);
 
@@ -124,14 +126,7 @@ export default function Auth() {
       
       // Switch to signup tab and email tab
       setIsSignUp(true);
-      
-      // Force switch to email tab after verification
-      setTimeout(() => {
-        const emailTab = document.querySelector('[value="email"]') as HTMLElement;
-        if (emailTab) {
-          emailTab.click();
-        }
-      }, 100);
+      setActiveTab('email');
       
     } catch (error) {
       console.error('Error verifying access code:', error);
@@ -153,7 +148,7 @@ export default function Auth() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Tabs defaultValue={accessCode ? 'access-code' : 'email'} className="w-full" key={isSignUp ? 'signup' : 'signin'}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="email">Email Login</TabsTrigger>
               <TabsTrigger value="access-code">Access Code</TabsTrigger>
