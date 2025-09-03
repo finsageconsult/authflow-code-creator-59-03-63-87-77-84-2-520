@@ -27,9 +27,9 @@ export const SecurityAuditDashboard = () => {
   const [logs, setLogs] = useState<SecurityAuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    eventType: '',
-    riskLevel: '',
-    success: '',
+    eventType: 'all',
+    riskLevel: 'all',
+    success: 'all',
     search: ''
   });
 
@@ -54,13 +54,13 @@ export const SecurityAuditDashboard = () => {
         .limit(100);
 
       // Apply filters
-      if (filters.eventType) {
+      if (filters.eventType && filters.eventType !== 'all') {
         query = query.eq('event_type', filters.eventType);
       }
-      if (filters.riskLevel) {
+      if (filters.riskLevel && filters.riskLevel !== 'all') {
         query = query.eq('risk_level', filters.riskLevel);
       }
-      if (filters.success !== '') {
+      if (filters.success !== 'all') {
         query = query.eq('success', filters.success === 'true');
       }
 
@@ -172,7 +172,7 @@ export const SecurityAuditDashboard = () => {
                 <SelectValue placeholder="Event Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Events</SelectItem>
+                <SelectItem value="all">All Events</SelectItem>
                 <SelectItem value="login_attempt">Login Attempts</SelectItem>
                 <SelectItem value="role_change">Role Changes</SelectItem>
                 <SelectItem value="data_access">Data Access</SelectItem>
@@ -186,7 +186,7 @@ export const SecurityAuditDashboard = () => {
                 <SelectValue placeholder="Risk Level" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Levels</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="high">High</SelectItem>
@@ -199,7 +199,7 @@ export const SecurityAuditDashboard = () => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="true">Success</SelectItem>
                 <SelectItem value="false">Failed</SelectItem>
               </SelectContent>
