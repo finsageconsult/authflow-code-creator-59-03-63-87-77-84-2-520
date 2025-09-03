@@ -193,8 +193,8 @@ export const ContentCatalog = () => {
 
       {/* Content Management Tabs */}
       <Tabs defaultValue="programs" className="space-y-6">
-        <div className="overflow-x-auto">
-          <TabsList className="grid w-full min-w-fit grid-cols-5 lg:w-full">
+        <div className="w-full">
+          <TabsList className="flex flex-col sm:grid sm:grid-cols-5 w-full gap-1 sm:gap-0 h-auto sm:h-10">
             <TabsTrigger value="programs" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
               <BookOpen className="h-4 w-4" />
               <span className="hidden sm:inline">Programs</span>
