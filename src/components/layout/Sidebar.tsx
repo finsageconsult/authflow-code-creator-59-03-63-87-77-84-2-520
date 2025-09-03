@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,7 +25,8 @@ import {
   BarChart3,
   Coins,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  X
 } from 'lucide-react';
 
 const menuItems = [
@@ -128,15 +130,11 @@ const adminMenuItems = [
 ];
 
 export const Sidebar = () => {
-  const { state } = useSidebar();
+  const { state, setOpen } = useSidebar();
   const location = useLocation();
   const { userProfile } = useAuth();
 
   const currentPath = location.pathname;
-  const isActive = (path: string) => currentPath === path;
-
-  const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50';
 
   // Filter menu items based on user role - use admin menu for admin users
   const currentMenuItems = userProfile?.role === 'ADMIN' ? adminMenuItems : menuItems;
@@ -151,22 +149,38 @@ export const Sidebar = () => {
       className={isCollapsed ? 'w-14' : 'w-64'}
       collapsible="icon"
     >
+      {/* Header with close button */}
+      <div className="flex items-center justify-between p-4 border-b">
+        <h2 className={`font-semibold text-lg ${isCollapsed ? 'sr-only' : ''}`}>
+          Navigation
+        </h2>
+        {!isCollapsed && (
+          <SidebarTrigger className="p-1 h-6 w-6">
+            <X className="h-4 w-4" />
+          </SidebarTrigger>
+        )}
+      </div>
+
       <SidebarContent className="pt-4">
         <SidebarGroup>
           <SidebarGroupLabel className={isCollapsed ? 'sr-only' : ''}>
-            Navigation
+            Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredMenuItems.map((item) => {
                 const itemUrl = (item as any).getRoleUrl && userProfile ? (item as any).getRoleUrl(userProfile.role) : item.url;
+                const isActive = currentPath === itemUrl;
+                
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild isActive={isActive}>
                       <NavLink 
                         to={itemUrl} 
                         end 
-                        className={getNavCls}
+                        className={({ isActive }) =>
+                          isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50'
+                        }
                       >
                         <item.icon className="h-4 w-4" />
                         {!isCollapsed && <span>{item.title}</span>}
