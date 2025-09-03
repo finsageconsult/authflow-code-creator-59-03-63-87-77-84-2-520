@@ -134,38 +134,40 @@ export const SessionManager = () => {
             const { date, time } = formatDateTime(session.scheduledAt);
             
             return (
-              <div key={session.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                <div className="p-2 rounded-full bg-blue-100">
-                  <Clock className="w-4 h-4 text-blue-600" />
-                </div>
-                
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium">{session.clientName}</h4>
-                    <Badge variant="outline" className={getStatusColor(session.status)}>
-                      {session.status}
-                    </Badge>
+              <div key={session.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border rounded-lg">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="p-2 rounded-full bg-blue-100 flex-shrink-0">
+                    <Clock className="w-4 h-4 text-blue-600" />
                   </div>
-                  <p className="text-sm text-muted-foreground">{session.sessionType}</p>
-                  <p className="text-sm text-muted-foreground">{date} • {time} • {session.duration}min</p>
                   
-                  {session.outcomeTags.length > 0 && (
-                    <div className="flex gap-1 mt-2">
-                      {session.outcomeTags.map(tag => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag.replace('_', ' ')}
-                        </Badge>
-                      ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                      <h4 className="font-medium">{session.clientName}</h4>
+                      <Badge variant="outline" className={getStatusColor(session.status)}>
+                        {session.status}
+                      </Badge>
                     </div>
-                  )}
+                    <p className="text-sm text-muted-foreground">{session.sessionType}</p>
+                    <p className="text-sm text-muted-foreground">{date} • {time} • {session.duration}min</p>
+                    
+                    {session.outcomeTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {session.outcomeTags.map(tag => (
+                          <Badge key={tag} variant="secondary" className="text-xs">
+                            {tag.replace('_', ' ')}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
                   {session.meetingLink && (
-                    <Button size="sm" variant="outline" asChild>
+                    <Button size="sm" variant="outline" className="flex-1 sm:flex-none" asChild>
                       <a href={session.meetingLink} target="_blank" rel="noopener noreferrer">
                         <Video className="w-4 h-4 mr-1" />
-                        Join
+                        <span className="hidden xs:inline">Join</span>
                       </a>
                     </Button>
                   )}
@@ -173,10 +175,11 @@ export const SessionManager = () => {
                   <Button 
                     size="sm" 
                     variant="outline"
+                    className="flex-1 sm:flex-none"
                     onClick={() => sendReminder(session)}
                   >
                     <Send className="w-4 h-4 mr-1" />
-                    Remind
+                    <span className="hidden xs:inline">Remind</span>
                   </Button>
                   
                   <Dialog>
@@ -184,6 +187,7 @@ export const SessionManager = () => {
                       <Button 
                         size="sm" 
                         variant="outline"
+                        className="flex-1 sm:flex-none"
                         onClick={() => {
                           setSelectedSession(session);
                           setNoteText(session.notes || '');
@@ -191,11 +195,11 @@ export const SessionManager = () => {
                         }}
                       >
                         <FileText className="w-4 h-4 mr-1" />
-                        Notes
+                        <span className="hidden xs:inline">Notes</span>
                       </Button>
                     </DialogTrigger>
                     
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Session Notes - {session.clientName}</DialogTitle>
                       </DialogHeader>
@@ -214,7 +218,7 @@ export const SessionManager = () => {
                         
                         <div>
                           <Label>Outcome Tags</Label>
-                          <div className="grid grid-cols-3 gap-2 mt-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
                             {OUTCOME_TAGS.map(tag => (
                               <label key={tag} className="flex items-center space-x-2 cursor-pointer">
                                 <input
@@ -236,18 +240,18 @@ export const SessionManager = () => {
                         
                         <div>
                           <Label htmlFor="resources">Resources</Label>
-                          <div className="flex gap-2 mt-2">
-                            <Input placeholder="Add resource URL or file..." />
-                            <Button size="sm" variant="outline">
+                          <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                            <Input placeholder="Add resource URL or file..." className="flex-1" />
+                            <Button size="sm" variant="outline" className="w-full sm:w-auto">
                               <Paperclip className="w-4 h-4 mr-1" />
                               Attach
                             </Button>
                           </div>
                         </div>
                         
-                        <div className="flex gap-2 justify-end pt-4">
-                          <Button variant="outline">Cancel</Button>
-                          <Button onClick={handleSaveSession}>
+                        <div className="flex flex-col sm:flex-row gap-2 sm:justify-end pt-4">
+                          <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
+                          <Button onClick={handleSaveSession} className="w-full sm:w-auto">
                             <Tags className="w-4 h-4 mr-1" />
                             Save Session
                           </Button>
