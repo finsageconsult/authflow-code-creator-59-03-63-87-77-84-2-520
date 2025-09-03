@@ -63,22 +63,22 @@ export const IndividualDashboard = () => {
     switch (currentTab) {
       case 'programs':
         return (
-          <div className="space-y-4 md:space-y-6">
+          <div className="space-y-3 sm:space-y-4 lg:space-y-6">
             {/* My Learning Progress */}
             {myLearning.length > 0 && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <PlayCircle className="h-5 w-5" />
+                <CardHeader className="p-3 sm:p-4 lg:p-6">
+                  <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
+                    <PlayCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                     Continue Learning
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4">
+                <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+                  <div className="grid gap-3 sm:gap-4">
                     {myLearning.map((item) => (
-                      <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-sm md:text-base">{item.title}</h3>
+                      <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-sm md:text-base truncate">{item.title}</h3>
                           <p className="text-xs md:text-sm text-muted-foreground">
                             Last watched: {item.lastWatched}
                           </p>
@@ -89,7 +89,7 @@ export const IndividualDashboard = () => {
                             </p>
                           </div>
                         </div>
-                        <Button size="sm" className="self-start sm:self-center">
+                        <Button size="sm" className="self-start sm:self-center shrink-0">
                           {item.progress === 100 ? 'Review' : 'Continue'}
                         </Button>
                       </div>
@@ -104,19 +104,19 @@ export const IndividualDashboard = () => {
 
             {/* Learning Catalog */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <BookOpen className="h-5 w-5" />
+              <CardHeader className="p-3 sm:p-4 lg:p-6">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
                   Learning Catalog
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2 mb-6">
+              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+                <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
                   <Button 
                     variant={selectedCategory === 'all' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedCategory('all')}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm h-8 px-2 sm:px-3"
                   >
                     All Programs
                   </Button>
@@ -124,7 +124,7 @@ export const IndividualDashboard = () => {
                     variant={selectedCategory === 'course' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedCategory('course')}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm h-8 px-2 sm:px-3"
                   >
                     Courses
                   </Button>
@@ -132,36 +132,36 @@ export const IndividualDashboard = () => {
                     variant={selectedCategory === 'coaching' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedCategory('coaching')}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm h-8 px-2 sm:px-3"
                   >
                     Coaching
                   </Button>
                 </div>
 
-                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {allContent.map((program) => (
-                    <Card key={program.id} className="relative hover:shadow-md transition-shadow">
-                      <CardContent className="p-3 sm:p-4">
+                    <Card key={program.id} className="relative hover:shadow-md transition-shadow h-full">
+                      <CardContent className="p-3 sm:p-4 h-full flex flex-col">
                         <div className="flex items-start justify-between mb-3">
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs shrink-0">
                             {program.category}
                           </Badge>
                           {isPurchased(program.id) && (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
                           )}
                         </div>
-                        <h3 className="font-medium text-sm sm:text-base mb-2 line-clamp-2">
+                        <h3 className="font-medium text-sm sm:text-base mb-2 line-clamp-2 flex-shrink-0">
                           {program.title}
                         </h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-2">
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">
                           {program.description}
                         </p>
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center justify-between gap-2 mt-auto">
                           <span className="font-semibold text-sm sm:text-base truncate">
                             {formatPrice(program.price)}
                           </span>
                           {isPurchased(program.id) ? (
-                            <Button size="sm" variant="outline" className="shrink-0">
+                            <Button size="sm" variant="outline" className="shrink-0 text-xs sm:text-sm">
                               Access
                             </Button>
                           ) : (
@@ -185,39 +185,39 @@ export const IndividualDashboard = () => {
       case 'bookings':
         return (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+            <CardHeader className="p-3 sm:p-4 lg:p-6">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                 My Bookings
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">No bookings found.</p>
+            <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+              <p className="text-muted-foreground text-sm sm:text-base">No bookings found.</p>
             </CardContent>
           </Card>
         );
       case 'payments':
         return (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
+            <CardHeader className="p-3 sm:p-4 lg:p-6">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
+                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
                 Payment History
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
               <div className="space-y-3">
                 {purchases.map((purchase) => (
-                  <div key={purchase.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium text-sm md:text-base">{purchase.individual_programs.title}</h4>
+                  <div key={purchase.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-medium text-sm md:text-base truncate">{purchase.individual_programs.title}</h4>
                       <p className="text-xs md:text-sm text-muted-foreground">
                         {new Date(purchase.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">{formatPrice(purchase.amount_paid)}</span>
-                      <Badge variant={purchase.status === 'completed' ? 'default' : 'secondary'}>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-semibold text-sm sm:text-base">{formatPrice(purchase.amount_paid)}</span>
+                      <Badge variant={purchase.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
                         {purchase.status}
                       </Badge>
                     </div>
@@ -262,8 +262,8 @@ export const IndividualDashboard = () => {
           </header>
 
           {/* Content */}
-          <div className="p-4 lg:p-6">
-            <div className="max-w-7xl mx-auto">
+          <div className="p-3 sm:p-4 lg:p-6 xl:p-8">
+            <div className="max-w-6xl mx-auto">
               {renderContent()}
             </div>
           </div>
