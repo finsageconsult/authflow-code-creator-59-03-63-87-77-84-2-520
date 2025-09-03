@@ -40,13 +40,6 @@ const Header = () => {
             For Employers
           </Button>
           
-          <Button 
-            variant="ghost"
-            className="text-foreground hover:text-primary transition-colors"
-            onClick={() => window.location.href = '/login'}
-          >
-            Log In
-          </Button>
           
           <Button 
             className="px-3.5 py-2.5 rounded-[39px] min-h-[38px] w-[150px] text-white bg-[#447f73]"
@@ -77,13 +70,6 @@ const Header = () => {
                 For Employers
               </Button>
               
-              <Button 
-                variant="ghost"
-                className="py-2 text-foreground hover:text-primary transition-colors w-full justify-start"
-                onClick={() => window.location.href = '/login'}
-              >
-                Log In
-              </Button>
               
               <Button 
                 className="text-primary-foreground px-3.5 py-2.5 rounded-[39px] w-full mt-4 bg-[#447f73]"
