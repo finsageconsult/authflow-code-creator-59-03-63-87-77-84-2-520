@@ -174,13 +174,37 @@ export const HRDashboard = () => {
         </h1>
         <div className="flex items-center gap-2">
           <p className="text-muted-foreground">
-            {organization?.name} - Program Management
+            {organization?.name || 'No Organization Assigned'} - Program Management
           </p>
           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
             HR Manager
           </Badge>
+          {!userProfile?.organization_id && (
+            <Badge variant="destructive" className="ml-2">
+              Organization Assignment Required
+            </Badge>
+          )}
         </div>
       </div>
+
+      {!userProfile?.organization_id && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-orange-100 p-2">
+                <Users className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-orange-800">Organization Assignment Required</h3>
+                <p className="text-orange-700 mt-1">
+                  You need to be assigned to an organization to access HR management features. 
+                  Please contact an administrator to assign you to an organization.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* HR Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
