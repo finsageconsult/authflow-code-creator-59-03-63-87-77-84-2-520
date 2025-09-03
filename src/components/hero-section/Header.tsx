@@ -34,7 +34,7 @@ const Header = () => {
           
           <Button 
             variant="outline"
-            className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:text-accent-foreground transition-colors"
             onClick={() => window.location.href = '/employers'}
           >
             For Employers
