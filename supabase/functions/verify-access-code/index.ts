@@ -72,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
           error: "Invalid access code. Please check and try again." 
         }),
         {
-          status: 404,
+          status: 200,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
@@ -86,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
           error: "Invalid access code. Please check and try again." 
         }),
         {
-          status: 404,
+          status: 200,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
@@ -105,7 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
           error: "This access code has expired. Please contact your administrator." 
         }),
         {
-          status: 400,
+          status: 200,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
@@ -121,7 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
           error: "This access code has been used up. Please contact your administrator." 
         }),
         {
-          status: 400,
+          status: 200,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
