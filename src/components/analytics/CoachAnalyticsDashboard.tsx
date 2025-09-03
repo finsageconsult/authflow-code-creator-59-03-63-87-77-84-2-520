@@ -64,17 +64,17 @@ export const CoachAnalyticsDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header with Export Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold">Coach Performance Analytics</h2>
           <p className="text-muted-foreground">Your sessions, ratings, and client outcomes</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => handleExport('csv')}>
+          <Button variant="outline" onClick={() => handleExport('csv')} size="sm">
             <Download className="h-4 w-4 mr-2" />
             CSV
           </Button>
-          <Button variant="outline" onClick={() => handleExport('pdf')}>
+          <Button variant="outline" onClick={() => handleExport('pdf')} size="sm">
             <Download className="h-4 w-4 mr-2" />
             PDF
           </Button>
@@ -82,7 +82,7 @@ export const CoachAnalyticsDashboard = () => {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
@@ -137,7 +137,7 @@ export const CoachAnalyticsDashboard = () => {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <AnalyticsChart
           title="Session Status Distribution"
           description="Breakdown of session statuses"
@@ -220,7 +220,7 @@ export const CoachAnalyticsDashboard = () => {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {outcomesData.map((outcome, index) => (
               <div key={index} className="text-center p-4 rounded-lg border">
                 <div className="text-2xl font-bold text-primary mb-1">
