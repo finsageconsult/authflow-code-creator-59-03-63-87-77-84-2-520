@@ -28,11 +28,12 @@ const Header = () => {
               <a href="#contact" className="text-foreground hover:text-primary transition-colors">
                 Contact
               </a>
-              <a href="#individuals" className="text-foreground hover:text-primary transition-colors">
-                For Individuals
-              </a>
             </div>
             <div className="w-0 shrink-0 h-[31px] border-l-2 border-foreground" aria-hidden="true" />
+            
+            <a href="#individuals" className="text-foreground hover:text-primary transition-colors">
+              For Individuals
+            </a>
             
             <Button 
               variant="outline"
