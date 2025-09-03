@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { signOut } from '@/lib/auth';
 import { toast } from 'sonner';
 import { LogOut, Settings, User } from 'lucide-react';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 
 export const TopNav = () => {
   const { userProfile, organization } = useAuth();
@@ -48,6 +49,8 @@ export const TopNav = () => {
       </div>
 
       <div className="flex items-center gap-4">
+        <NotificationCenter />
+        
         {userProfile && (
           <div className="hidden md:flex flex-col items-end">
             <span className="text-sm font-medium">{userProfile.name}</span>

@@ -538,6 +538,39 @@ export type Database = {
         }
         Relationships: []
       }
+      email_events: {
+        Row: {
+          created_at: string
+          email_type: string
+          event_key: string
+          id: string
+          metadata: Json | null
+          recipient_email: string
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email_type: string
+          event_key: string
+          id?: string
+          metadata?: Json | null
+          recipient_email: string
+          sent_at?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email_type?: string
+          event_key?: string
+          id?: string
+          metadata?: Json | null
+          recipient_email?: string
+          sent_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       financial_tools: {
         Row: {
           access_level: string | null
@@ -936,6 +969,72 @@ export type Database = {
           },
         ]
       }
+      mood_check_ins: {
+        Row: {
+          confidence_level: number
+          created_at: string
+          financial_concerns: string[] | null
+          id: string
+          notes: string | null
+          stress_level: number
+          user_id: string
+        }
+        Insert: {
+          confidence_level: number
+          created_at?: string
+          financial_concerns?: string[] | null
+          id?: string
+          notes?: string | null
+          stress_level: number
+          user_id: string
+        }
+        Update: {
+          confidence_level?: number
+          created_at?: string
+          financial_concerns?: string[] | null
+          id?: string
+          notes?: string | null
+          stress_level?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string | null
@@ -1238,6 +1337,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notification_preferences: {
+        Row: {
+          booking_reminders: boolean
+          created_at: string
+          credit_alerts: boolean
+          email_notifications: boolean
+          id: string
+          marketing_emails: boolean
+          mood_check_nudges: boolean
+          payment_notifications: boolean
+          updated_at: string
+          user_id: string
+          webinar_reminders: boolean
+        }
+        Insert: {
+          booking_reminders?: boolean
+          created_at?: string
+          credit_alerts?: boolean
+          email_notifications?: boolean
+          id?: string
+          marketing_emails?: boolean
+          mood_check_nudges?: boolean
+          payment_notifications?: boolean
+          updated_at?: string
+          user_id: string
+          webinar_reminders?: boolean
+        }
+        Update: {
+          booking_reminders?: boolean
+          created_at?: string
+          credit_alerts?: boolean
+          email_notifications?: boolean
+          id?: string
+          marketing_emails?: boolean
+          mood_check_nudges?: boolean
+          payment_notifications?: boolean
+          updated_at?: string
+          user_id?: string
+          webinar_reminders?: boolean
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           auth_id: string | null
@@ -1353,6 +1494,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          notification_message: string
+          notification_metadata?: Json
+          notification_title: string
+          notification_type?: string
+          target_user_id: string
+        }
+        Returns: string
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string
