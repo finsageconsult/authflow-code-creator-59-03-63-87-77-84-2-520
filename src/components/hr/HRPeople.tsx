@@ -199,14 +199,14 @@ export const HRPeople = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold">People Management</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">People Management</h1>
         <Button
           variant="outline"
           onClick={exportData}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 w-full sm:w-auto"
         >
           <Download className="h-4 w-4" />
           Export CSV
@@ -224,14 +224,14 @@ export const HRPeople = () => {
         <CardContent>
           <div className="space-y-3">
             {employees.map((employee) => (
-              <div key={employee.id} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={employee.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 md:p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-blue-100">
+                  <div className="p-2 rounded-full bg-blue-100 flex-shrink-0">
                     <UserPlus className="h-4 w-4 text-blue-600" />
                   </div>
-                  <div>
-                    <h4 className="font-medium">{employee.name}</h4>
-                    <p className="text-sm text-muted-foreground">{employee.email}</p>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-medium text-sm md:text-base">{employee.name}</h4>
+                    <p className="text-xs md:text-sm text-muted-foreground truncate">{employee.email}</p>
                     <p className="text-xs text-muted-foreground">
                       Joined: {new Date(employee.created_at).toLocaleDateString()}
                     </p>
@@ -239,7 +239,7 @@ export const HRPeople = () => {
                 </div>
                 <Badge 
                   variant={employee.status === 'ACTIVE' ? 'default' : 'secondary'}
-                  className="ml-2"
+                  className="self-start sm:self-center flex-shrink-0"
                 >
                   <CheckCircle className="h-3 w-3 mr-1" />
                   {employee.status}
@@ -316,19 +316,20 @@ export const HRPeople = () => {
         <CardContent>
           <div className="space-y-3">
             {tickets.slice(0, 5).map((ticket) => (
-              <div key={ticket.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={ticket.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 border rounded-lg">
                 <div>
-                  <h4 className="font-medium">{ticket.title}</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <h4 className="font-medium text-sm md:text-base">{ticket.title}</h4>
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     {ticket.employee_name} • {new Date(ticket.created_at).toLocaleDateString()}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-start sm:self-center">
                   <Badge variant="outline" className="text-xs">
                     {ticket.category}
                   </Badge>
                   <Badge 
                     variant={ticket.status === 'open' ? 'destructive' : 'default'}
+                    className="text-xs"
                   >
                     {ticket.status}
                   </Badge>
