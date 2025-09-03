@@ -1,183 +1,138 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import {
-  Sidebar as SidebarComponent,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  useSidebar,
-} from '@/components/ui/sidebar';
+import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, useSidebar } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { hasRole } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import {
-  LayoutDashboard,
-  BookOpen,
-  Users,
-  Calendar,
-  Wrench,
-  CreditCard,
-  Shield,
-  GraduationCap,
-  BarChart3,
-  Coins,
-  FileText,
-  ShieldCheck,
-  X
-} from 'lucide-react';
-
-const menuItems = [
-  {
-    title: 'Dashboard',
-    url: '/individual-dashboard',
-    icon: LayoutDashboard,
-    roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL'],
-    getRoleUrl: (role: string) => {
-      switch(role) {
-        case 'ADMIN': return '/admin-dashboard';
-        case 'HR': return '/hr-dashboard';
-        case 'EMPLOYEE': return '/employee-dashboard';
-        case 'COACH': return '/coach-dashboard';
-        case 'INDIVIDUAL': return '/individual-dashboard';
-        default: return '/individual-dashboard';
-      }
+import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X } from 'lucide-react';
+const menuItems = [{
+  title: 'Dashboard',
+  url: '/individual-dashboard',
+  icon: LayoutDashboard,
+  roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL'],
+  getRoleUrl: (role: string) => {
+    switch (role) {
+      case 'ADMIN':
+        return '/admin-dashboard';
+      case 'HR':
+        return '/hr-dashboard';
+      case 'EMPLOYEE':
+        return '/employee-dashboard';
+      case 'COACH':
+        return '/coach-dashboard';
+      case 'INDIVIDUAL':
+        return '/individual-dashboard';
+      default:
+        return '/individual-dashboard';
     }
-  },
-  {
-    title: 'Catalog',
-    url: '/catalog',
-    icon: BookOpen,
-    roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
-  },
-  {
-    title: 'Coaching',
-    url: '/coaching',
-    icon: GraduationCap,
-    roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
-  },
-  {
-    title: 'Webinars',
-    url: '/webinars',
-    icon: Calendar,
-    roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
-  },
-  {
-    title: 'Tools',
-    url: '/tools',
-    icon: Wrench,
-    roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
-  },
-  {
-    title: 'Team',
-    url: '/team',
-    icon: Users,
-    roles: ['ADMIN', 'HR']
-  },
-  {
-    title: 'Billing',
-    url: '/billing',
-    icon: CreditCard,
-    roles: ['ADMIN', 'HR']
-  },
-  {
-    title: 'Organizations',
-    url: '/admin/organizations',
-    icon: Shield,
-    roles: ['ADMIN']
   }
-];
-
-const adminMenuItems = [
-  {
-    title: 'Dashboard',
-    url: '/admin-dashboard',
-    icon: LayoutDashboard,
-    roles: ['ADMIN']
-  },
-  {
-    title: 'Analytics',
-    url: '/admin-dashboard?tab=analytics',
-    icon: BarChart3,
-    roles: ['ADMIN']
-  },
-  {
-    title: 'Credits Engine',
-    url: '/admin-dashboard?tab=credits',
-    icon: Coins,
-    roles: ['ADMIN']
-  },
-  {
-    title: 'Content CMS',
-    url: '/admin-dashboard?tab=content',
-    icon: FileText,
-    roles: ['ADMIN']
-  },
-  {
-    title: 'Security Audit',
-    url: '/admin-dashboard?tab=security',
-    icon: ShieldCheck,
-    roles: ['ADMIN']
-  },
-  {
-    title: 'Organizations',
-    url: '/admin/organizations',
-    icon: Shield,
-    roles: ['ADMIN']
-  }
-];
-
+}, {
+  title: 'Catalog',
+  url: '/catalog',
+  icon: BookOpen,
+  roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
+}, {
+  title: 'Coaching',
+  url: '/coaching',
+  icon: GraduationCap,
+  roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
+}, {
+  title: 'Webinars',
+  url: '/webinars',
+  icon: Calendar,
+  roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
+}, {
+  title: 'Tools',
+  url: '/tools',
+  icon: Wrench,
+  roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
+}, {
+  title: 'Team',
+  url: '/team',
+  icon: Users,
+  roles: ['ADMIN', 'HR']
+}, {
+  title: 'Billing',
+  url: '/billing',
+  icon: CreditCard,
+  roles: ['ADMIN', 'HR']
+}, {
+  title: 'Organizations',
+  url: '/admin/organizations',
+  icon: Shield,
+  roles: ['ADMIN']
+}];
+const adminMenuItems = [{
+  title: 'Dashboard',
+  url: '/admin-dashboard',
+  icon: LayoutDashboard,
+  roles: ['ADMIN']
+}, {
+  title: 'Analytics',
+  url: '/admin-dashboard?tab=analytics',
+  icon: BarChart3,
+  roles: ['ADMIN']
+}, {
+  title: 'Credits Engine',
+  url: '/admin-dashboard?tab=credits',
+  icon: Coins,
+  roles: ['ADMIN']
+}, {
+  title: 'Content CMS',
+  url: '/admin-dashboard?tab=content',
+  icon: FileText,
+  roles: ['ADMIN']
+}, {
+  title: 'Security Audit',
+  url: '/admin-dashboard?tab=security',
+  icon: ShieldCheck,
+  roles: ['ADMIN']
+}, {
+  title: 'Organizations',
+  url: '/admin/organizations',
+  icon: Shield,
+  roles: ['ADMIN']
+}];
 export const Sidebar = () => {
-  const { state, setOpenMobile, isMobile, openMobile } = useSidebar();
+  const {
+    state,
+    setOpenMobile,
+    isMobile,
+    openMobile
+  } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
-  const { userProfile } = useAuth();
-
+  const {
+    userProfile
+  } = useAuth();
   const currentPath = location.pathname;
   const currentSearch = location.search;
-  
   const isActive = (path: string) => {
     if (path.includes('?')) {
       return currentPath + currentSearch === path;
     }
     return currentPath === path;
   };
-
-  const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50';
+  const getNavCls = ({
+    isActive
+  }: {
+    isActive: boolean;
+  }) => isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50';
 
   // Filter menu items based on user role - use admin menu for admin users
   const currentMenuItems = userProfile?.role === 'ADMIN' ? adminMenuItems : menuItems;
-  const filteredMenuItems = currentMenuItems.filter(item => 
-    userProfile ? hasRole(userProfile, item.roles) : false
-  );
-
+  const filteredMenuItems = currentMenuItems.filter(item => userProfile ? hasRole(userProfile, item.roles) : false);
   const isCollapsed = state === 'collapsed';
-
   const handleNavClick = (url: string) => {
     if (isMobile && openMobile) {
       setOpenMobile(false);
     }
     navigate(url);
   };
-
-  return (
-    <SidebarComponent
-      collapsible="icon"
-      className="border-r data-[state=expanded]:w-64 data-[state=collapsed]:w-16 transition-all duration-300"
-    >
+  return <SidebarComponent collapsible="icon" className="border-r data-[state=expanded]:w-64 data-[state=collapsed]:w-16 transition-all duration-300">
       {/* Mobile header with close button */}
       <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b lg:hidden">
-        <span className="text-lg font-semibold">Menu</span>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setOpenMobile(false)}
-          className="h-8 w-8 p-0"
-        >
+        
+        <Button variant="ghost" size="sm" onClick={() => setOpenMobile(false)} className="h-8 w-8 p-0">
           <X className="h-4 w-4" />
         </Button>
       </SidebarHeader>
@@ -189,26 +144,19 @@ export const Sidebar = () => {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {filteredMenuItems.map((item) => {
-                const itemUrl = (item as any).getRoleUrl && userProfile ? (item as any).getRoleUrl(userProfile.role) : item.url;
-                const active = isActive(itemUrl);
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      onClick={() => handleNavClick(itemUrl)}
-                      isActive={active}
-                      className="w-full justify-start"
-                    >
+              {filteredMenuItems.map(item => {
+              const itemUrl = (item as any).getRoleUrl && userProfile ? (item as any).getRoleUrl(userProfile.role) : item.url;
+              const active = isActive(itemUrl);
+              return <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton onClick={() => handleNavClick(itemUrl)} isActive={active} className="w-full justify-start">
                       <item.icon className="h-4 w-4" />
                       <span className="truncate">{item.title}</span>
                     </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+                  </SidebarMenuItem>;
+            })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-    </SidebarComponent>
-  );
+    </SidebarComponent>;
 };
