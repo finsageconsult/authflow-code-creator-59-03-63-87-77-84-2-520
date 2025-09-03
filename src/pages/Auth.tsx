@@ -236,31 +236,31 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
       <div className="w-full max-w-md relative">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate('/')}
-          className="absolute -top-12 left-0 text-muted-foreground hover:text-foreground"
+          className="absolute -top-12 sm:-top-14 left-0 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
-        <Card className="w-full shadow-professional-lg">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">
+        <Card className="w-full shadow-professional-lg border-0 sm:border">
+        <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8">
+          <CardTitle className="text-xl sm:text-2xl font-bold">
             Welcome to Finsage
           </CardTitle>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Sign in to your account or join with an access code
           </p>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 sm:px-6 pb-6 sm:pb-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="email">Email Login</TabsTrigger>
-              <TabsTrigger value="access-code">Access Code</TabsTrigger>
+              <TabsTrigger value="email" className="text-xs sm:text-sm">Email Login</TabsTrigger>
+              <TabsTrigger value="access-code" className="text-xs sm:text-sm">Access Code</TabsTrigger>
             </TabsList>
             
             <TabsContent value="access-code" className="space-y-4">
@@ -277,15 +277,15 @@ export default function Auth() {
                     disabled={isLoading}
                     className="font-mono"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Enter the access code sent to your email
                   </p>
                 </div>
                 
-                <Button type="submit" className="w-full" disabled={isLoading || !accessCode.trim()}>
+                <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading || !accessCode.trim()}>
                   {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   <Key className="w-4 h-4 mr-2" />
-                  Login with Access Code
+                  <span className="text-sm sm:text-base">Login with Access Code</span>
                 </Button>
               </form>
             </TabsContent>
@@ -293,7 +293,7 @@ export default function Auth() {
             <TabsContent value="email" className="space-y-4">
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full h-11 sm:h-10"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
               >
@@ -322,7 +322,7 @@ export default function Auth() {
                 <div className="absolute inset-0 flex items-center">
                   <Separator className="w-full" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
+                <div className="relative flex justify-center text-xs sm:text-sm uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
                     Or continue with email
                   </span>
@@ -371,16 +371,16 @@ export default function Auth() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading}>
                   {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  {isSignUp ? 'Create Account' : 'Sign In'}
+                  <span className="text-sm sm:text-base">{isSignUp ? 'Create Account' : 'Sign In'}</span>
                 </Button>
               </form>
 
               <div className="text-center">
                 <button
                   type="button"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
                   onClick={() => setIsSignUp(!isSignUp)}
                   disabled={isLoading}
                 >
