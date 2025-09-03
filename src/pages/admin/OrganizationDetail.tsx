@@ -138,7 +138,7 @@ export default function OrganizationDetail() {
       if (codeError) throw codeError;
 
       // Send email via edge function
-      const { error: emailError } = await supabase.functions.invoke('send-access-code', {
+      const { data: emailData, error: emailError } = await supabase.functions.invoke('send-access-code', {
         body: {
           email: newCode.email,
           code,
@@ -150,10 +150,15 @@ export default function OrganizationDetail() {
 
       if (emailError) {
         console.error('Email error:', emailError);
-        // Don't fail the entire operation if email fails
         toast({
-          title: 'Warning',
+          title: 'Error',
           description: 'Access code created but email failed to send',
+          variant: 'destructive'
+        });
+      } else if (emailData?.warning) {
+        toast({
+          title: 'Success',
+          description: `Access code created. ${emailData.warning}`,
           variant: 'default'
         });
       } else {

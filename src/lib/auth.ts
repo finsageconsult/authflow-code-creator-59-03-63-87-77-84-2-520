@@ -45,6 +45,9 @@ export const signUp = async (email: string, password: string, name: string) => {
       try {
         const accessCodeData = JSON.parse(pendingAccessCode);
         
+        // Wait a moment for the trigger to create the user profile
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Update the user profile with organization and role from access code
         const { error: updateError } = await supabase
           .from('users')
@@ -57,6 +60,33 @@ export const signUp = async (email: string, password: string, name: string) => {
 
         if (updateError) {
           console.error('Error updating user with access code:', updateError);
+          // Retry once more in case the trigger hasn't completed
+          setTimeout(async () => {
+            const { error: retryError } = await supabase
+              .from('users')
+              .update({
+                organization_id: accessCodeData.organizationId,
+                role: accessCodeData.role,
+                status: 'ACTIVE'
+              })
+              .eq('auth_id', data.user.id);
+            
+            if (!retryError) {
+              // Update access code usage
+              const { data: codeData, error: fetchError } = await supabase
+                .from('access_codes')
+                .select('used_count')
+                .eq('code', accessCodeData.code)
+                .single();
+                
+              if (!fetchError && codeData) {
+                await supabase
+                  .from('access_codes')
+                  .update({ used_count: codeData.used_count + 1 })
+                  .eq('code', accessCodeData.code);
+              }
+            }
+          }, 2000);
         } else {
           // Get current usage and increment by 1
           const { data: codeData, error: fetchError } = await supabase

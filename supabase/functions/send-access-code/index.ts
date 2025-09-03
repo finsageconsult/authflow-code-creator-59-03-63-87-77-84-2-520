@@ -243,7 +243,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "Finsage <no-reply@resend.dev>",
+      from: "Finsage <onboarding@resend.dev>",
       to: [email],
       subject,
       html,
@@ -251,8 +251,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify(emailResponse), {
-      status: 200,
+    // Handle domain verification errors gracefully
+    const hasEmailError = emailResponse.error && (
+      emailResponse.error.message?.includes('You can only send testing emails') ||
+      emailResponse.error.message?.includes('verify a domain') ||
+      emailResponse.error.message?.includes('rate_limit_exceeded')
+    );
+
+    // Return success even if email fails due to domain verification
+    // The access code is still created and can be used
+    return new Response(JSON.stringify({
+      success: !emailResponse.error || hasEmailError,
+      data: emailResponse.data,
+      error: emailResponse.error?.message,
+      warning: hasEmailError ? 'Email delivery limited - verify domain at resend.com/domains to send to all recipients.' : null
+    }), {
+      status: !emailResponse.error || hasEmailError ? 200 : 500,
       headers: {
         "Content-Type": "application/json",
         ...corsHeaders,
