@@ -19,6 +19,7 @@ import {
 import { AvailabilitySettings } from '@/components/coach/AvailabilitySettings';
 import { SessionManager } from '@/components/coach/SessionManager';
 import { PayoutView } from '@/components/coach/PayoutView';
+import { ContentCatalog } from '@/components/cms/ContentCatalog';
 
 interface CoachStats {
   totalClients: number;
@@ -147,10 +148,11 @@ export const CoachDashboard = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="sessions">Sessions</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>
+          <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>
           <TabsTrigger value="payouts">Payouts</TabsTrigger>
         </TabsList>
@@ -285,6 +287,10 @@ export const CoachDashboard = () => {
 
         <TabsContent value="availability">
           <AvailabilitySettings />
+        </TabsContent>
+
+        <TabsContent value="content">
+          <ContentCatalog />
         </TabsContent>
 
         <TabsContent value="payouts">

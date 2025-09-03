@@ -235,6 +235,62 @@ export type Database = {
         }
         Relationships: []
       }
+      coaching_offerings: {
+        Row: {
+          category: string
+          coach_id: string | null
+          created_at: string
+          credits_needed: number
+          description: string | null
+          duration_minutes: number
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          price: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          coach_id?: string | null
+          created_at?: string
+          credits_needed?: number
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          price?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          coach_id?: string | null
+          created_at?: string
+          credits_needed?: number
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          price?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_offerings_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coaching_sessions: {
         Row: {
           client_id: string
@@ -283,6 +339,124 @@ export type Database = {
           session_type?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      content_assets: {
+        Row: {
+          content_id: string | null
+          content_type: string | null
+          created_at: string
+          description: string | null
+          download_count: number | null
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          is_public: boolean | null
+          mime_type: string | null
+          name: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          content_id?: string | null
+          content_type?: string | null
+          created_at?: string
+          description?: string | null
+          download_count?: number | null
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          is_public?: boolean | null
+          mime_type?: string | null
+          name: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          content_id?: string | null
+          content_type?: string | null
+          created_at?: string
+          description?: string | null
+          download_count?: number | null
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          is_public?: boolean | null
+          mime_type?: string | null
+          name?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_assets_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_tag_relations: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string
+          id: string
+          tag_id: string | null
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string
+          id?: string
+          tag_id?: string | null
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          tag_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_tag_relations_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "content_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_tags: {
+        Row: {
+          category: string
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -360,6 +534,51 @@ export type Database = {
           id?: string
           owner_id?: string
           owner_type?: Database["public"]["Enums"]["owner_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financial_tools: {
+        Row: {
+          access_level: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_premium: boolean | null
+          name: string
+          tags: string[] | null
+          tool_config: Json | null
+          tool_type: string
+          ui_component: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_level?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          name: string
+          tags?: string[] | null
+          tool_config?: Json | null
+          tool_type: string
+          ui_component?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_level?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          name?: string
+          tags?: string[] | null
+          tool_config?: Json | null
+          tool_type?: string
+          ui_component?: string | null
           updated_at?: string
         }
         Relationships: []

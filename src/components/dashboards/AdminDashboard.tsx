@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AdminCreditIssuance } from '@/components/credits/AdminCreditIssuance';
+import { ContentCatalog } from '@/components/cms/ContentCatalog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PlatformStats {
@@ -160,6 +161,7 @@ export const AdminDashboard = () => {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="credits">Credits Engine</TabsTrigger>
+          <TabsTrigger value="content">Content CMS</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -259,9 +261,13 @@ export const AdminDashboard = () => {
       </Card>
       </TabsContent>
 
-      <TabsContent value="credits" className="space-y-6">
-        <AdminCreditIssuance />
-      </TabsContent>
+        <TabsContent value="credits" className="space-y-6">
+          <AdminCreditIssuance />
+        </TabsContent>
+
+        <TabsContent value="content" className="space-y-6">
+          <ContentCatalog />
+        </TabsContent>
       </Tabs>
     </div>
   );
