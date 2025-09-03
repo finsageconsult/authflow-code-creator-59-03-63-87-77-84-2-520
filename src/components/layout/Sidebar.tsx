@@ -28,7 +28,17 @@ const menuItems = [
     title: 'Dashboard',
     url: '/dashboard',
     icon: LayoutDashboard,
-    roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
+    roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL'],
+    getRoleUrl: (role: string) => {
+      switch(role) {
+        case 'ADMIN': return '/admin-dashboard';
+        case 'HR': return '/hr-dashboard';
+        case 'EMPLOYEE': return '/employee-dashboard';
+        case 'COACH': return '/coach-dashboard';
+        case 'INDIVIDUAL': return '/individual-dashboard';
+        default: return '/individual-dashboard';
+      }
+    }
   },
   {
     title: 'Catalog',
@@ -104,20 +114,23 @@ export const Sidebar = () => {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {filteredMenuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      end 
-                      className={getNavCls}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {filteredMenuItems.map((item) => {
+                const itemUrl = item.getRoleUrl && userProfile ? item.getRoleUrl(userProfile.role) : item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={itemUrl} 
+                        end 
+                        className={getNavCls}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

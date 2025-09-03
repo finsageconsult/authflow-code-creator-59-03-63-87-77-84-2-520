@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile, Organization, getCurrentUserProfile, getUserOrganization } from '@/lib/auth';
 
@@ -20,6 +21,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const getRoleDashboardUrl = (role: string) => {
+    switch(role) {
+      case 'ADMIN': return '/admin-dashboard';
+      case 'HR': return '/hr-dashboard';
+      case 'EMPLOYEE': return '/employee-dashboard';
+      case 'COACH': return '/coach-dashboard';
+      case 'INDIVIDUAL': return '/individual-dashboard';
+      default: return '/individual-dashboard';
+    }
+  };
 
   const refreshProfile = async () => {
     if (!session?.user) return;
@@ -33,6 +47,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setOrganization(org);
       } else {
         setOrganization(null);
+      }
+
+      // Auto-redirect to role-specific dashboard after login
+      if (profile && (location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/dashboard')) {
+        const dashboardUrl = getRoleDashboardUrl(profile.role);
+        navigate(dashboardUrl, { replace: true });
       }
     } catch (error) {
       console.error('Error refreshing profile:', error);

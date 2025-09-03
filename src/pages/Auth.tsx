@@ -46,7 +46,7 @@ export default function Auth() {
           }
         } else {
           toast.success('Successfully signed in!');
-          navigate('/dashboard');
+          // Will be redirected automatically by auth hook
         }
       }
     } catch (error) {
