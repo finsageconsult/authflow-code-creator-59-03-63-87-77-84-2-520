@@ -142,22 +142,71 @@ export default function Auth() {
 
       const codeData = response.data;
 
-      // Store access code in session storage for signup process
-      sessionStorage.setItem('pendingAccessCode', JSON.stringify({
-        code: accessCode,
-        role: codeData.role,
-        organizationId: codeData.organization_id,
-        organizationName: codeData.organization_name
-      }));
+      // Create a temporary user account with the access code
+      const tempEmail = `${accessCode.trim().toLowerCase()}@temp.finsage.com`;
+      const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
 
-      toast.success(`Access code verified! You'll join ${codeData.organization_name} as ${codeData.role}`);
-      
-      // Switch to email tab, but don't force signup - let user choose
-      setActiveTab('email');
+      // Try to sign up with temporary credentials
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: tempEmail,
+        password: tempPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            name: `${codeData.role} User`,
+            access_code: accessCode.trim()
+          }
+        }
+      });
+
+      if (signUpError && !signUpError.message.includes('already registered')) {
+        console.error('Signup error:', signUpError);
+        toast.error('Failed to create account with access code.');
+        return;
+      }
+
+      // If user already exists, try to sign in
+      if (signUpError?.message.includes('already registered')) {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: tempEmail,
+          password: tempPassword,
+        });
+
+        if (signInError) {
+          console.error('Sign in error:', signInError);
+          toast.error('Failed to sign in with access code.');
+          return;
+        }
+      }
+
+      // Wait for user creation and then update with access code data
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const { data: user } = await supabase.auth.getUser();
+      if (user.user) {
+        // Use edge function to consume access code and set role
+        const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
+          body: {
+            userId: user.user.id,
+            code: accessCode.trim(),
+            role: codeData.role,
+            organizationId: codeData.organization_id
+          }
+        });
+
+        if (consumeError || !consumeResponse?.success) {
+          console.error('Error consuming access code:', consumeError);
+          toast.error('Failed to set up account with access code.');
+          return;
+        }
+
+        toast.success(`Successfully logged in! Welcome to ${codeData.organization_name} as ${codeData.role}`);
+        // Navigation will be handled by auth hook
+      }
       
     } catch (error) {
-      console.error('Error verifying access code:', error);
-      toast.error('Failed to verify access code. Please try again.');
+      console.error('Error with access code login:', error);
+      toast.error('Failed to login with access code. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -203,7 +252,7 @@ export default function Auth() {
                 <Button type="submit" className="w-full" disabled={isLoading || !accessCode.trim()}>
                   {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   <Key className="w-4 h-4 mr-2" />
-                  Verify Access Code
+                  Login with Access Code
                 </Button>
               </form>
             </TabsContent>
