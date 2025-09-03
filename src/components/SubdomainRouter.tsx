@@ -9,25 +9,26 @@ import { IndividualDashboard } from '@/components/dashboards/IndividualDashboard
 import Organizations from '@/pages/admin/Organizations';
 import OrganizationDetail from '@/pages/admin/OrganizationDetail';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 export const SubdomainRouter = () => {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
-      <Route path="/admin-dashboard" element={<AppLayout><AdminDashboard /></AppLayout>} />
-      <Route path="/hr-dashboard" element={<AppLayout><HRDashboard /></AppLayout>} />
-      <Route path="/employee-dashboard" element={<AppLayout><EmployeeDashboard /></AppLayout>} />
-      <Route path="/coach-dashboard" element={<AppLayout><CoachDashboard /></AppLayout>} />
-      <Route path="/individual-dashboard" element={<AppLayout><IndividualDashboard /></AppLayout>} />
-      <Route path="/catalog" element={<AppLayout><div>Catalog Coming Soon</div></AppLayout>} />
-      <Route path="/coaching" element={<AppLayout><div>Coaching Coming Soon</div></AppLayout>} />
-      <Route path="/webinars" element={<AppLayout><div>Webinars Coming Soon</div></AppLayout>} />
-      <Route path="/tools" element={<AppLayout><div>Tools Coming Soon</div></AppLayout>} />
-      <Route path="/team" element={<AppLayout><div>Team Coming Soon</div></AppLayout>} />
-      <Route path="/billing" element={<AppLayout><div>Billing Coming Soon</div></AppLayout>} />
-      <Route path="/admin/organizations" element={<AppLayout><Organizations /></AppLayout>} />
-      <Route path="/admin/organizations/:id" element={<AppLayout><OrganizationDetail /></AppLayout>} />
+      <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><AdminDashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/hr-dashboard" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRDashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/employee-dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><AppLayout><EmployeeDashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/coach-dashboard" element={<ProtectedRoute allowedRoles={['COACH']}><AppLayout><CoachDashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/individual-dashboard" element={<ProtectedRoute allowedRoles={['INDIVIDUAL']}><AppLayout><IndividualDashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/catalog" element={<ProtectedRoute><AppLayout><div>Catalog Coming Soon</div></AppLayout></ProtectedRoute>} />
+      <Route path="/coaching" element={<ProtectedRoute><AppLayout><div>Coaching Coming Soon</div></AppLayout></ProtectedRoute>} />
+      <Route path="/webinars" element={<ProtectedRoute><AppLayout><div>Webinars Coming Soon</div></AppLayout></ProtectedRoute>} />
+      <Route path="/tools" element={<ProtectedRoute><AppLayout><div>Tools Coming Soon</div></AppLayout></ProtectedRoute>} />
+      <Route path="/team" element={<ProtectedRoute allowedRoles={['ADMIN','HR']}><AppLayout><div>Team Coming Soon</div></AppLayout></ProtectedRoute>} />
+      <Route path="/billing" element={<ProtectedRoute allowedRoles={['ADMIN','HR']}><AppLayout><div>Billing Coming Soon</div></AppLayout></ProtectedRoute>} />
+      <Route path="/admin/organizations" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Organizations /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin/organizations/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><OrganizationDetail /></AppLayout></ProtectedRoute>} />
       <Route path="*" element={<Index />} />
     </Routes>
   );
