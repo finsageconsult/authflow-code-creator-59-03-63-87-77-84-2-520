@@ -155,9 +155,13 @@ export const Sidebar = () => {
           Navigation
         </h2>
         {!isCollapsed && (
-          <SidebarTrigger className="p-1 h-6 w-6">
+          <button 
+            onClick={() => setOpen(false)}
+            className="p-1 h-6 w-6 hover:bg-accent rounded-sm transition-colors"
+            aria-label="Close sidebar"
+          >
             <X className="h-4 w-4" />
-          </SidebarTrigger>
+          </button>
         )}
       </div>
 
