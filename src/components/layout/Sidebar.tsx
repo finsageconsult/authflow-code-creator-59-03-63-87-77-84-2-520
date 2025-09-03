@@ -130,7 +130,7 @@ const adminMenuItems = [
 ];
 
 export const Sidebar = () => {
-  const { state, setOpen } = useSidebar();
+  const { state, open, setOpen } = useSidebar();
   const location = useLocation();
   const { userProfile } = useAuth();
 
@@ -146,7 +146,7 @@ export const Sidebar = () => {
 
   return (
     <SidebarComponent
-      className={isCollapsed ? 'w-14' : 'w-64'}
+      className={`${isCollapsed ? 'w-14' : 'w-64'} ${!open ? 'md:flex hidden' : ''}`}
       collapsible="icon"
     >
       {/* Header with close button */}
@@ -157,7 +157,7 @@ export const Sidebar = () => {
         {!isCollapsed && (
           <button 
             onClick={() => setOpen(false)}
-            className="p-1 h-6 w-6 hover:bg-accent rounded-sm transition-colors"
+            className="p-1 h-6 w-6 hover:bg-accent rounded-sm transition-colors md:hidden"
             aria-label="Close sidebar"
           >
             <X className="h-4 w-4" />
@@ -185,6 +185,12 @@ export const Sidebar = () => {
                         className={({ isActive }) =>
                           isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50'
                         }
+                        onClick={() => {
+                          // Close sidebar on mobile after navigation
+                          if (window.innerWidth < 768) {
+                            setOpen(false);
+                          }
+                        }}
                       >
                         <item.icon className="h-4 w-4" />
                         {!isCollapsed && <span>{item.title}</span>}
