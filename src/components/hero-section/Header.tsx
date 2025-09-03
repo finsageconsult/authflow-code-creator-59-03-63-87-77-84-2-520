@@ -19,9 +19,9 @@ const Header = () => {
         </button>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center justify-end gap-[35px] flex-1">
-          <div className="flex items-center gap-[27px] font-normal whitespace-nowrap">
-            <div className="flex items-center gap-[23px]">
+        <div className="hidden lg:flex items-center justify-end gap-6 flex-1">
+          <div className="flex items-center gap-6 font-normal whitespace-nowrap">
+            <div className="flex items-center gap-6">
               <a href="#about" className="text-foreground hover:text-primary transition-colors">
                 About
               </a>
