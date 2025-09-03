@@ -166,10 +166,11 @@ export const Sidebar = () => {
 
   return (
     <SidebarComponent
-      className={isCollapsed ? 'w-14' : 'w-64'}
       collapsible="icon"
+      className="border-r data-[state=expanded]:w-64 data-[state=collapsed]:w-16 transition-all duration-300"
     >
-      <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b md:hidden">
+      {/* Mobile header with close button */}
+      <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b lg:hidden">
         <span className="text-lg font-semibold">Menu</span>
         <Button 
           variant="ghost" 
@@ -187,20 +188,19 @@ export const Sidebar = () => {
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {filteredMenuItems.map((item) => {
                 const itemUrl = (item as any).getRoleUrl && userProfile ? (item as any).getRoleUrl(userProfile.role) : item.url;
                 const active = isActive(itemUrl);
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <button
-                        onClick={() => handleNavClick(itemUrl)}
-                        className={`w-full flex items-center gap-2 p-2 rounded-md text-left ${getNavCls({ isActive: active })}`}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {!isCollapsed && <span>{item.title}</span>}
-                      </button>
+                    <SidebarMenuButton 
+                      onClick={() => handleNavClick(itemUrl)}
+                      isActive={active}
+                      className="w-full justify-start"
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span className="truncate">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
