@@ -252,24 +252,6 @@ export const CoachDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold" role="heading" aria-level={1}>
-          Coach Dashboard
-        </h1>
-        <div className="flex items-center gap-2">
-          <p className="text-muted-foreground">
-            Supporting Financial Wellness - {userProfile?.name}
-          </p>
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
-            Certified Coach
-          </Badge>
-        </div>
-        <p className="text-sm text-primary/70 italic">
-          Empowering clients because financial wellness is workplace wellness.
-        </p>
-      </div>
-
       {/* Content */}
       {renderContent()}
     </div>
