@@ -58,6 +58,34 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
+          // Check if there's a pending access code for existing users
+          const pendingAccessCode = sessionStorage.getItem('pendingAccessCode');
+          if (pendingAccessCode) {
+            try {
+              const accessCodeData = JSON.parse(pendingAccessCode);
+              const { data: user } = await supabase.auth.getUser();
+              
+              if (user.user) {
+                // Use edge function to update existing user's role and organization
+                const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
+                  body: {
+                    userId: user.user.id,
+                    code: accessCodeData.code,
+                    role: accessCodeData.role,
+                    organizationId: accessCodeData.organizationId
+                  }
+                });
+
+                if (!consumeError && consumeResponse?.success) {
+                  sessionStorage.removeItem('pendingAccessCode');
+                  toast.success(`Role updated! You've joined ${accessCodeData.organizationName} as ${accessCodeData.role}`);
+                }
+              }
+            } catch (error) {
+              console.error('Error processing access code for existing user:', error);
+            }
+          }
+          
           toast.success('Successfully signed in!');
           // Will be redirected automatically by auth hook
         }
@@ -124,8 +152,7 @@ export default function Auth() {
 
       toast.success(`Access code verified! You'll join ${codeData.organization_name} as ${codeData.role}`);
       
-      // Switch to signup tab and email tab
-      setIsSignUp(true);
+      // Switch to email tab, but don't force signup - let user choose
       setActiveTab('email');
       
     } catch (error) {
