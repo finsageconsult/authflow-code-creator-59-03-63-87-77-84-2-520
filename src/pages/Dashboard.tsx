@@ -6,11 +6,14 @@ import { CoachDashboard } from '@/components/dashboards/CoachDashboard';
 import { IndividualDashboard } from '@/components/dashboards/IndividualDashboard';
 
 export default function Dashboard() {
-  const { userProfile } = useAuth();
+  const { userProfile, loading } = useAuth();
 
   // Route to appropriate dashboard based on user role
-  if (!userProfile) {
+  if (loading) {
     return <div>Loading...</div>;
+  }
+  if (!userProfile) {
+    return <IndividualDashboard />;
   }
 
   switch (userProfile.role) {
