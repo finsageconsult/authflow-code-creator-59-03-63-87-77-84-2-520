@@ -55,6 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Auto-redirect to role-specific dashboard after login
       if (location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/dashboard') {
         const dashboardUrl = profile ? getRoleDashboardUrl(profile.role) : '/individual-dashboard';
+        console.log(`Initial redirect: ${profile?.role} -> ${dashboardUrl}`);
         navigate(dashboardUrl, { replace: true });
       } else if (profile) {
         // Check if user is on wrong dashboard for their role
@@ -64,10 +65,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // List of dashboard paths
         const dashboardPaths = ['/admin-dashboard', '/hr-dashboard', '/employee-dashboard', '/coach-dashboard', '/individual-dashboard'];
         
-        // If user is on a dashboard but it's not the correct one for their role, redirect
+        // If user is on a dashboard but it's not the correct one for their role, redirect immediately
         if (dashboardPaths.includes(currentPath) && currentPath !== correctDashboard) {
-          console.log(`Redirecting ${profile.role} from ${currentPath} to ${correctDashboard}`);
-          navigate(correctDashboard, { replace: true });
+          console.log(`Security redirect: ${profile.role} from ${currentPath} to ${correctDashboard}`);
+          window.location.href = correctDashboard; // Force immediate redirect for security
         }
       }
     } catch (error) {
