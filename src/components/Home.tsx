@@ -2,8 +2,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { TrustedByNotableOrganizations } from './TrustedByNotableOrganizations';
-import { PixelPledgeHeroSection } from './PixelPledgeHeroSection';
-import { PixelPledgeFeatureCard } from './PixelPledgeFeatureCard';
 import { HowItWorksSection } from './HowItWorksSection';
 import { TestimonialsSection } from './TestimonialsSection';
 import { WhatWeOffer } from './WhatWeOffer';
@@ -29,9 +27,6 @@ const Home = props => {
         <TrustedByNotableOrganizations />
       </div>
       
-      <div className="relative mb-[50px] smooth-scroll">
-        <PixelPledgeHeroSection />
-      </div>
       
       <div className="py-20 px-4 flex justify-center max-md:py-16 mb-[50px] smooth-scroll">
         <ImpactSection />
