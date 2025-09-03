@@ -151,9 +151,9 @@ export default function OrganizationDetail() {
       if (emailError) {
         console.error('Email error:', emailError);
         toast({
-          title: 'Error',
-          description: 'Access code created but email failed to send',
-          variant: 'destructive'
+          title: 'Warning',
+          description: 'Access code created but email failed to send. Please verify your domain at resend.com',
+          variant: 'default'
         });
       } else if (emailData?.warning) {
         toast({

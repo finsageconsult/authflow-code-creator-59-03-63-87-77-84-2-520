@@ -30,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const expiryDate = new Date(expiresAt).toLocaleDateString();
     
-    const baseUrl = "https://f73c8ec8-3e23-417e-a056-7a97888723ba.sandbox.lovable.dev";
+    const baseUrl = "https://589b9689-010c-46a4-851f-fe53b65b2fc5.sandbox.lovable.dev";
     const loginUrl = `${baseUrl}/auth?code=${code}`;
     
     const subject = `Your ${role} Access Code for ${organizationName}`;
@@ -243,7 +243,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "Finsage <onboarding@resend.dev>",
+      from: "Finsage <noreply@finsage.co>",
       to: [email],
       subject,
       html,
