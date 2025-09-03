@@ -71,7 +71,7 @@ export const AdminCreditIssuance = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Organization</Label>
               <Select value={selectedOrg} onValueChange={setSelectedOrg}>
@@ -154,7 +154,7 @@ export const AdminCreditIssuance = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">1-on-1 Sessions</span>
