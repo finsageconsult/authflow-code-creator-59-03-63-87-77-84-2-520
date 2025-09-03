@@ -105,17 +105,18 @@ export const IndividualDashboard = () => {
             {/* Learning Catalog */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <BookOpen className="h-5 w-5" />
                   Learning Catalog
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-6">
                   <Button 
                     variant={selectedCategory === 'all' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedCategory('all')}
+                    className="text-xs sm:text-sm"
                   >
                     All Programs
                   </Button>
@@ -123,6 +124,7 @@ export const IndividualDashboard = () => {
                     variant={selectedCategory === 'course' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedCategory('course')}
+                    className="text-xs sm:text-sm"
                   >
                     Courses
                   </Button>
@@ -130,16 +132,17 @@ export const IndividualDashboard = () => {
                     variant={selectedCategory === 'coaching' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedCategory('coaching')}
+                    className="text-xs sm:text-sm"
                   >
                     Coaching
                   </Button>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {allContent.map((program) => (
-                    <Card key={program.id} className="relative">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
+                    <Card key={program.id} className="relative hover:shadow-md transition-shadow">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex items-start justify-between mb-3">
                           <Badge variant="outline" className="text-xs">
                             {program.category}
                           </Badge>
@@ -147,16 +150,18 @@ export const IndividualDashboard = () => {
                             <CheckCircle className="h-4 w-4 text-green-600" />
                           )}
                         </div>
-                        <h3 className="font-medium text-sm md:text-base mb-2">{program.title}</h3>
-                        <p className="text-xs md:text-sm text-muted-foreground mb-3 line-clamp-2">
+                        <h3 className="font-medium text-sm sm:text-base mb-2 line-clamp-2">
+                          {program.title}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-2">
                           {program.description}
                         </p>
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-sm md:text-base">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-sm sm:text-base truncate">
                             {formatPrice(program.price)}
                           </span>
                           {isPurchased(program.id) ? (
-                            <Button size="sm" variant="outline">
+                            <Button size="sm" variant="outline" className="shrink-0">
                               Access
                             </Button>
                           ) : (
@@ -234,7 +239,7 @@ export const IndividualDashboard = () => {
   };
 
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         {/* Sidebar */}
         <IndividualSidebar />
@@ -242,14 +247,14 @@ export const IndividualDashboard = () => {
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header with Sidebar Trigger */}
-          <header className="h-14 lg:h-16 flex items-center justify-between border-b px-4 lg:px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="lg:hidden" />
-              <div className="flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-3">
-                <h1 className="text-base lg:text-xl xl:text-2xl font-bold truncate">
+          <header className="sticky top-0 z-40 h-14 lg:h-16 flex items-center justify-between border-b px-3 sm:px-4 lg:px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex items-center gap-3 min-w-0">
+              <SidebarTrigger className="shrink-0" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0">
+                <h1 className="text-sm sm:text-base lg:text-xl xl:text-2xl font-bold truncate">
                   Welcome, {userProfile?.name?.split(' ')[0]}!
                 </h1>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs w-fit">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs shrink-0 self-start sm:self-center">
                   Individual Learner
                 </Badge>
               </div>
@@ -257,8 +262,8 @@ export const IndividualDashboard = () => {
           </header>
 
           {/* Content */}
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-auto">
-            <div className="max-w-7xl mx-auto">
+          <main className="flex-1 overflow-auto">
+            <div className="container max-w-7xl mx-auto p-3 sm:p-4 lg:p-6">
               {renderContent()}
             </div>
           </main>

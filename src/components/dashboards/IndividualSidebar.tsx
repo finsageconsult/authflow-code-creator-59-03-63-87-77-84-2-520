@@ -8,8 +8,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
+import { X } from 'lucide-react'
 import { 
   BookOpen, 
   Calendar,
@@ -60,44 +63,66 @@ const menuItems = [
 ]
 
 export function IndividualSidebar() {
-  const { state, isMobile } = useSidebar()
+  const { state, isMobile, setOpenMobile, openMobile } = useSidebar()
   const location = useLocation()
   const currentParam = new URLSearchParams(location.search).get('tab') || 'programs'
 
   const isActive = (param: string) => currentParam === param
+  const isCollapsed = state === "collapsed"
+
+  const handleItemClick = () => {
+    if (isMobile && openMobile) {
+      setOpenMobile(false)
+    }
+  }
 
   return (
     <Sidebar
-      className={`${state === "collapsed" ? "w-14" : "w-60"} ${isMobile ? "data-[state=open]:w-60" : ""}`}
+      className="border-r data-[state=expanded]:w-64 data-[state=collapsed]:w-16 transition-all duration-300"
       collapsible="icon"
     >
-      <SidebarContent>
+      {/* Mobile header with close button */}
+      <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b lg:hidden">
+        <span className="font-semibold text-sm">Menu</span>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setOpenMobile(false)} 
+          className="h-8 w-8 p-0"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </SidebarHeader>
+      
+      <SidebarContent className="pt-2 lg:pt-4">
         <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : ""}>
+          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
             Individual Learning
           </SidebarGroupLabel>
           
           <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                     <NavLink
-                      to={`${item.url}?tab=${item.param}`}
-                      className={({ isActive: linkActive }) => 
-                        isActive(item.param) 
-                          ? "bg-muted text-primary font-medium" 
-                          : "hover:bg-muted/50"
-                      }
+            <SidebarMenu className="space-y-1">
+              {menuItems.map((item) => {
+                const active = isActive(item.param)
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild
+                      isActive={active}
+                      className="w-full justify-start"
                     >
-                      <item.icon className="h-4 w-4 flex-shrink-0" />
-                      {(state !== "collapsed" || isMobile) && (
-                        <span className="ml-2 truncate">{item.title}</span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <NavLink
+                        to={`${item.url}?tab=${item.param}`}
+                        onClick={handleItemClick}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors"
+                      >
+                        <item.icon className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate font-medium">{item.title}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
