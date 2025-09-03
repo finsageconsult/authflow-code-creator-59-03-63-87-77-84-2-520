@@ -21,10 +21,12 @@ import { CreditWallet } from '@/components/credits/CreditWallet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MoodCheckIn {
-  mood: 'happy' | 'neutral' | 'sad' | null;
+  mood: 'excited' | 'optimistic' | 'neutral' | 'worried' | 'stressed' | null;
   stressLevel: number;
   confidenceLevel: number;
-  topics: string[];
+  concerns: string[];
+  urgencyLevel: number;
+  experienceLevel: 'beginner' | 'intermediate' | 'advanced';
 }
 
 export const EmployeeDashboard = () => {
@@ -33,59 +35,184 @@ export const EmployeeDashboard = () => {
     mood: null,
     stressLevel: 5,
     confidenceLevel: 5,
-    topics: []
+    concerns: [],
+    urgencyLevel: 3,
+    experienceLevel: 'beginner'
   });
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
 
   const moodOptions = [
-    { id: 'happy', icon: Smile, label: 'Great!', color: 'text-green-600' },
-    { id: 'neutral', icon: Meh, label: 'Okay', color: 'text-yellow-600' },
-    { id: 'sad', icon: Frown, label: 'Stressed', color: 'text-red-600' }
+    { id: 'excited', icon: Smile, label: '😄 Excited!', color: 'text-green-600' },
+    { id: 'optimistic', icon: Smile, label: '😊 Optimistic', color: 'text-green-500' },
+    { id: 'neutral', icon: Meh, label: '😐 Neutral', color: 'text-yellow-600' },
+    { id: 'worried', icon: Frown, label: '😟 Worried', color: 'text-orange-600' },
+    { id: 'stressed', icon: Frown, label: '😰 Stressed', color: 'text-red-600' }
   ];
 
-  const topicOptions = [
-    'Budgeting & Saving',
-    'Investment Planning',
-    'Retirement Planning',
-    'Tax Planning',
+  const concernOptions = [
+    'Salary Structure & Negotiation',
+    'Tax Planning & Savings',
+    'Investment & Wealth Building',
     'Debt Management',
-    'Emergency Fund',
+    'Family Financial Planning',
+    'Emergency Fund Planning',
     'Insurance Planning',
-    'Career Growth'
+    'Retirement Planning'
   ];
 
-  const recommendations = [
-    {
-      type: 'webinar',
-      title: 'Smart Budgeting Workshop',
-      description: 'Learn practical budgeting techniques',
-      credits: 2,
-      rating: 4.8,
-      participants: 234,
-      icon: Calendar,
-      color: 'text-blue-600'
-    },
-    {
-      type: 'coaching',
-      title: '1:1 Financial Health Check',
-      description: 'Personal session with certified coach',
-      credits: 5,
-      rating: 4.9,
-      participants: 89,
-      icon: GraduationCap,
-      color: 'text-green-600'
-    },
-    {
-      type: 'tool',
-      title: 'Investment Calculator',
-      description: 'Plan your investment strategy',
-      credits: 1,
-      rating: 4.7,
-      participants: 456,
-      icon: Wrench,
-      color: 'text-purple-600'
+  // Intelligent recommendation logic based on check-in data
+  const getPersonalizedRecommendations = () => {
+    const recs = [];
+    
+    // High stress + low confidence → Financial Fitness Bootcamp + Personal Financial Blueprint
+    if (checkIn.stressLevel >= 7 && checkIn.confidenceLevel <= 4) {
+      recs.push({
+        type: 'webinar',
+        title: 'Financial Fitness Bootcamp',
+        description: 'Complete financial wellness program for stressed beginners',
+        credits: 3,
+        rating: 4.9,
+        participants: 156,
+        icon: GraduationCap,
+        color: 'text-green-600',
+        reason: 'Because you\'re feeling stressed and want to build confidence'
+      });
+      recs.push({
+        type: 'coaching',
+        title: 'Personal Financial Blueprint (1:1)',
+        description: 'One-on-one session to create your personalized plan',
+        credits: 5,
+        rating: 4.8,
+        participants: 89,
+        icon: Target,
+        color: 'text-blue-600',
+        reason: 'Because you need personalized guidance to reduce stress'
+      });
     }
-  ];
+
+    // Tax concerns → Tax webinar + tools
+    if (checkIn.concerns.includes('Tax Planning & Savings')) {
+      recs.push({
+        type: 'webinar',
+        title: 'How to Save Tax Webinar',
+        description: 'Learn smart tax planning strategies',
+        credits: 2,
+        rating: 4.7,
+        participants: 234,
+        icon: Calendar,
+        color: 'text-purple-600',
+        reason: 'Because you selected tax planning as a concern'
+      });
+      recs.push({
+        type: 'tool',
+        title: 'Tax Optimizer Tool',
+        description: 'Calculate your tax savings potential',
+        credits: 1,
+        rating: 4.6,
+        participants: 456,
+        icon: Wrench,
+        color: 'text-green-600',
+        reason: 'Because you want to optimize your tax strategy'
+      });
+    }
+
+    // Salary concerns → Salary webinar + Blueprint
+    if (checkIn.concerns.includes('Salary Structure & Negotiation')) {
+      recs.push({
+        type: 'webinar',
+        title: 'Smart Salary Structuring',
+        description: 'Maximize your take-home through smart structuring',
+        credits: 2,
+        rating: 4.8,
+        participants: 178,
+        icon: TrendingUp,
+        color: 'text-blue-600',
+        reason: 'Because you want to optimize your salary structure'
+      });
+      recs.push({
+        type: 'coaching',
+        title: 'Blueprint Session: Salary Negotiation',
+        description: 'Personalized salary negotiation strategy',
+        credits: 4,
+        rating: 4.9,
+        participants: 67,
+        icon: GraduationCap,
+        color: 'text-green-600',
+        reason: 'Because you need personalized negotiation strategies'
+      });
+    }
+
+    // High debt → Debt management programs
+    if (checkIn.concerns.includes('Debt Management')) {
+      recs.push({
+        type: 'webinar',
+        title: 'Debt-Free Fast Track',
+        description: 'Proven strategies to eliminate debt quickly',
+        credits: 3,
+        rating: 4.8,
+        participants: 203,
+        icon: TrendingUp,
+        color: 'text-red-600',
+        reason: 'Because you want to tackle your debt effectively'
+      });
+      recs.push({
+        type: 'coaching',
+        title: 'Financial Fitness Bootcamp',
+        description: 'Complete debt management and budgeting program',
+        credits: 6,
+        rating: 4.9,
+        participants: 134,
+        icon: Heart,
+        color: 'text-green-600',
+        reason: 'Because you need comprehensive debt solutions'
+      });
+    }
+
+    // Investment concerns → Investment planning
+    if (checkIn.concerns.includes('Investment & Wealth Building')) {
+      recs.push({
+        type: 'webinar',
+        title: 'Investment Planning Masterclass',
+        description: 'Build wealth through smart investing',
+        credits: 3,
+        rating: 4.7,
+        participants: 289,
+        icon: TrendingUp,
+        color: 'text-green-600',
+        reason: 'Because you want to grow your wealth through investments'
+      });
+      recs.push({
+        type: 'tool',
+        title: 'Investment Calculator Pro',
+        description: 'Plan and track your investment portfolio',
+        credits: 1,
+        rating: 4.5,
+        participants: 567,
+        icon: Wrench,
+        color: 'text-purple-600',
+        reason: 'Because you need tools to plan your investments'
+      });
+    }
+
+    // Default recommendations for general financial wellness
+    if (recs.length === 0) {
+      recs.push({
+        type: 'webinar',
+        title: 'Financial Wellness 101',
+        description: 'Start your financial journey with confidence',
+        credits: 2,
+        rating: 4.6,
+        participants: 345,
+        icon: Heart,
+        color: 'text-blue-600',
+        reason: 'Because everyone needs a strong financial foundation'
+      });
+    }
+
+    return recs.slice(0, 3); // Return top 3 recommendations
+  };
+
+  const recommendations = hasCheckedIn ? getPersonalizedRecommendations() : [];
 
   const upcomingBookings = [
     {
@@ -107,12 +234,12 @@ export const EmployeeDashboard = () => {
     setHasCheckedIn(true);
   };
 
-  const toggleTopic = (topic: string) => {
+  const toggleConcern = (concern: string) => {
     setCheckIn(prev => ({
       ...prev,
-      topics: prev.topics.includes(topic) 
-        ? prev.topics.filter(t => t !== topic)
-        : [...prev.topics, topic]
+      concerns: prev.concerns.includes(concern) 
+        ? prev.concerns.filter(c => c !== concern)
+        : [...prev.concerns, concern]
     }));
   };
 
@@ -192,20 +319,58 @@ export const EmployeeDashboard = () => {
               </div>
             </div>
 
-            {/* Topics of Interest */}
+            {/* Top Concerns */}
             <div>
               <label className="text-sm font-medium mb-3 block">
-                What topics are you interested in? (Select all that apply)
+                What are your main financial concerns? (Select all that apply)
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {topicOptions.map((topic) => (
+                {concernOptions.map((concern) => (
                   <Button
-                    key={topic}
-                    variant={checkIn.topics.includes(topic) ? "default" : "outline"}
+                    key={concern}
+                    variant={checkIn.concerns.includes(concern) ? "default" : "outline"}
                     size="sm"
-                    onClick={() => toggleTopic(topic)}
+                    onClick={() => toggleConcern(concern)}
                   >
-                    {topic}
+                    {concern}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Urgency Level */}
+            <div>
+              <label className="text-sm font-medium mb-3 block">
+                How urgent are your financial needs? {checkIn.urgencyLevel}/5
+              </label>
+              <Slider
+                value={[checkIn.urgencyLevel]}
+                onValueChange={(value) => setCheckIn(prev => ({ ...prev, urgencyLevel: value[0] }))}
+                max={5}
+                min={1}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>Can Wait</span>
+                <span>Very Urgent</span>
+              </div>
+            </div>
+
+            {/* Experience Level */}
+            <div>
+              <label className="text-sm font-medium mb-3 block">
+                How would you describe your financial knowledge?
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {['beginner', 'intermediate', 'advanced'].map((level) => (
+                  <Button
+                    key={level}
+                    variant={checkIn.experienceLevel === level ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCheckIn(prev => ({ ...prev, experienceLevel: level as any }))}
+                  >
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
                   </Button>
                 ))}
               </div>
@@ -228,9 +393,19 @@ export const EmployeeDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">
-          Welcome back, {userProfile?.name?.split(' ')[0]}!
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">
+            Welcome back, {userProfile?.name?.split(' ')[0]}!
+          </h1>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setHasCheckedIn(false)}
+            className="text-xs"
+          >
+            Retake Check-in
+          </Button>
+        </div>
         <div className="flex items-center gap-2">
           <p className="text-muted-foreground">
             {organization?.name} Employee
@@ -274,6 +449,7 @@ export const EmployeeDashboard = () => {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">{rec.description}</p>
+                <p className="text-xs text-blue-600 font-medium mb-2">{rec.reason}</p>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span>⭐ {rec.rating}</span>
                   <span>{rec.participants} participants</span>
