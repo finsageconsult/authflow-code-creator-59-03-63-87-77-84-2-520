@@ -25,7 +25,7 @@ const getRoleDashboardUrl = (role: string) => {
 };
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { user, userProfile, loading } = useAuth();
+  const { user, userProfile, loading, profileReady } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -41,10 +41,27 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
-  // If roles are specified and user doesn't have access -> redirect to their own dashboard
-  if (allowedRoles && userProfile && !allowedRoles.includes(userProfile.role)) {
-    const redirect = getRoleDashboardUrl(userProfile.role);
-    return <Navigate to={redirect} replace />;
+  // Role protection
+  if (allowedRoles) {
+    // wait until profile is ready to evaluate roles
+    if (!profileReady) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      );
+    }
+
+    // If profile is missing after ready, send to individual's dashboard
+    if (!userProfile) {
+      return <Navigate to="/individual-dashboard" replace />;
+    }
+
+    // If roles are specified and user doesn't have access -> redirect to their own dashboard
+    if (!allowedRoles.includes(userProfile.role)) {
+      const redirect = getRoleDashboardUrl(userProfile.role);
+      return <Navigate to={redirect} replace />;
+    }
   }
 
   return <>{children}</>;

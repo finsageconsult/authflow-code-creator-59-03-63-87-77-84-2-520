@@ -9,7 +9,8 @@ interface AuthContextType {
   session: Session | null;
   userProfile: UserProfile | null;
   organization: Organization | null;
-  loading: boolean;
+  loading: boolean; // auth state readiness
+  profileReady: boolean; // profile fetched and ready for role checks
   refreshProfile: () => Promise<void>;
 }
 
@@ -21,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileReady, setProfileReady] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,6 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshProfile = async () => {
     if (!session?.user) return;
+    setProfileReady(false);
     
     try {
       const profile = await getCurrentUserProfile();
@@ -56,6 +59,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error('Error refreshing profile:', error);
+    } finally {
+      setProfileReady(true);
     }
   };
 
@@ -111,6 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userProfile,
       organization,
       loading,
+      profileReady,
       refreshProfile
     }}>
       {children}
