@@ -78,12 +78,12 @@ export function IndividualSidebar() {
 
   return (
     <Sidebar
-      className="border-r"
+      className="border-r bg-background lg:translate-x-0"
       collapsible="icon"
       variant="sidebar"
     >
       {/* Mobile header with close button */}
-      <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b lg:hidden">
+      <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b bg-background lg:hidden">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm">Individual Learning</span>
         </div>
@@ -97,7 +97,7 @@ export function IndividualSidebar() {
         </Button>
       </SidebarHeader>
       
-      <SidebarContent className="pt-2 lg:pt-4">
+      <SidebarContent className="pt-2 lg:pt-4 bg-background">
         <SidebarGroup>
           <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
             Individual Learning

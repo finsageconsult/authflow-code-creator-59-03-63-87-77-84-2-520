@@ -240,14 +240,14 @@ export const IndividualDashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen w-full">
+      <div className="min-h-screen w-full relative">
         {/* Sidebar */}
         <IndividualSidebar />
 
         {/* Main Content */}
-        <main className="transition-all duration-200 ease-in-out lg:pl-64">
+        <main className="transition-all duration-200 ease-in-out lg:pl-64 min-h-screen">
           {/* Header with Sidebar Trigger */}
-          <header className="sticky top-0 z-30 h-14 lg:h-16 flex items-center justify-between border-b px-4 lg:px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-40 h-14 lg:h-16 flex items-center justify-between border-b px-4 lg:px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center gap-3 min-w-0 w-full">
               <SidebarTrigger className="lg:hidden shrink-0" />
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0">
