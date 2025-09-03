@@ -112,20 +112,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Check if code is used up
-    console.log("Usage check:", { used: codeData.used_count, max: codeData.max_uses });
-    if (codeData.used_count >= codeData.max_uses) {
-      console.log("Access code used up");
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "This access code has been used up. Please contact your administrator." 
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
+    // Usage limit disabled — allow unlimited uses
+    console.log("Usage check (ignored):", { used: codeData.used_count, max: codeData.max_uses });
 
     console.log("Access code verified successfully");
 

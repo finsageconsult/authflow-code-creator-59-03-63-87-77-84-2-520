@@ -84,19 +84,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if code usage limit reached
-    if (codeData.used_count >= codeData.max_uses) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Access code usage limit reached" 
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
+    // Usage limit disabled — allow unlimited uses
+    console.log('Usage limit ignored for access codes', { used: codeData.used_count, max: codeData.max_uses });
 
     // Update the user's profile with role and organization
     const { error: updateUserError } = await supabaseAdmin
