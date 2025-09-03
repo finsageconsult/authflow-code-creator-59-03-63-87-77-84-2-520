@@ -3,6 +3,12 @@ import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import { AdminDashboard } from '@/components/dashboards/AdminDashboard';
 import { HRDashboard } from '@/components/dashboards/HRDashboard';
+import { HROverview } from '@/components/hr/HROverview';
+import { HRPeople } from '@/components/hr/HRPeople';
+import { HRCredits } from '@/components/hr/HRCredits';
+import { HRCalendar } from '@/components/hr/HRCalendar';
+import { HRInsights } from '@/components/hr/HRInsights';
+import { HRInvoices } from '@/components/hr/HRInvoices';
 import { EmployeeDashboard } from '@/components/dashboards/EmployeeDashboard';
 import { CoachDashboard } from '@/components/dashboards/CoachDashboard';
 import { IndividualDashboard } from '@/components/dashboards/IndividualDashboard';
@@ -45,7 +51,12 @@ export const SubdomainRouter = () => {
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><AdminDashboard /></AppLayout></ProtectedRoute>} />
-      <Route path="/hr-dashboard" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRDashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/hr-dashboard" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HROverview /></AppLayout></ProtectedRoute>} />
+      <Route path="/hr-dashboard/people" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRPeople /></AppLayout></ProtectedRoute>} />
+      <Route path="/hr-dashboard/credits" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRCredits /></AppLayout></ProtectedRoute>} />
+      <Route path="/hr-dashboard/calendar" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRCalendar /></AppLayout></ProtectedRoute>} />
+      <Route path="/hr-dashboard/insights" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRInsights /></AppLayout></ProtectedRoute>} />
+      <Route path="/hr-dashboard/invoices" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRInvoices /></AppLayout></ProtectedRoute>} />
       <Route path="/employee-dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><AppLayout><EmployeeDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/coach-dashboard" element={<ProtectedRoute allowedRoles={['COACH']}><AppLayout><CoachDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/individual-dashboard" element={<ProtectedRoute allowedRoles={['INDIVIDUAL']}><AppLayout><IndividualDashboard /></AppLayout></ProtectedRoute>} />

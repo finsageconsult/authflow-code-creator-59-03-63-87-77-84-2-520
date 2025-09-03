@@ -129,6 +129,38 @@ const coachMenuItems = [{
   icon: DollarSign,
   roles: ['COACH']
 }];
+
+const hrMenuItems = [{
+  title: 'Overview',
+  url: '/hr-dashboard',
+  icon: LayoutDashboard,
+  roles: ['HR']
+}, {
+  title: 'People',
+  url: '/hr-dashboard/people',
+  icon: Users,
+  roles: ['HR']
+}, {
+  title: 'Credits',
+  url: '/hr-dashboard/credits',
+  icon: CreditCard,
+  roles: ['HR']
+}, {
+  title: 'Calendar',
+  url: '/hr-dashboard/calendar',
+  icon: Calendar,
+  roles: ['HR']
+}, {
+  title: 'Insights',
+  url: '/hr-dashboard/insights',
+  icon: BarChart3,
+  roles: ['HR']
+}, {
+  title: 'Invoices',
+  url: '/hr-dashboard/invoices',
+  icon: FileText,
+  roles: ['HR']
+}];
 export const Sidebar = () => {
   const {
     state,
@@ -155,8 +187,9 @@ export const Sidebar = () => {
     isActive: boolean;
   }) => isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50';
 
-  // Filter menu items based on user role - use specific menus for admin and coach users
+  // Filter menu items based on user role - use specific menus for admin, hr and coach users
   const currentMenuItems = userProfile?.role === 'ADMIN' ? adminMenuItems : 
+                           userProfile?.role === 'HR' ? hrMenuItems :
                            userProfile?.role === 'COACH' ? coachMenuItems : menuItems;
   const filteredMenuItems = currentMenuItems.filter(item => userProfile ? hasRole(userProfile, item.roles) : false);
   const isCollapsed = state === 'collapsed';
