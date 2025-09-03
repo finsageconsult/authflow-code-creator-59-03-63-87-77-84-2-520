@@ -20,7 +20,7 @@ export const SubdomainRouter = () => {
       <Route path="/hr-dashboard" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/employee-dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><AppLayout><EmployeeDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/coach-dashboard" element={<ProtectedRoute allowedRoles={['COACH']}><AppLayout><CoachDashboard /></AppLayout></ProtectedRoute>} />
-      <Route path="/individual-dashboard" element={<ProtectedRoute allowedRoles={['INDIVIDUAL', 'HR', 'EMPLOYEE', 'COACH', 'ADMIN']}><AppLayout><IndividualDashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/individual-dashboard" element={<ProtectedRoute allowedRoles={['INDIVIDUAL']}><AppLayout><IndividualDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/catalog" element={<ProtectedRoute><AppLayout><div>Catalog Coming Soon</div></AppLayout></ProtectedRoute>} />
       <Route path="/coaching" element={<ProtectedRoute><AppLayout><div>Coaching Coming Soon</div></AppLayout></ProtectedRoute>} />
       <Route path="/webinars" element={<ProtectedRoute><AppLayout><div>Webinars Coming Soon</div></AppLayout></ProtectedRoute>} />
