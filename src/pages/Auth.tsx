@@ -201,6 +201,15 @@ export default function Auth() {
         }
 
         toast.success(`Successfully logged in! Welcome to ${codeData.organization_name} as ${codeData.role}`);
+        
+        // Force immediate navigation to correct dashboard
+        const correctDashboard = codeData.role === 'ADMIN' ? '/admin-dashboard' :
+                                codeData.role === 'HR' ? '/hr-dashboard' :
+                                codeData.role === 'EMPLOYEE' ? '/employee-dashboard' :
+                                codeData.role === 'COACH' ? '/coach-dashboard' :
+                                '/individual-dashboard';
+        
+        window.location.href = correctDashboard;
         // Navigation will be handled by auth hook
       }
       
