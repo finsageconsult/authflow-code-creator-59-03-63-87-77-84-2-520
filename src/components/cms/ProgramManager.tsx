@@ -366,77 +366,77 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
       </div>
 
       {/* Programs Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {filteredPrograms.map((program) => (
-          <Card key={program.id} className={`${!program.is_active ? 'opacity-60' : ''}`}>
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-base sm:text-lg leading-tight line-clamp-2">{program.title}</CardTitle>
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    <Badge variant="outline" className="text-xs">{program.category}</Badge>
-                    <Badge variant="secondary" className="text-xs">{program.level}</Badge>
-                    {!program.is_active && (
-                      <Badge variant="destructive" className="text-xs">Inactive</Badge>
-                    )}
-                  </div>
+          <Card key={program.id} className={`w-full ${!program.is_active ? 'opacity-60' : ''}`}>
+            <CardHeader className="pb-3 px-4 pt-4">
+              <div className="space-y-3">
+                <CardTitle className="text-lg leading-tight line-clamp-2 min-h-[3.5rem]">
+                  {program.title}
+                </CardTitle>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge variant="outline" className="text-xs px-2 py-1">{program.category}</Badge>
+                  <Badge variant="secondary" className="text-xs px-2 py-1">{program.level}</Badge>
+                  {!program.is_active && (
+                    <Badge variant="destructive" className="text-xs px-2 py-1">Inactive</Badge>
+                  )}
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              <p className="text-sm text-muted-foreground line-clamp-2">
+            <CardContent className="space-y-4 px-4 pb-4">
+              <p className="text-sm text-muted-foreground line-clamp-3 min-h-[3.75rem]">
                 {program.description}
               </p>
               
-              <div className="grid grid-cols-2 gap-2 sm:gap-4 text-sm">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                  <span className="text-xs sm:text-sm truncate">{program.duration}</span>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm truncate">{program.duration}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                  <span className="text-xs sm:text-sm">₹{(program.price / 100).toLocaleString()}</span>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm">₹{(program.price / 100).toLocaleString()}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
-                  <span className="text-xs sm:text-sm">{program.rating}</span>
+                <div className="flex items-center gap-1.5">
+                  <Star className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                  <span className="text-sm">{program.rating}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                  <span className="text-xs sm:text-sm">{program.students}</span>
+                <div className="flex items-center gap-1.5">
+                  <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm">{program.students}</span>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1.5">
                 {program.tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-xs">
+                  <Badge key={tag} variant="outline" className="text-xs px-2 py-1">
                     {tag}
                   </Badge>
                 ))}
                 {program.tags.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs px-2 py-1">
                     +{program.tags.length - 3}
                   </Badge>
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <div className="flex flex-col gap-2 pt-2">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => handleEdit(program)}
-                  className="flex-1 gap-1 text-xs sm:text-sm"
+                  className="w-full gap-2 h-9"
                 >
-                  <Edit className="h-3 w-3" />
+                  <Edit className="h-4 w-4" />
                   Edit
                 </Button>
                 <Button
                   size="sm"
                   variant={program.is_active ? "destructive" : "default"}
                   onClick={() => toggleActive(program)}
-                  className="flex-1 gap-1 text-xs sm:text-sm"
+                  className="w-full gap-2 h-9"
                 >
-                  <Archive className="h-3 w-3" />
+                  <Archive className="h-4 w-4" />
                   {program.is_active ? 'Deactivate' : 'Activate'}
                 </Button>
               </div>
