@@ -138,7 +138,7 @@ export const IndividualDashboard = () => {
                   </Button>
                 </div>
 
-                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {allContent.map((program) => (
                     <Card key={program.id} className="relative hover:shadow-md transition-shadow h-full">
                       <CardContent className="p-3 sm:p-4 h-full flex flex-col">
@@ -150,18 +150,18 @@ export const IndividualDashboard = () => {
                             <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
                           )}
                         </div>
-                        <h3 className="font-medium text-sm sm:text-base mb-2 line-clamp-2 flex-shrink-0">
+                        <h3 className="font-medium text-sm md:text-base mb-2 line-clamp-2 flex-shrink-0">
                           {program.title}
                         </h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-2 flex-1">
+                        <p className="text-xs md:text-sm text-muted-foreground mb-4 line-clamp-3 flex-1">
                           {program.description}
                         </p>
                         <div className="flex items-center justify-between gap-2 mt-auto">
-                          <span className="font-semibold text-sm sm:text-base truncate">
+                          <span className="font-semibold text-sm md:text-base truncate">
                             {formatPrice(program.price)}
                           </span>
                           {isPurchased(program.id) ? (
-                            <Button size="sm" variant="outline" className="shrink-0 text-xs sm:text-sm">
+                            <Button size="sm" variant="outline" className="shrink-0 text-xs md:text-sm h-8 px-3">
                               Access
                             </Button>
                           ) : (
@@ -239,19 +239,19 @@ export const IndividualDashboard = () => {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen w-full relative">
         {/* Sidebar */}
         <IndividualSidebar />
 
         {/* Main Content */}
-        <main className="transition-all duration-200 ease-in-out lg:pl-64 min-h-screen">
+        <main className="transition-all duration-200 ease-in-out md:pl-0 lg:pl-64 min-h-screen">
           {/* Header with Sidebar Trigger */}
-          <header className="sticky top-0 z-40 h-14 lg:h-16 flex items-center justify-between border-b px-4 lg:px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-40 h-14 md:h-16 flex items-center justify-between border-b px-4 md:px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center gap-3 min-w-0 w-full">
-              <SidebarTrigger className="lg:hidden shrink-0" />
+              <SidebarTrigger className="md:block xl:hidden shrink-0" />
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0">
-                <h1 className="text-base lg:text-xl xl:text-2xl font-bold truncate">
+                <h1 className="text-base md:text-lg lg:text-xl xl:text-2xl font-bold truncate">
                   Welcome, {userProfile?.name?.split(' ')[0]}!
                 </h1>
                 <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs shrink-0 w-fit">
@@ -262,7 +262,7 @@ export const IndividualDashboard = () => {
           </header>
 
           {/* Content */}
-          <div className="p-3 sm:p-4 lg:p-6 xl:p-8">
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8">
             <div className="max-w-6xl mx-auto">
               {renderContent()}
             </div>
