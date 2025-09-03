@@ -161,16 +161,16 @@ export default function Organizations() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Organizations</h1>
-        <Button onClick={() => setShowCreateDialog(true)}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Organizations</h1>
+        <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Create Organization
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Organizations</CardTitle>
@@ -193,7 +193,7 @@ export default function Organizations() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="sm:col-span-2 lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">This Month</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -219,54 +219,115 @@ export default function Organizations() {
               <div className="text-muted-foreground">Loading...</div>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Plan</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Credits (1:1 / Webinar)</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop Table View - Hidden on mobile */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Credits (1:1 / Webinar)</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {organizations.map((org) => (
+                      <TableRow key={org.id}>
+                        <TableCell className="font-medium">{org.name}</TableCell>
+                        <TableCell>
+                          <Badge className={getPlanColor(org.org_plans?.plan_type || '')}>
+                            {org.org_plans?.plan_type || 'N/A'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(org.status)}>
+                            {org.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {org.org_plans 
+                            ? `${org.org_plans.credit_allotment_1on1} / ${org.org_plans.credit_allotment_webinar}`
+                            : 'N/A'
+                          }
+                        </TableCell>
+                        <TableCell>
+                          {new Date(org.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/admin/organizations/${org.id}`)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View - Hidden on desktop */}
+              <div className="md:hidden space-y-4">
                 {organizations.map((org) => (
-                  <TableRow key={org.id}>
-                    <TableCell className="font-medium">{org.name}</TableCell>
-                    <TableCell>
-                    <Badge className={getPlanColor(org.org_plans?.plan_type || '')}>
-                        {org.org_plans?.plan_type || 'N/A'}
-                    </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(org.status)}>
-                        {org.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {org.org_plans 
-                        ? `${org.org_plans.credit_allotment_1on1} / ${org.org_plans.credit_allotment_webinar}`
-                        : 'N/A'
-                      }
-                    </TableCell>
-                    <TableCell>
-                      {new Date(org.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => navigate(`/admin/organizations/${org.id}`)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                  <Card key={org.id} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-semibold text-lg">{org.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Created {new Date(org.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => navigate(`/admin/organizations/${org.id}`)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Plan</Label>
+                          <div className="mt-1">
+                            <Badge className={getPlanColor(org.org_plans?.plan_type || '')}>
+                              {org.org_plans?.plan_type || 'N/A'}
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Status</Label>
+                          <div className="mt-1">
+                            <Badge className={getStatusColor(org.status)}>
+                              {org.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Credits (1:1 / Webinar)</Label>
+                        <p className="text-sm font-medium mt-1">
+                          {org.org_plans 
+                            ? `${org.org_plans.credit_allotment_1on1} / ${org.org_plans.credit_allotment_webinar}`
+                            : 'N/A'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
