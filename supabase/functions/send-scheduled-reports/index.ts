@@ -24,7 +24,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from('scheduled_reports')
       .select('*')
       .eq('is_active', true)
-      .lte('next_send_date', new Date().toISOString());
+      .lte('next_run_at', new Date().toISOString());
 
     if (!dueReports?.length) {
       return new Response(
@@ -46,18 +46,10 @@ const handler = async (req: Request): Promise<Response> => {
           html: reportContent,
         });
 
-        // Update next send date
-        const nextSendDate = new Date(report.next_send_date);
-        if (report.frequency === 'weekly') {
-          nextSendDate.setDate(nextSendDate.getDate() + 7);
-        } else {
-          nextSendDate.setMonth(nextSendDate.getMonth() + 1);
-        }
-
+        // Update last sent timestamp (next_run_at will be updated by trigger)
         await supabase
           .from('scheduled_reports')
           .update({ 
-            next_send_date: nextSendDate.toISOString(),
             last_sent_at: new Date().toISOString()
           })
           .eq('id', report.id);

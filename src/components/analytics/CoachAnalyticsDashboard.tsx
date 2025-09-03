@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { AnalyticsChart } from './AnalyticsChart';
+import { ReportScheduler } from './ReportScheduler';
 import { 
   Calendar, 
   Star, 
@@ -200,6 +201,11 @@ export const CoachAnalyticsDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        <ReportScheduler 
+          reportType="coach" 
+          title="Coach Performance"
+        />
       </div>
 
       {/* Detailed Outcomes Table */}

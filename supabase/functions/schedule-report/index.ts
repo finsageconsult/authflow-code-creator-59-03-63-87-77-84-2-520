@@ -38,7 +38,6 @@ const handler = async (req: Request): Promise<Response> => {
         email,
         organization_id: organizationId,
         user_id: userId,
-        next_send_date: getNextSendDate(frequency),
         is_active: true
       });
 
@@ -56,7 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p>Your ${frequency} ${type} analytics report has been successfully scheduled.</p>
         <p><strong>Report Type:</strong> ${type.charAt(0).toUpperCase() + type.slice(1)} Analytics</p>
         <p><strong>Frequency:</strong> ${frequency.charAt(0).toUpperCase() + frequency.slice(1)}</p>
-        <p><strong>Next Report:</strong> ${getNextSendDate(frequency).toLocaleDateString()}</p>
+        <p><strong>Next Report:</strong> ${frequency === 'weekly' ? 'Next week' : 'Next month'}</p>
         <p>You will receive your reports at this email address: ${email}</p>
         <br>
         <p>Best regards,<br>The Finsage Analytics Team</p>

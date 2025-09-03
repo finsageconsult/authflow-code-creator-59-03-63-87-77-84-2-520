@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { AnalyticsChart } from './AnalyticsChart';
+import { ReportScheduler } from './ReportScheduler';
 import { 
   Users, 
   TrendingUp, 
@@ -21,10 +20,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 export const OrgAnalyticsDashboard = () => {
-  const { orgAnalytics, loading, exportData, scheduleReport } = useAnalytics();
+  const { orgAnalytics, loading, exportData } = useAnalytics();
   const { toast } = useToast();
-  const [reportEmail, setReportEmail] = useState('');
-  const [reportFrequency, setReportFrequency] = useState<'weekly' | 'monthly'>('monthly');
 
   if (loading) {
     return <div className="flex items-center justify-center h-96">Loading analytics...</div>;
@@ -45,32 +42,6 @@ export const OrgAnalyticsDashboard = () => {
       toast({
         title: 'Export Failed',
         description: result.error || 'Failed to export analytics',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleScheduleReport = async () => {
-    if (!reportEmail) {
-      toast({
-        title: 'Email Required',
-        description: 'Please enter an email address for scheduled reports',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const result = await scheduleReport('org', reportFrequency, reportEmail);
-    if (result.success) {
-      toast({
-        title: 'Report Scheduled',
-        description: `${reportFrequency} reports will be sent to ${reportEmail}`,
-      });
-      setReportEmail('');
-    } else {
-      toast({
-        title: 'Scheduling Failed',
-        description: result.error || 'Failed to schedule report',
         variant: 'destructive',
       });
     }
@@ -227,7 +198,7 @@ export const OrgAnalyticsDashboard = () => {
         />
       </div>
 
-      {/* Detailed Insights */}
+      {/* Key Insights and Recommendations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -262,48 +233,53 @@ export const OrgAnalyticsDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Schedule Reports
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email Address</label>
-              <Input
-                type="email"
-                placeholder="hr@company.com"
-                value={reportEmail}
-                onChange={(e) => setReportEmail(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Frequency</label>
-              <Select value={reportFrequency} onValueChange={(value: 'weekly' | 'monthly') => setReportFrequency(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button onClick={handleScheduleReport} className="w-full">
-              <Calendar className="h-4 w-4 mr-2" />
-              Schedule Report
-            </Button>
-
-            <div className="text-xs text-muted-foreground">
-              Automated reports will include participation metrics, wellness trends, and key insights.
-            </div>
-          </CardContent>
-        </Card>
+        {/* Report Scheduling */}
+        <ReportScheduler 
+          reportType="org" 
+          title="Organization Analytics"
+        />
       </div>
+
+      {/* Engagement Recommendations */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Engagement Recommendations
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-3 rounded-lg border">
+            <h4 className="font-medium text-blue-700">Participation</h4>
+            <p className="text-sm text-muted-foreground">
+              {orgAnalytics.participation.participationRate < 50 ? 
+                'Consider running awareness campaigns to boost program adoption' :
+                'Great participation rate! Consider expanding program offerings'
+              }
+            </p>
+          </div>
+          
+          <div className="p-3 rounded-lg border">
+            <h4 className="font-medium text-green-700">Credit Utilization</h4>
+            <p className="text-sm text-muted-foreground">
+              {orgAnalytics.credits.utilizationRate < 30 ? 
+                'Low credit usage - employees may need more guidance on available resources' :
+                'Good credit utilization indicates active engagement'
+              }
+            </p>
+          </div>
+
+          <div className="p-3 rounded-lg border">
+            <h4 className="font-medium text-purple-700">Wellness Trends</h4>
+            <p className="text-sm text-muted-foreground">
+              {orgAnalytics.engagement.wellnessMetrics.confidenceDelta > 0 ?
+                'Confidence levels are improving - program is having positive impact' :
+                'Focus on confidence-building sessions and resources'
+              }
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
