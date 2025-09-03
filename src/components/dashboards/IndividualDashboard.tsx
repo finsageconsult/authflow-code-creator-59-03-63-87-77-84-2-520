@@ -4,131 +4,52 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
+import { useIndividualPrograms } from '@/hooks/useIndividualPrograms';
+import { PaymentButton } from '@/components/individual/PaymentButton';
+import { ToolShortcuts } from '@/components/individual/ToolShortcuts';
 import { 
   BookOpen, 
   GraduationCap,
-  CreditCard,
   Star,
   Clock,
   Users,
   CheckCircle,
   PlayCircle,
   Calendar,
-  FileText
+  FileText,
+  Award,
+  CreditCard
 } from 'lucide-react';
-
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  duration: string;
-  price: number;
-  rating: number;
-  students: number;
-  category: 'course' | 'coaching';
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
-}
 
 export const IndividualDashboard = () => {
   const { userProfile } = useAuth();
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'courses' | 'coaching'>('all');
+  const { programs, purchases, loading, formatPrice, isPurchased, getPurchaseByProgram, getFilteredPrograms, refetch } = useIndividualPrograms();
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'course' | 'coaching'>('all');
 
-  const featuredCourses: Course[] = [
-    {
-      id: '1',
-      title: 'Investing in 3 Hours',
-      description: 'Complete beginner guide to smart investing',
-      duration: '3 hours',
-      price: 2999,
-      rating: 4.8,
-      students: 1234,
-      category: 'course',
-      level: 'Beginner'
-    },
-    {
-      id: '2', 
-      title: 'Salary → SIP Masterclass',
-      description: 'Transform your salary into systematic investments',
-      duration: '4 hours',
-      price: 3999,
-      rating: 4.9,
-      students: 892,
-      category: 'course',
-      level: 'Intermediate'
-    },
-    {
-      id: '3',
-      title: 'Tax Panic to Peace',
-      description: 'Master tax planning and reduce anxiety',
-      duration: '2.5 hours',
-      price: 2499,
-      rating: 4.7,
-      students: 567,
-      category: 'course',
-      level: 'Beginner'
-    }
-  ];
+  // Get purchased programs for "My Learning" section
+  const myLearning = purchases
+    .filter(purchase => purchase.status === 'completed')
+    .map(purchase => ({
+      id: purchase.id,
+      title: purchase.individual_programs.title,
+      progress: purchase.progress,
+      lastWatched: purchase.last_accessed_at 
+        ? `${Math.floor((Date.now() - new Date(purchase.last_accessed_at).getTime()) / (1000 * 60 * 60 * 24))} days ago`
+        : 'Never',
+      nextLesson: purchase.progress === 100 ? 'Completed! ✅' : 'Continue learning',
+      category: purchase.individual_programs.category,
+      programId: purchase.program_id
+    }));
 
-  const coachingServices: Course[] = [
-    {
-      id: '4',
-      title: 'Financial Blueprint Session',
-      description: 'Personalized financial roadmap with expert',
-      duration: '90 min',
-      price: 4999,
-      rating: 4.9,
-      students: 234,
-      category: 'coaching',
-      level: 'Beginner'
-    },
-    {
-      id: '5',
-      title: 'Smart Tax Planning',
-      description: '1:1 session for tax optimization strategies',
-      duration: '60 min',
-      price: 3999,
-      rating: 4.8,
-      students: 156,
-      category: 'coaching',
-      level: 'Intermediate'
-    },
-    {
-      id: '6',
-      title: 'Debt-Free Journey',
-      description: 'Personal debt elimination strategy session',
-      duration: '75 min',
-      price: 4499,
-      rating: 4.9,
-      students: 89,
-      category: 'coaching',
-      level: 'Beginner'
-    }
-  ];
+  const allContent = getFilteredPrograms(selectedCategory);
 
-  const myLearning = [
-    {
-      title: 'Investing in 3 Hours',
-      progress: 75,
-      lastWatched: '2 days ago',
-      nextLesson: 'Portfolio Diversification'
-    },
-    {
-      title: 'Tax Panic to Peace',
-      progress: 100,
-      lastWatched: '1 week ago',
-      nextLesson: 'Completed! ✅'
-    }
-  ];
-
-  const allContent = selectedCategory === 'all' ? 
-    [...featuredCourses, ...coachingServices] :
-    selectedCategory === 'courses' ? featuredCourses : coachingServices;
-
-  const handlePurchase = (item: Course) => {
-    // Integrate Razorpay here
-    console.log('Purchasing:', item.title);
-    // Would implement Razorpay checkout
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -157,10 +78,14 @@ export const IndividualDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {myLearning.map((item, index) => (
-              <div key={index} className="flex items-center gap-4 p-4 rounded-lg border">
-                <div className="p-3 rounded-full bg-blue-100">
-                  <BookOpen className="h-5 w-5 text-blue-600" />
+            {myLearning.map((item) => (
+              <div key={item.id} className="flex items-center gap-4 p-4 rounded-lg border">
+                <div className={`p-3 rounded-full ${item.category === 'course' ? 'bg-blue-100' : 'bg-green-100'}`}>
+                  {item.category === 'course' ? (
+                    <BookOpen className={`h-5 w-5 ${item.category === 'course' ? 'text-blue-600' : 'text-green-600'}`} />
+                  ) : (
+                    <GraduationCap className="h-5 w-5 text-green-600" />
+                  )}
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium mb-1">{item.title}</h4>
@@ -169,12 +94,17 @@ export const IndividualDashboard = () => {
                     <span className="text-sm text-muted-foreground">{item.progress}%</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Last watched: {item.lastWatched}
+                    Last accessed: {item.lastWatched}
                   </p>
                 </div>
                 <div className="text-right">
                   <Button size="sm">
-                    {item.progress === 100 ? 'Review' : 'Continue'}
+                    {item.progress === 100 ? (
+                      <>
+                        <Award className="h-4 w-4 mr-1" />
+                        Review
+                      </>
+                    ) : 'Continue'}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-1">
                     {item.nextLesson}
@@ -185,6 +115,9 @@ export const IndividualDashboard = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Financial Tools */}
+      <ToolShortcuts />
 
       {/* Category Filter */}
       <Card>
@@ -199,9 +132,9 @@ export const IndividualDashboard = () => {
               All Content
             </Button>
             <Button 
-              variant={selectedCategory === 'courses' ? 'default' : 'outline'}
+              variant={selectedCategory === 'course' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSelectedCategory('courses')}
+              onClick={() => setSelectedCategory('course')}
             >
               Courses
             </Button>
@@ -216,59 +149,89 @@ export const IndividualDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {allContent.map((item) => (
-              <Card key={item.id} className="h-full flex flex-col">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      {item.category === 'course' ? (
-                        <BookOpen className="h-5 w-5 text-blue-600" />
-                      ) : (
-                        <GraduationCap className="h-5 w-5 text-green-600" />
-                      )}
-                      <Badge variant="outline" className="text-xs">
-                        {item.level}
+            {allContent.map((program) => {
+              const purchased = isPurchased(program.id);
+              const purchase = getPurchaseByProgram(program.id);
+              
+              return (
+                <Card key={program.id} className={`h-full flex flex-col ${purchased ? 'border-green-200 bg-green-50/50' : ''}`}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        {program.category === 'course' ? (
+                          <BookOpen className="h-5 w-5 text-blue-600" />
+                        ) : (
+                          <GraduationCap className="h-5 w-5 text-green-600" />
+                        )}
+                        <Badge variant="outline" className="text-xs">
+                          {program.level}
+                        </Badge>
+                        {purchased && (
+                          <Badge variant="default" className="text-xs bg-green-600">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Owned
+                          </Badge>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {program.category === 'course' ? 'Course' : '1:1 Session'}
                       </Badge>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {item.category === 'course' ? 'Course' : '1:1 Session'}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-lg">{item.title}</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {item.description}
-                  </p>
-                </CardHeader>
-                <CardContent className="flex-1 flex flex-col justify-between">
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {item.duration}
+                    <CardTitle className="text-lg">{program.title}</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {program.description}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="flex-1 flex flex-col justify-between">
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {program.duration}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 text-yellow-500" />
+                          {program.rating}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users className="h-4 w-4" />
+                          {program.students.toLocaleString()}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        {item.rating}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        {item.students.toLocaleString()}
-                      </div>
+                      {purchased && purchase && (
+                        <div className="mt-2">
+                          <div className="flex items-center justify-between text-sm mb-1">
+                            <span>Progress</span>
+                            <span>{purchase.progress}%</span>
+                          </div>
+                          <Progress value={purchase.progress} className="h-2" />
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="text-2xl font-bold text-green-600">
-                      ₹{item.price.toLocaleString()}
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="text-2xl font-bold text-primary">
+                        {formatPrice(program.price)}
+                      </div>
+                      {purchased ? (
+                        <Button variant="outline" className="pointer-events-none">
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Purchased
+                        </Button>
+                      ) : (
+                        <PaymentButton
+                          programId={program.id}
+                          title={program.title}
+                          price={program.price}
+                          category={program.category}
+                          onSuccess={refetch}
+                        />
+                      )}
                     </div>
-                    <Button onClick={() => handlePurchase(item)}>
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Buy Now
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
