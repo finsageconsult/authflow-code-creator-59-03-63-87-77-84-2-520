@@ -109,6 +109,84 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          created_by: string | null
+          delta: number
+          id: string
+          reason: string
+          wallet_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          id?: string
+          reason: string
+          wallet_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          id?: string
+          reason?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "credit_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          credit_type: Database["public"]["Enums"]["credit_type"]
+          expires_at: string | null
+          id: string
+          owner_id: string
+          owner_type: Database["public"]["Enums"]["owner_type"]
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          credit_type: Database["public"]["Enums"]["credit_type"]
+          expires_at?: string | null
+          id?: string
+          owner_id: string
+          owner_type: Database["public"]["Enums"]["owner_type"]
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          credit_type?: Database["public"]["Enums"]["credit_type"]
+          expires_at?: string | null
+          id?: string
+          owner_id?: string
+          owner_type?: Database["public"]["Enums"]["owner_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       memberships: {
         Row: {
           created_at: string
@@ -281,8 +359,10 @@ export type Database = {
       }
     }
     Enums: {
+      credit_type: "SESSION_1_1" | "WEBINAR"
       organization_plan: "FREE" | "BASIC" | "PREMIUM" | "ENTERPRISE"
       organization_status: "ACTIVE" | "SUSPENDED" | "PENDING"
+      owner_type: "ORG" | "USER"
       user_role: "ADMIN" | "HR" | "EMPLOYEE" | "COACH" | "INDIVIDUAL"
       user_status: "ACTIVE" | "INACTIVE" | "PENDING"
     }
@@ -412,8 +492,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      credit_type: ["SESSION_1_1", "WEBINAR"],
       organization_plan: ["FREE", "BASIC", "PREMIUM", "ENTERPRISE"],
       organization_status: ["ACTIVE", "SUSPENDED", "PENDING"],
+      owner_type: ["ORG", "USER"],
       user_role: ["ADMIN", "HR", "EMPLOYEE", "COACH", "INDIVIDUAL"],
       user_status: ["ACTIVE", "INACTIVE", "PENDING"],
     },
