@@ -151,6 +151,47 @@ export type Database = {
           },
         ]
       }
+      org_plans: {
+        Row: {
+          billing_cycle: string
+          created_at: string
+          credit_allotment_1on1: number
+          credit_allotment_webinar: number
+          id: string
+          organization_id: string
+          plan_type: string
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle?: string
+          created_at?: string
+          credit_allotment_1on1?: number
+          credit_allotment_webinar?: number
+          id?: string
+          organization_id: string
+          plan_type: string
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: string
+          created_at?: string
+          credit_allotment_1on1?: number
+          credit_allotment_webinar?: number
+          id?: string
+          organization_id?: string
+          plan_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_plans_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string

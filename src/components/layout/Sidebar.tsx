@@ -67,8 +67,8 @@ const menuItems = [
     roles: ['ADMIN', 'HR']
   },
   {
-    title: 'Admin',
-    url: '/admin',
+    title: 'Organizations',
+    url: '/admin/organizations',
     icon: Shield,
     roles: ['ADMIN']
   }

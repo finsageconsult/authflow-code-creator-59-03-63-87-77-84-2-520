@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import Dashboard from '@/pages/Dashboard';
+import Organizations from '@/pages/admin/Organizations';
+import OrganizationDetail from '@/pages/admin/OrganizationDetail';
 import { AppLayout } from '@/components/layout/AppLayout';
 
 export const SubdomainRouter = () => {
@@ -16,7 +18,8 @@ export const SubdomainRouter = () => {
       <Route path="/tools" element={<AppLayout><div>Tools Coming Soon</div></AppLayout>} />
       <Route path="/team" element={<AppLayout><div>Team Coming Soon</div></AppLayout>} />
       <Route path="/billing" element={<AppLayout><div>Billing Coming Soon</div></AppLayout>} />
-      <Route path="/admin" element={<AppLayout><div>Admin Coming Soon</div></AppLayout>} />
+      <Route path="/admin/organizations" element={<AppLayout><Organizations /></AppLayout>} />
+      <Route path="/admin/organizations/:id" element={<AppLayout><OrganizationDetail /></AppLayout>} />
       <Route path="*" element={<Index />} />
     </Routes>
   );
