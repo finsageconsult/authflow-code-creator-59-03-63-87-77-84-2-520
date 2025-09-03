@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,7 @@ interface Organization {
 }
 
 export default function Organizations() {
+  const navigate = useNavigate();
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -255,7 +257,7 @@ export default function Organizations() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => window.location.href = `/admin/organizations/${org.id}`}
+                        onClick={() => navigate(`/admin/organizations/${org.id}`)}
                       >
                         <Eye className="h-4 w-4 mr-1" />
                         View
