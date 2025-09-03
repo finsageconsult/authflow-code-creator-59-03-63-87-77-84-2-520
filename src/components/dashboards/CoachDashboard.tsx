@@ -115,47 +115,63 @@ export const CoachDashboard = () => {
         return <SessionManager />;
       case 'clients':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             {/* Client List */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="h-5 w-5 flex-shrink-0" />
                   My Clients
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   The individuals you're supporting on their financial wellness journey
                 </p>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6">
                 {recentClients.map((client) => (
-                  <div key={client.id} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{client.name}</h4>
+                  <div key={client.id} className="p-3 md:p-4 border rounded-lg bg-card">
+                    {/* Client Header - Stack on mobile */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3">
+                      <h4 className="font-medium text-base truncate pr-2">{client.name}</h4>
                       <Badge 
                         variant="outline" 
-                        className={
-                          client.riskProfile === 'Conservative' ? 'bg-blue-100 text-blue-800' :
-                          client.riskProfile === 'Moderate' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }
+                        className={`flex-shrink-0 w-fit ${
+                          client.riskProfile === 'Conservative' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                          client.riskProfile === 'Moderate' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                          'bg-red-100 text-red-800 border-red-200'
+                        }`}
                       >
                         {client.riskProfile}
                       </Badge>
                     </div>
-                    <div className="space-y-1 text-sm">
-                      <p><span className="text-muted-foreground">Last session:</span> {client.lastSession}</p>
-                      <p><span className="text-muted-foreground">Progress:</span> {client.progress}</p>
-                      <p><span className="text-muted-foreground">Next goal:</span> {client.nextGoal}</p>
+                    
+                    {/* Client Details - Responsive grid */}
+                    <div className="space-y-2 text-sm mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
+                        <p className="flex flex-col md:flex-row md:items-center">
+                          <span className="text-muted-foreground font-medium">Last session:</span> 
+                          <span className="md:ml-1">{client.lastSession}</span>
+                        </p>
+                        <p className="flex flex-col md:flex-row md:items-center md:col-span-2">
+                          <span className="text-muted-foreground font-medium">Progress:</span> 
+                          <span className="md:ml-1 break-words">{client.progress}</span>
+                        </p>
+                      </div>
+                      <p className="flex flex-col md:flex-row md:items-center">
+                        <span className="text-muted-foreground font-medium">Next goal:</span> 
+                        <span className="md:ml-1 break-words">{client.nextGoal}</span>
+                      </p>
                     </div>
-                    <div className="flex gap-2 mt-3">
-                      <Button size="sm" variant="outline">
+                    
+                    {/* Action Buttons - Responsive layout */}
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                      <Button size="sm" variant="outline" className="flex-1 sm:flex-initial text-xs sm:text-sm">
                         Session History
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" className="flex-1 sm:flex-initial text-xs sm:text-sm">
                         Progress Notes
                       </Button>
-                      <Button size="sm">
+                      <Button size="sm" className="flex-1 sm:flex-initial text-xs sm:text-sm">
                         Schedule Session
                       </Button>
                     </div>
