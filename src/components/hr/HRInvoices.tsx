@@ -40,17 +40,17 @@ export const HRInvoices = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Invoices & Billing</h1>
-        <Button variant="outline" className="flex items-center gap-2">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">Invoices & Billing</h1>
+        <Button variant="outline" className="flex items-center gap-2 w-full sm:w-auto">
           <Download className="h-4 w-4" />
           Download All
         </Button>
       </div>
 
       {/* Billing Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Spent (YTD)</CardTitle>
@@ -94,25 +94,25 @@ export const HRInvoices = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {mockInvoices.map((invoice) => (
-              <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="p-2 rounded-full bg-blue-100">
+              <div key={invoice.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 md:p-4 border rounded-lg">
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className="p-2 rounded-full bg-blue-100 flex-shrink-0">
                     <FileText className="h-4 w-4 text-blue-600" />
                   </div>
-                  <div>
-                    <h4 className="font-medium">{invoice.id}</h4>
-                    <p className="text-sm text-muted-foreground">{invoice.description}</p>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-medium text-sm md:text-base">{invoice.id}</h4>
+                    <p className="text-xs md:text-sm text-muted-foreground truncate">{invoice.description}</p>
                     <p className="text-xs text-muted-foreground">
                       Date: {new Date(invoice.date).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <p className="font-medium">${invoice.amount.toFixed(2)}</p>
-                    <Badge variant={invoice.status === 'paid' ? 'default' : 'destructive'}>
+                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                  <div className="text-left sm:text-right">
+                    <p className="font-medium text-sm md:text-base">${invoice.amount.toFixed(2)}</p>
+                    <Badge variant={invoice.status === 'paid' ? 'default' : 'destructive'} className="text-xs">
                       {invoice.status}
                     </Badge>
                   </div>
@@ -120,10 +120,11 @@ export const HRInvoices = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => downloadInvoice(invoice.id)}
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 text-xs md:text-sm flex-shrink-0"
                   >
                     <Download className="h-3 w-3" />
-                    Download
+                    <span className="hidden xs:inline">Download</span>
+                    <span className="xs:hidden">DL</span>
                   </Button>
                 </div>
               </div>
@@ -142,13 +143,13 @@ export const HRInvoices = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 md:p-4 border rounded-lg">
               <div>
-                <h4 className="font-medium">Primary Payment Method</h4>
-                <p className="text-sm text-muted-foreground">**** **** **** 4567</p>
+                <h4 className="font-medium text-sm md:text-base">Primary Payment Method</h4>
+                <p className="text-xs md:text-sm text-muted-foreground">**** **** **** 4567</p>
                 <p className="text-xs text-muted-foreground">Expires 12/25</p>
               </div>
-              <Badge variant="outline">Default</Badge>
+              <Badge variant="outline" className="self-start sm:self-center">Default</Badge>
             </div>
             <Button variant="outline" className="w-full">
               Update Payment Method
@@ -163,19 +164,19 @@ export const HRInvoices = () => {
           <CardTitle>Billing Preferences</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div>
-              <h4 className="font-medium">Billing Cycle</h4>
-              <p className="text-sm text-muted-foreground">Monthly billing on the 15th</p>
+              <h4 className="font-medium text-sm md:text-base">Billing Cycle</h4>
+              <p className="text-xs md:text-sm text-muted-foreground">Monthly billing on the 15th</p>
             </div>
-            <Button variant="outline" size="sm">Edit</Button>
+            <Button variant="outline" size="sm" className="self-start sm:self-center">Edit</Button>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div>
-              <h4 className="font-medium">Invoice Notifications</h4>
-              <p className="text-sm text-muted-foreground">Email alerts enabled</p>
+              <h4 className="font-medium text-sm md:text-base">Invoice Notifications</h4>
+              <p className="text-xs md:text-sm text-muted-foreground">Email alerts enabled</p>
             </div>
-            <Button variant="outline" size="sm">Manage</Button>
+            <Button variant="outline" size="sm" className="self-start sm:self-center">Manage</Button>
           </div>
         </CardContent>
       </Card>
