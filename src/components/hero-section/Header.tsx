@@ -28,23 +28,19 @@ const Header = () => {
               <a href="#contact" className="text-foreground hover:text-primary transition-colors">
                 Contact
               </a>
+              <a href="#individuals" className="text-foreground hover:text-primary transition-colors">
+                For Individuals
+              </a>
             </div>
             <div className="w-0 shrink-0 h-[31px] border-l-2 border-foreground" aria-hidden="true" />
             
-            {/* Language Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 text-foreground hover:text-primary transition-colors">
-                  <span>EN</span>
-                  <ChevronDown className="h-3.5 w-3.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-popover text-popover-foreground border border-border shadow-lg mt-6 rounded-lg">
-                <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-pointer">EN</DropdownMenuItem>
-                <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-pointer">ES</DropdownMenuItem>
-                <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-pointer">FR</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button 
+              variant="outline"
+              className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+              onClick={() => window.location.href = '/employers'}
+            >
+              For Employers
+            </Button>
           </div>
           
           <Button 
@@ -72,21 +68,17 @@ const Header = () => {
               <a href="#contact" className="py-2 text-foreground hover:text-primary transition-colors">
                 Contact
               </a>
+              <a href="#individuals" className="py-2 text-foreground hover:text-primary transition-colors">
+                For Individuals
+              </a>
               
-              {/* Mobile Language Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-between py-2 text-foreground hover:text-primary transition-colors">
-                    <span>Language</span>
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-popover text-popover-foreground border border-border shadow-lg mt-6 rounded-lg">
-                  <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-pointer">English (EN)</DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-pointer">Spanish (ES)</DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-pointer">French (FR)</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button 
+                variant="outline"
+                className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:bg-accent hover:text-accent-foreground transition-colors w-full justify-center"
+                onClick={() => window.location.href = '/employers'}
+              >
+                For Employers
+              </Button>
               
               <Button 
                 variant="ghost"
