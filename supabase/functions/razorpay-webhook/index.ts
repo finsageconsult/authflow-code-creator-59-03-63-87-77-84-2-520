@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createHash, createHmac } from "https://deno.land/std@0.190.0/node/crypto.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,7 +29,22 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response("Webhook not configured", { status: 500 });
     }
 
-    const expectedSignature = createHmac('sha256', webhookSecret).update(body).digest('hex');
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(webhookSecret);
+    const dataBuffer = encoder.encode(body);
+
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, dataBuffer);
+    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
     
     if (signature !== expectedSignature) {
       console.error("Invalid signature");
