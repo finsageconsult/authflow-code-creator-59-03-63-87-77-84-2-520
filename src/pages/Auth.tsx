@@ -120,14 +120,14 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      console.log('Calling verify-access-code edge function with code:', accessCode.trim());
+      console.log('Starting access code login with code:', accessCode.trim());
       
       // Call edge function to verify access code
       const { data: response, error: functionError } = await supabase.functions.invoke('verify-access-code', {
         body: { code: accessCode.trim() }
       });
 
-      console.log('Edge function response:', { response, functionError });
+      console.log('Verify response:', { response, functionError });
 
       if (functionError) {
         console.error('Function error:', functionError);
@@ -136,15 +136,20 @@ export default function Auth() {
       }
 
       if (!response || !response.success) {
+        console.error('Verification failed:', response?.error);
         toast.error(response?.error || 'Invalid access code. Please check and try again.');
         return;
       }
 
       const codeData = response.data;
+      console.log('Access code verified:', codeData);
 
-      // Create a temporary user account with the access code
-      const tempEmail = `${accessCode.trim().toLowerCase()}@temp.finsage.com`;
-      const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
+      // Create a unique temporary email based on access code and timestamp
+      const timestamp = Date.now();
+      const tempEmail = `${accessCode.trim().toLowerCase()}_${timestamp}@temp.finsage.com`;
+      const tempPassword = `temp_${accessCode.trim()}_${timestamp}`;
+
+      console.log('Creating temporary account with email:', tempEmail);
 
       // Try to sign up with temporary credentials
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -159,59 +164,64 @@ export default function Auth() {
         }
       });
 
-      if (signUpError && !signUpError.message.includes('already registered')) {
+      console.log('Signup result:', { signUpData, signUpError });
+
+      if (signUpError) {
         console.error('Signup error:', signUpError);
-        toast.error('Failed to create account with access code.');
+        toast.error(`Failed to create account: ${signUpError.message}`);
         return;
       }
 
-      // If user already exists, try to sign in
-      if (signUpError?.message.includes('already registered')) {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: tempEmail,
-          password: tempPassword,
-        });
-
-        if (signInError) {
-          console.error('Sign in error:', signInError);
-          toast.error('Failed to sign in with access code.');
-          return;
-        }
+      if (!signUpData.user) {
+        console.error('No user created');
+        toast.error('Failed to create user account');
+        return;
       }
+
+      console.log('User created successfully:', signUpData.user.id);
 
       // Wait for user creation and then update with access code data
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const { data: user } = await supabase.auth.getUser();
-      if (user.user) {
-        // Use edge function to consume access code and set role
-        const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
-          body: {
-            userId: user.user.id,
-            code: accessCode.trim(),
-            role: codeData.role,
-            organizationId: codeData.organization_id
-          }
-        });
+      console.log('Calling consume-access-code function');
 
-        if (consumeError || !consumeResponse?.success) {
-          console.error('Error consuming access code:', consumeError);
-          toast.error('Failed to set up account with access code.');
-          return;
+      // Use edge function to consume access code and set role
+      const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
+        body: {
+          userId: signUpData.user.id,
+          code: accessCode.trim(),
+          role: codeData.role,
+          organizationId: codeData.organization_id
         }
+      });
 
-        toast.success(`Successfully logged in! Welcome to ${codeData.organization_name} as ${codeData.role}`);
-        
-        // Force immediate navigation to correct dashboard
-        const correctDashboard = codeData.role === 'ADMIN' ? '/admin-dashboard' :
-                                codeData.role === 'HR' ? '/hr-dashboard' :
-                                codeData.role === 'EMPLOYEE' ? '/employee-dashboard' :
-                                codeData.role === 'COACH' ? '/coach-dashboard' :
-                                '/individual-dashboard';
-        
-        window.location.href = correctDashboard;
-        // Navigation will be handled by auth hook
+      console.log('Consume response:', { consumeResponse, consumeError });
+
+      if (consumeError) {
+        console.error('Error consuming access code:', consumeError);
+        toast.error('Failed to set up account with access code.');
+        return;
       }
+
+      if (!consumeResponse?.success) {
+        console.error('Consume failed:', consumeResponse?.error);
+        toast.error(consumeResponse?.error || 'Failed to set up account with access code.');
+        return;
+      }
+
+      toast.success(`Successfully logged in! Welcome to ${codeData.organization_name} as ${codeData.role}`);
+      
+      // Force immediate navigation to correct dashboard
+      const correctDashboard = codeData.role === 'ADMIN' ? '/admin-dashboard' :
+                              codeData.role === 'HR' ? '/hr-dashboard' :
+                              codeData.role === 'EMPLOYEE' ? '/employee-dashboard' :
+                              codeData.role === 'COACH' ? '/coach-dashboard' :
+                              '/individual-dashboard';
+      
+      console.log('Redirecting to:', correctDashboard);
+      setTimeout(() => {
+        window.location.href = correctDashboard;
+      }, 1000);
       
     } catch (error) {
       console.error('Error with access code login:', error);
