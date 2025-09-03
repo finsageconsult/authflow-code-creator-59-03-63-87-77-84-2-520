@@ -160,6 +160,132 @@ export type Database = {
           },
         ]
       }
+      coach_availability: {
+        Row: {
+          buffer_minutes: number
+          coach_id: string
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          buffer_minutes?: number
+          coach_id: string
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          buffer_minutes?: number
+          coach_id?: string
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coach_payouts: {
+        Row: {
+          coach_id: string
+          created_at: string
+          id: string
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          status: string
+          total_amount: number
+          total_sessions: number
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          status?: string
+          total_amount?: number
+          total_sessions?: number
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string
+          total_amount?: number
+          total_sessions?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coaching_sessions: {
+        Row: {
+          client_id: string
+          coach_id: string
+          created_at: string
+          duration_minutes: number
+          id: string
+          meeting_link: string | null
+          notes: string | null
+          organization_id: string
+          outcome_tags: string[] | null
+          resources: Json | null
+          scheduled_at: string
+          session_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          coach_id: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          organization_id: string
+          outcome_tags?: string[] | null
+          resources?: Json | null
+          scheduled_at: string
+          session_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          coach_id?: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          organization_id?: string
+          outcome_tags?: string[] | null
+          resources?: Json | null
+          scheduled_at?: string
+          session_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       credit_transactions: {
         Row: {
           booking_id: string | null
@@ -843,6 +969,21 @@ export type Database = {
       order_status: "pending" | "confirmed" | "cancelled" | "completed"
       organization_plan: "FREE" | "BASIC" | "PREMIUM" | "ENTERPRISE"
       organization_status: "ACTIVE" | "SUSPENDED" | "PENDING"
+      outcome_tag:
+        | "TAX_CLARITY"
+        | "DEBT_PLAN"
+        | "SALARY_STRUCT"
+        | "EMERGENCY_FUND"
+        | "INVESTMENT_START"
+        | "BUDGET_CREATE"
+        | "CREDIT_IMPROVE"
+        | "RETIREMENT_PLAN"
+        | "INSURANCE_REVIEW"
+        | "EXPENSE_REDUCE"
+        | "INCOME_INCREASE"
+        | "FINANCIAL_GOAL_SET"
+        | "RISK_ASSESSMENT"
+        | "PORTFOLIO_REVIEW"
       owner_type: "ORG" | "USER"
       payment_method: "razorpay" | "credits"
       payment_status:
@@ -985,6 +1126,22 @@ export const Constants = {
       order_status: ["pending", "confirmed", "cancelled", "completed"],
       organization_plan: ["FREE", "BASIC", "PREMIUM", "ENTERPRISE"],
       organization_status: ["ACTIVE", "SUSPENDED", "PENDING"],
+      outcome_tag: [
+        "TAX_CLARITY",
+        "DEBT_PLAN",
+        "SALARY_STRUCT",
+        "EMERGENCY_FUND",
+        "INVESTMENT_START",
+        "BUDGET_CREATE",
+        "CREDIT_IMPROVE",
+        "RETIREMENT_PLAN",
+        "INSURANCE_REVIEW",
+        "EXPENSE_REDUCE",
+        "INCOME_INCREASE",
+        "FINANCIAL_GOAL_SET",
+        "RISK_ASSESSMENT",
+        "PORTFOLIO_REVIEW",
+      ],
       owner_type: ["ORG", "USER"],
       payment_method: ["razorpay", "credits"],
       payment_status: [
