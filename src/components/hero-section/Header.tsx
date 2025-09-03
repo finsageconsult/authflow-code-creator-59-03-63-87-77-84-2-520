@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, Menu, X, ChevronRight } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -28,9 +28,8 @@ const Header = () => {
               <a href="#contact" className="text-foreground hover:text-primary transition-colors">
                 Contact
               </a>
-              <a href="#individuals" className="flex items-center gap-1 text-foreground hover:text-primary transition-colors">
+              <a href="#individuals" className="text-foreground hover:text-primary transition-colors">
                 For Individuals
-                <ChevronRight className="h-3.5 w-3.5" />
               </a>
             </div>
             <div className="w-0 shrink-0 h-[31px] border-l-2 border-foreground" aria-hidden="true" />
@@ -69,9 +68,8 @@ const Header = () => {
               <a href="#contact" className="py-2 text-foreground hover:text-primary transition-colors">
                 Contact
               </a>
-              <a href="#individuals" className="flex items-center gap-1 py-2 text-foreground hover:text-primary transition-colors">
+              <a href="#individuals" className="py-2 text-foreground hover:text-primary transition-colors">
                 For Individuals
-                <ChevronRight className="h-3.5 w-3.5" />
               </a>
               
               <Button 
