@@ -122,8 +122,16 @@ export default function Auth() {
 
       toast.success(`Access code verified! You'll join ${codeData.organization_name} as ${codeData.role}`);
       
-      // Switch to signup tab
+      // Switch to signup tab and email tab
       setIsSignUp(true);
+      
+      // Force switch to email tab after verification
+      setTimeout(() => {
+        const emailTab = document.querySelector('[value="email"]') as HTMLElement;
+        if (emailTab) {
+          emailTab.click();
+        }
+      }, 100);
       
     } catch (error) {
       console.error('Error verifying access code:', error);
@@ -145,7 +153,7 @@ export default function Auth() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Tabs defaultValue={accessCode ? 'access-code' : 'email'} className="w-full">
+          <Tabs defaultValue={accessCode ? 'access-code' : 'email'} className="w-full" key={isSignUp ? 'signup' : 'signin'}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="email">Email Login</TabsTrigger>
               <TabsTrigger value="access-code">Access Code</TabsTrigger>
