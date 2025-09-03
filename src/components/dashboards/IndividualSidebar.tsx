@@ -78,17 +78,20 @@ export function IndividualSidebar() {
 
   return (
     <Sidebar
-      className="border-r data-[state=expanded]:w-64 data-[state=collapsed]:w-16 transition-all duration-300"
+      className="border-r"
       collapsible="icon"
+      variant="sidebar"
     >
       {/* Mobile header with close button */}
       <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b lg:hidden">
-        <span className="font-semibold text-sm">Menu</span>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-sm">Individual Learning</span>
+        </div>
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => setOpenMobile(false)} 
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 hover:bg-muted"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -114,10 +117,14 @@ export function IndividualSidebar() {
                       <NavLink
                         to={`${item.url}?tab=${item.param}`}
                         onClick={handleItemClick}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors"
+                        className={({ isActive: linkActive }) => 
+                          `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                            active ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50"
+                          }`
+                        }
                       >
                         <item.icon className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate font-medium">{item.title}</span>
+                        <span className="truncate">{item.title}</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
