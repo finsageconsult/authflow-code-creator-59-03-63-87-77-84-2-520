@@ -30,6 +30,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     const expiryDate = new Date(expiresAt).toLocaleDateString();
     
+    const baseUrl = "https://f73c8ec8-3e23-417e-a056-7a97888723ba.sandbox.lovable.dev";
+    const loginUrl = `${baseUrl}/auth?code=${code}`;
+    
     const subject = `Your ${role} Access Code for ${organizationName}`;
     const html = `
       <!DOCTYPE html>
@@ -46,108 +49,193 @@ const handler = async (req: Request): Promise<Response> => {
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f9fafb;
+          }
+          .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
           }
           .header {
             text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f3f4f6;
             margin-bottom: 30px;
           }
           .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2563eb;
-          }
-          .content {
-            padding: 20px 0;
-          }
-          .code-box {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            margin: 20px 0;
-          }
-          .access-code {
             font-size: 32px;
             font-weight: bold;
-            color: #1e293b;
-            letter-spacing: 2px;
-            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+          }
+          .tagline {
+            color: #6b7280;
+            font-size: 16px;
+            margin: 0;
+          }
+          .welcome-title {
+            color: #1f2937;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            text-align: center;
+          }
+          .code-section {
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            border: 2px solid #d1d5db;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
           }
           .role-badge {
             display: inline-block;
-            background: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
+            padding: 8px 20px;
+            border-radius: 25px;
             font-size: 14px;
-            font-weight: 500;
-            margin: 10px 0;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
           }
-          .details {
-            background: #fefefe;
-            border-left: 4px solid #3b82f6;
-            padding: 15px 20px;
+          .access-code {
+            font-size: 42px;
+            font-weight: bold;
+            color: #1f2937;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
             margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+          }
+          .code-note {
+            margin: 15px 0 0 0; 
+            color: #6b7280; 
+            font-size: 14px;
+            font-style: italic;
+          }
+          .login-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white !important;
+            padding: 16px 32px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 25px 0;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transition: transform 0.2s ease;
+          }
+          .login-button:hover {
+            transform: translateY(-2px);
+          }
+          .steps-section {
+            background: #f8fafc;
+            border-left: 4px solid #3b82f6;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 0 12px 12px 0;
+          }
+          .steps-title {
+            margin-top: 0;
+            color: #1f2937;
+            font-weight: 600;
+          }
+          .steps-list {
+            margin: 0;
+            padding-left: 20px;
+          }
+          .steps-list li {
+            margin-bottom: 8px;
+            color: #374151;
+          }
+          .expiry-info {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            text-align: center;
+          }
+          .expiry-info strong {
+            color: #92400e;
           }
           .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #f3f4f6;
             text-align: center;
-            color: #666;
+            color: #6b7280;
             font-size: 14px;
           }
-          .btn {
-            display: inline-block;
-            background: #3b82f6;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 500;
+          .footer-logo {
+            font-weight: 600;
+            color: #3b82f6;
+          }
+          .support-text {
+            color: #6b7280;
+            font-size: 14px;
+            text-align: center;
             margin: 20px 0;
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="logo">Finsage</div>
-          <p>Welcome to Your Learning Platform</p>
-        </div>
-        
-        <div class="content">
-          <h2>Welcome to ${organizationName}!</h2>
-          
-          <p>You've been invited to join as a <strong>${role}</strong>. Use the access code below to complete your registration:</p>
-          
-          <div class="code-box">
-            <div class="role-badge">${role} Access</div>
-            <div class="access-code">${code}</div>
-            <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">
-              Copy this code to complete your registration
-            </p>
+        <div class="container">
+          <div class="header">
+            <div class="logo">Finsage</div>
+            <p class="tagline">Your Financial Learning Platform</p>
           </div>
           
-          <div class="details">
-            <h3 style="margin-top: 0;">Next Steps:</h3>
-            <ol>
-              <li>Click the registration link (or visit our platform)</li>
-              <li>Enter this access code during signup</li>
-              <li>Complete your profile setup</li>
-              <li>Start your learning journey!</li>
+          <div class="welcome-title">Welcome to ${organizationName}!</div>
+          
+          <p style="text-align: center; font-size: 16px; color: #374151; margin-bottom: 30px;">
+            You've been invited to join as a <strong>${role}</strong>. Get started with your access code below:
+          </p>
+          
+          <div class="code-section">
+            <div class="role-badge">${role} Access</div>
+            <div class="access-code">${code}</div>
+            <p class="code-note">Your unique access code</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${loginUrl}" class="login-button">
+              🚀 Login with Access Code
+            </a>
+          </div>
+          
+          <div class="steps-section">
+            <h3 class="steps-title">Get Started in 3 Easy Steps:</h3>
+            <ol class="steps-list">
+              <li><strong>Click the login button above</strong> or visit <a href="${baseUrl}/auth" style="color: #3b82f6;">${baseUrl}/auth</a></li>
+              <li><strong>Enter your access code:</strong> ${code}</li>
+              <li><strong>Complete your profile</strong> and start your learning journey!</li>
             </ol>
           </div>
           
-          <p><strong>Important:</strong> This access code expires on <strong>${expiryDate}</strong>. Please use it before then.</p>
+          <div class="expiry-info">
+            <strong>⏰ Important:</strong> This access code expires on <strong>${expiryDate}</strong>
+          </div>
           
-          <p>If you have any questions or need assistance, please don't hesitate to reach out to your administrator.</p>
+          <p class="support-text">
+            Need help? Contact your administrator or reply to this email for assistance.
+          </p>
         </div>
         
         <div class="footer">
-          <p>This email was sent by Finsage for ${organizationName}.</p>
+          <p><span class="footer-logo">Finsage</span> - Empowering Financial Learning</p>
+          <p>This invitation was sent for ${organizationName}</p>
           <p>If you didn't expect this email, you can safely ignore it.</p>
         </div>
       </body>

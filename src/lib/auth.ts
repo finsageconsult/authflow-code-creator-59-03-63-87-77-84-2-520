@@ -38,6 +38,49 @@ export const signUp = async (email: string, password: string, name: string) => {
     }
   });
   
+  if (data.user && !error) {
+    // Check if there's a pending access code
+    const pendingAccessCode = sessionStorage.getItem('pendingAccessCode');
+    if (pendingAccessCode) {
+      try {
+        const accessCodeData = JSON.parse(pendingAccessCode);
+        
+        // Update the user profile with organization and role from access code
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({
+            organization_id: accessCodeData.organizationId,
+            role: accessCodeData.role,
+            status: 'ACTIVE'
+          })
+          .eq('auth_id', data.user.id);
+
+        if (updateError) {
+          console.error('Error updating user with access code:', updateError);
+        } else {
+          // Get current usage and increment by 1
+          const { data: codeData, error: fetchError } = await supabase
+            .from('access_codes')
+            .select('used_count')
+            .eq('code', accessCodeData.code)
+            .single();
+            
+          if (!fetchError && codeData) {
+            await supabase
+              .from('access_codes')
+              .update({ used_count: codeData.used_count + 1 })
+              .eq('code', accessCodeData.code);
+          }
+          
+          // Clear the pending access code
+          sessionStorage.removeItem('pendingAccessCode');
+        }
+      } catch (parseError) {
+        console.error('Error parsing pending access code:', parseError);
+      }
+    }
+  }
+  
   return { data, error };
 };
 
