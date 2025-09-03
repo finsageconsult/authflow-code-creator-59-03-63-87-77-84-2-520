@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Sidebar as SidebarComponent,
   SidebarContent,
@@ -8,10 +8,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarHeader,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { hasRole } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   BookOpen,
@@ -24,7 +26,8 @@ import {
   BarChart3,
   Coins,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  X
 } from 'lucide-react';
 
 const menuItems = [
@@ -128,12 +131,20 @@ const adminMenuItems = [
 ];
 
 export const Sidebar = () => {
-  const { state } = useSidebar();
+  const { state, setOpenMobile, isMobile, openMobile } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
   const { userProfile } = useAuth();
 
   const currentPath = location.pathname;
-  const isActive = (path: string) => currentPath === path;
+  const currentSearch = location.search;
+  
+  const isActive = (path: string) => {
+    if (path.includes('?')) {
+      return currentPath + currentSearch === path;
+    }
+    return currentPath === path;
+  };
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50';
@@ -146,11 +157,30 @@ export const Sidebar = () => {
 
   const isCollapsed = state === 'collapsed';
 
+  const handleNavClick = (url: string) => {
+    if (isMobile && openMobile) {
+      setOpenMobile(false);
+    }
+    navigate(url);
+  };
+
   return (
     <SidebarComponent
       className={isCollapsed ? 'w-14' : 'w-64'}
       collapsible="icon"
     >
+      <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b md:hidden">
+        <span className="text-lg font-semibold">Menu</span>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setOpenMobile(false)}
+          className="h-8 w-8 p-0"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </SidebarHeader>
+      
       <SidebarContent className="pt-4">
         <SidebarGroup>
           <SidebarGroupLabel className={isCollapsed ? 'sr-only' : ''}>
@@ -160,17 +190,17 @@ export const Sidebar = () => {
             <SidebarMenu>
               {filteredMenuItems.map((item) => {
                 const itemUrl = (item as any).getRoleUrl && userProfile ? (item as any).getRoleUrl(userProfile.role) : item.url;
+                const active = isActive(itemUrl);
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink 
-                        to={itemUrl} 
-                        end 
-                        className={getNavCls}
+                      <button
+                        onClick={() => handleNavClick(itemUrl)}
+                        className={`w-full flex items-center gap-2 p-2 rounded-md text-left ${getNavCls({ isActive: active })}`}
                       >
                         <item.icon className="h-4 w-4" />
                         {!isCollapsed && <span>{item.title}</span>}
-                      </NavLink>
+                      </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
