@@ -124,16 +124,16 @@ export default function OrganizationDetail() {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + parseInt(newCode.expiresIn));
 
-      const { error: codeError } = await supabase
-        .from('access_codes')
-        .insert({
+      // Use edge function to create access code with admin privileges
+      const { data: codeData, error: codeError } = await supabase.functions.invoke('create-access-code', {
+        body: {
           code,
           organization_id: id,
-          role: newCode.role as 'HR' | 'COACH',
+          role: newCode.role,
           expires_at: expiresAt.toISOString(),
-          max_uses: 1,
-          used_count: 0
-        });
+          max_uses: 1
+        }
+      });
 
       if (codeError) throw codeError;
 
