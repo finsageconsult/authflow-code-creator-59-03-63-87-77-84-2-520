@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, Mail, Key, Users, Clock } from 'lucide-react';
+import { ArrowLeft, Users, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -26,17 +21,7 @@ interface Organization {
   } | null;
 }
 
-interface AccessCode {
-  id: string;
-  code: string;
-  role: string;
-  expires_at: string;
-  max_uses: number;
-  used_count: number;
-  created_at: string;
-}
-
-interface User {
+interface Employee {
   id: string;
   name: string;
   email: string;
@@ -44,6 +29,7 @@ interface User {
   status: string;
   created_at: string;
   auth_id?: string;
+  avatar_url?: string;
 }
 
 export default function OrganizationDetail() {
@@ -52,15 +38,8 @@ export default function OrganizationDetail() {
   const { toast } = useToast();
   
   const [organization, setOrganization] = useState<Organization | null>(null);
-  const [accessCodes, setAccessCodes] = useState<AccessCode[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateCodeDialog, setShowCreateCodeDialog] = useState(false);
-  const [newCode, setNewCode] = useState({
-    role: 'HR',
-    email: '',
-    expiresIn: '7'
-  });
 
   useEffect(() => {
     if (id && userProfile?.role === 'ADMIN') {
@@ -87,19 +66,9 @@ export default function OrganizationDetail() {
       if (orgError) throw orgError;
       setOrganization(orgData);
 
-      // Fetch access codes
-      const { data: codesData, error: codesError } = await supabase
-        .from('access_codes')
-        .select('*')
-        .eq('organization_id', id)
-        .order('created_at', { ascending: false });
-
-      if (codesError) throw codesError;
-      setAccessCodes(codesData || []);
-
-      // Fetch users with debug logging - exclude coaches
-      console.log('Fetching users for organization:', id);
-      const { data: usersData, error: usersError } = await supabase
+      // Fetch employees (exclude coaches, focus on employees and HR)
+      console.log('Fetching employees for organization:', id);
+      const { data: employeesData, error: employeesError } = await supabase
         .from('users')
         .select(`
           id,
@@ -109,18 +78,19 @@ export default function OrganizationDetail() {
           status,
           created_at,
           auth_id,
-          organization_id
+          organization_id,
+          avatar_url
         `)
         .eq('organization_id', id)
-        .neq('role', 'COACH')
+        .in('role', ['EMPLOYEE', 'HR'])
         .order('created_at', { ascending: false });
 
-      console.log('Users data:', usersData);
-      if (usersError) {
-        console.error('Users error:', usersError);
-        throw usersError;
+      console.log('Employees data:', employeesData);
+      if (employeesError) {
+        console.error('Employees error:', employeesError);
+        throw employeesError;
       }
-      setUsers(usersData || []);
+      setEmployees(employeesData || []);
 
     } catch (error) {
       console.error('Error fetching organization data:', error);
@@ -131,70 +101,6 @@ export default function OrganizationDetail() {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const generateAccessCode = async () => {
-    try {
-      const code = Math.random().toString(36).substring(2, 12).toUpperCase();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + parseInt(newCode.expiresIn));
-
-      // Use edge function to create access code with admin privileges
-      const { data: codeData, error: codeError } = await supabase.functions.invoke('create-access-code', {
-        body: {
-          code,
-          organization_id: id,
-          role: newCode.role,
-          expires_at: expiresAt.toISOString(),
-          max_uses: 1,
-          email: newCode.email
-        }
-      });
-
-      if (codeError) throw codeError;
-
-      // Send email via edge function
-      const { data: emailData, error: emailError } = await supabase.functions.invoke('send-access-code', {
-        body: {
-          email: newCode.email,
-          code,
-          role: newCode.role,
-          organizationName: organization?.name,
-          expiresAt: expiresAt.toISOString()
-        }
-      });
-
-      if (emailError) {
-        console.error('Email error:', emailError);
-        toast({
-          title: 'Warning',
-          description: 'Access code created but email failed to send. Please verify your domain at resend.com',
-          variant: 'default'
-        });
-      } else if (emailData?.warning) {
-        toast({
-          title: 'Success',
-          description: `Access code created. ${emailData.warning}`,
-          variant: 'default'
-        });
-      } else {
-        toast({
-          title: 'Success',
-          description: 'Access code created and email sent successfully'
-        });
-      }
-
-      setShowCreateCodeDialog(false);
-      setNewCode({ role: 'HR', email: '', expiresIn: '7' });
-      fetchOrganizationData();
-    } catch (error) {
-      console.error('Error creating access code:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create access code',
-        variant: 'destructive'
-      });
     }
   };
 
@@ -271,14 +177,14 @@ export default function OrganizationDetail() {
       </div>
 
       {/* Organization Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
+            <div className="text-2xl font-bold">{employees.length}</div>
           </CardContent>
         </Card>
 
@@ -305,166 +211,57 @@ export default function OrganizationDetail() {
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Codes</CardTitle>
-            <Key className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {accessCodes.filter(code => 
-                new Date(code.expires_at) > new Date() && code.used_count < code.max_uses
-              ).length}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Access Codes Section */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Access Codes</CardTitle>
-          <Button onClick={() => setShowCreateCodeDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Generate Code
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Usage</TableHead>
-                <TableHead>Expires</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {accessCodes.map((code) => {
-                const isExpired = new Date(code.expires_at) < new Date();
-                const isUsedUp = code.used_count >= code.max_uses;
-                const isActive = !isExpired && !isUsedUp;
-
-                return (
-                  <TableRow key={code.id}>
-                    <TableCell className="font-mono">{code.code}</TableCell>
-                    <TableCell>
-                      <Badge className={getRoleColor(code.role)}>
-                        {code.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{code.used_count}/{code.max_uses}</TableCell>
-                    <TableCell>{new Date(code.expires_at).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Badge variant={isActive ? 'default' : 'secondary'}>
-                        {isActive ? 'Active' : isExpired ? 'Expired' : 'Used'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(code.created_at).toLocaleDateString()}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Users Section */}
+      {/* Employee Profiles Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Organization Users</CardTitle>
+          <CardTitle>Employee Profiles</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {employees.length} employees registered in this organization
+          </p>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge className={getRoleColor(user.role)}>
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(user.status)}>
-                      {user.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {employees.map((employee) => (
+              <Card key={employee.id} className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-medium">
+                    {employee.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-sm">{employee.name}</h4>
+                    <p className="text-xs text-muted-foreground">{employee.email}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge className={getRoleColor(employee.role)} variant="secondary">
+                        {employee.role}
+                      </Badge>
+                      <Badge className={getStatusColor(employee.status)} variant="secondary">
+                        {employee.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    Joined: {new Date(employee.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </Card>
+            ))}
+          </div>
+          
+          {employees.length === 0 && (
+            <div className="text-center py-8">
+              <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-2 text-sm font-medium">No employees yet</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Employees will appear here once they join the organization.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Create Access Code Dialog */}
-      <Dialog open={showCreateCodeDialog} onOpenChange={setShowCreateCodeDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Generate Access Code</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={newCode.email}
-                onChange={(e) => setNewCode({ ...newCode, email: e.target.value })}
-                placeholder="Enter recipient's email"
-              />
-            </div>
-            <div>
-              <Label htmlFor="role">Role</Label>
-              <Select value={newCode.role} onValueChange={(value) => setNewCode({ ...newCode, role: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="HR">HR Manager</SelectItem>
-                  <SelectItem value="COACH">Coach</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="expires">Expires In</Label>
-              <Select value={newCode.expiresIn} onValueChange={(value) => setNewCode({ ...newCode, expiresIn: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select expiry" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 day</SelectItem>
-                  <SelectItem value="7">7 days</SelectItem>
-                  <SelectItem value="30">30 days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowCreateCodeDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={generateAccessCode} disabled={!newCode.email}>
-                <Mail className="h-4 w-4 mr-2" />
-                Generate & Send
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
