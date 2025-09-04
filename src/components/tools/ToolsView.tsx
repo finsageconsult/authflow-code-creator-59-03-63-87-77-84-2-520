@@ -14,6 +14,7 @@ import {
   Wrench
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ToolPaymentModal } from '@/components/individual/ToolPaymentModal';
 import { EmptyState } from '@/components/ui/empty-state';
 
 interface FinancialTool {
@@ -27,6 +28,13 @@ interface FinancialTool {
   is_active: boolean;
   access_level: string;
   tags: string[];
+  price: number;
+  one_time_purchase: boolean;
+}
+
+interface ToolPurchase {
+  tool_id: string;
+  status: string;
 }
 
 const getToolIcon = (toolType: string) => {
@@ -63,22 +71,45 @@ export const ToolsView = () => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const [tools, setTools] = useState<FinancialTool[]>([]);
+  const [purchasedTools, setPurchasedTools] = useState<ToolPurchase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [paymentModal, setPaymentModal] = useState<{
+    isOpen: boolean;
+    tool: FinancialTool | null;
+  }>({
+    isOpen: false,
+    tool: null
+  });
 
   useEffect(() => {
-    const fetchTools = async () => {
+    const fetchData = async () => {
       try {
-        const { data, error } = await supabase
+        // Fetch tools
+        const { data: toolsData, error: toolsError } = await supabase
           .from('financial_tools')
           .select('*')
           .eq('is_active', true)
-          .order('tool_type', { ascending: true })
-          .order('name', { ascending: true });
+          .order('created_at', { ascending: true });
 
-        if (error) throw error;
-        setTools(data || []);
+        if (toolsError) throw toolsError;
+        setTools(toolsData || []);
+
+        // Fetch user's tool purchases if logged in
+        if (userProfile) {
+          const { data: purchasesData, error: purchasesError } = await supabase
+            .from('tool_purchases')
+            .select('tool_id, status')
+            .eq('user_id', userProfile.id)
+            .eq('status', 'completed');
+
+          if (purchasesError) {
+            console.error('Error fetching purchases:', purchasesError);
+          } else {
+            setPurchasedTools(purchasesData || []);
+          }
+        }
       } catch (error) {
-        console.error('Error fetching tools:', error);
+        console.error('Error fetching data:', error);
         toast({
           title: "Error",
           description: "Failed to load financial tools",
@@ -89,21 +120,21 @@ export const ToolsView = () => {
       }
     };
 
-    fetchTools();
-  }, [toast]);
+    fetchData();
+  }, [toast, userProfile]);
+
+  const hasAccess = (tool: FinancialTool) => {
+    // Free tools are always accessible
+    if (tool.access_level === 'free') return true;
+    
+    // Check if user has purchased premium tools
+    return purchasedTools.some(purchase => purchase.tool_id === tool.id);
+  };
 
   const handleUseTool = (tool: FinancialTool) => {
-    // For now, show a toast. In a real implementation, you would:
-    // 1. Check if user has access (premium tools, credits, etc.)
-    // 2. Launch the actual tool component
-    // 3. Track usage analytics
-    
-    if (tool.is_premium && tool.access_level === 'premium') {
-      toast({
-        title: "Premium Tool",
-        description: `${tool.name} is a premium tool. Upgrade your plan to access it.`,
-        variant: "destructive"
-      });
+    if (!hasAccess(tool)) {
+      // Open payment modal for premium tools
+      setPaymentModal({ isOpen: true, tool });
       return;
     }
 
@@ -114,6 +145,30 @@ export const ToolsView = () => {
 
     // TODO: Implement actual tool launching logic
     // This would typically open a modal or navigate to a tool-specific page
+  };
+
+  const handlePaymentSuccess = () => {
+    // Refetch purchases after successful payment
+    if (userProfile) {
+      supabase
+        .from('tool_purchases')
+        .select('tool_id, status')
+        .eq('user_id', userProfile.id)
+        .eq('status', 'completed')
+        .then(({ data, error }) => {
+          if (!error) {
+            setPurchasedTools(data || []);
+          }
+        });
+    }
+    setPaymentModal({ isOpen: false, tool: null });
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    }).format(price / 100);
   };
 
   const groupedTools = tools.reduce((acc, tool) => {
@@ -194,13 +249,21 @@ export const ToolsView = () => {
                           {tool.name}
                         </CardTitle>
                         <div className="flex flex-col gap-1">
-                          {tool.is_premium && (
+                          {hasAccess(tool) ? (
+                            <Badge className="bg-green-100 text-green-800 text-xs">
+                              Access Granted
+                            </Badge>
+                          ) : tool.access_level === 'premium' ? (
                             <Badge 
                               variant="secondary" 
                               className="bg-yellow-100 text-yellow-800 text-xs gap-1"
                             >
                               <Crown className="h-3 w-3" />
                               Premium
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-blue-100 text-blue-800 text-xs">
+                              Free
                             </Badge>
                           )}
                           <Badge variant="outline" className="text-xs capitalize">
@@ -214,6 +277,15 @@ export const ToolsView = () => {
                       <p className="text-sm text-muted-foreground line-clamp-3">
                         {tool.description}
                       </p>
+
+                      {tool.access_level === 'premium' && !hasAccess(tool) && (
+                        <div className="text-center py-2">
+                          <p className="text-lg font-bold text-primary">
+                            {formatPrice(tool.price)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">One-time purchase</p>
+                        </div>
+                      )}
                       
                       {tool.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
@@ -234,10 +306,14 @@ export const ToolsView = () => {
                         <Button 
                           onClick={() => handleUseTool(tool)}
                           className="w-full gap-2"
-                          variant={tool.is_premium && tool.access_level === 'premium' ? "outline" : "default"}
+                          variant={hasAccess(tool) ? "default" : "outline"}
                         >
                           <ExternalLink className="h-4 w-4" />
-                          {tool.is_premium && tool.access_level === 'premium' ? 'Upgrade to Use' : 'Use Tool'}
+                          {hasAccess(tool) 
+                            ? 'Use Tool' 
+                            : tool.access_level === 'premium' 
+                            ? `Buy Now - ${formatPrice(tool.price)}`
+                            : 'Use Tool'}
                         </Button>
                       </div>
                     </CardContent>
@@ -248,6 +324,21 @@ export const ToolsView = () => {
           </div>
         );
       })}
+
+      {/* Payment Modal */}
+      {paymentModal.tool && (
+        <ToolPaymentModal
+          isOpen={paymentModal.isOpen}
+          onClose={() => setPaymentModal({ isOpen: false, tool: null })}
+          tool={{
+            id: paymentModal.tool.id,
+            name: paymentModal.tool.name,
+            price: paymentModal.tool.price,
+            description: paymentModal.tool.description
+          }}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
 
       {/* Usage Tips */}
       <Card className="bg-blue-50 border-blue-200">
