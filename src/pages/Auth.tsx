@@ -196,46 +196,42 @@ export default function Auth() {
       const userEmail = codeData.email as string;
       let userId: string;
 
-      // Try to sign in existing user first
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: userEmail,
-        password: `temp_${accessCode.trim()}`
-      });
+      // For existing users, try multiple password patterns that might have been used
+      const passwordVariations = [
+        `temp_${accessCode.trim()}`,
+        `temp_${accessCode.trim()}_default`,
+        `temp_${accessCode.trim()}_retry`,
+        `temp_${accessCode.trim()}_existing`,
+        `temp_${accessCode.trim()}_final`
+      ];
 
-      if (!signInError && signInData.user) {
-        // User exists and signed in successfully
-        userId = signInData.user.id;
-      } else {
-        // Create new user if sign in failed
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      let signInSuccess = false;
+      
+      for (const password of passwordVariations) {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: userEmail,
-          password: `temp_${accessCode.trim()}`,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              name: userEmail.split('@')[0]
-            }
-          }
+          password: password
         });
+        
+        if (!signInError && signInData.user) {
+          userId = signInData.user.id;
+          signInSuccess = true;
+          break;
+        }
+      }
 
-        if (signUpError) {
-          // If user already exists, try signing in with different password pattern
-          const { data: retrySignIn, error: retryError } = await supabase.auth.signInWithPassword({
-            email: userEmail,
-            password: `temp_${accessCode.trim()}_retry`
-          });
-          
-          if (!retryError && retrySignIn.user) {
-            userId = retrySignIn.user.id;
-          } else {
-            toast.error('Unable to access account. Please contact support.');
-            return;
-          }
-        } else if (!signUpData?.user) {
-          toast.error('Unable to create account. Please try again.');
+      if (!signInSuccess) {
+        // If all password attempts fail, send password reset
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(userEmail, {
+          redirectTo: `${window.location.origin}/auth?code=${accessCode.trim()}`
+        });
+        
+        if (!resetError) {
+          toast.success('Password reset email sent. Please check your email and follow the link to complete login.');
           return;
         } else {
-          userId = signUpData.user.id;
+          toast.error('Unable to access account. Please contact support.');
+          return;
         }
       }
 
