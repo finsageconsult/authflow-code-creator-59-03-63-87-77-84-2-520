@@ -101,7 +101,7 @@ export const AdminDashboard = () => {
     },
     {
       title: 'Monthly Revenue',
-      value: `$${stats.monthlyRevenue.toLocaleString()}`,
+      value: `₹${stats.monthlyRevenue.toLocaleString('en-IN')}`,
       change: '+15%',
       icon: DollarSign,
       color: 'text-orange-600'
