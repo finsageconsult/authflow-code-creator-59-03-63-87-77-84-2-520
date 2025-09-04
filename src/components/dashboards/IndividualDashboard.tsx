@@ -247,7 +247,7 @@ export const IndividualDashboard = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 pb-4 border-b">
@@ -262,7 +262,7 @@ export const IndividualDashboard = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-1 border-b">
+        <div className="flex flex-wrap gap-1 border-b -mx-2 px-2">
           {navigationTabs.map((tab) => (
             <button
               key={tab.id}
@@ -271,21 +271,23 @@ export const IndividualDashboard = () => {
                 newParams.set('tab', tab.id);
                 setSearchParams(newParams);
               }}
-              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-t-lg transition-colors min-w-0 ${
                 currentTab === tab.id
                   ? 'bg-background text-foreground border-b-2 border-primary'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               }`}
             >
-              <tab.icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <tab.icon className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Content */}
-      {renderContent()}
+      <div className="py-2">
+        {renderContent()}
+      </div>
     </div>
   );
 };
