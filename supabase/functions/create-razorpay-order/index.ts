@@ -68,15 +68,18 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Get user profile
+    console.log("Getting user profile for auth_id:", user.id);
     const { data: userProfile, error: profileError } = await supabase
       .from('users')
       .select('*')
       .eq('auth_id', user.id)
       .maybeSingle();
 
+    console.log("User profile result:", { userProfile, profileError });
     if (profileError || !userProfile) {
+      console.error("User profile error:", profileError);
       return new Response(
-        JSON.stringify({ error: "User profile not found" }),
+        JSON.stringify({ error: "User profile not found", details: profileError?.message }),
         { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -89,10 +92,11 @@ const handler = async (req: Request): Promise<Response> => {
     // Create order in database first
     const orderNumber = `ORD${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
     
+    console.log("Creating order with user_id:", user.id);
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
-        user_id: userProfile.id, // Use profile user ID from public.users table
+        user_id: user.id, // Use auth user ID directly (auth.users.id)
         organization_id: organizationId || userProfile.organization_id,
         user_type: userType.toLowerCase() as any,
         service_type: serviceType,
@@ -112,7 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (orderError) {
       console.error("Error creating order:", orderError);
       return new Response(
-        JSON.stringify({ error: "Failed to create order" }),
+        JSON.stringify({ error: "Failed to create order", details: orderError.message }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
