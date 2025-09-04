@@ -18,6 +18,7 @@ import Coaches from '@/pages/admin/Coaches';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { SimpleLayout } from '@/components/layout/SimpleLayout';
 import { EmployeeLayout } from '@/components/layout/EmployeeLayout';
+import { RoleBasedLayout } from '@/components/layout/RoleBasedLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -63,10 +64,10 @@ export const SubdomainRouter = () => {
       <Route path="/employee-dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeLayout><EmployeeDashboard /></EmployeeLayout></ProtectedRoute>} />
       <Route path="/coach-dashboard" element={<ProtectedRoute allowedRoles={['COACH']}><AppLayout><CoachDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/individual-dashboard" element={<ProtectedRoute allowedRoles={['INDIVIDUAL']}><SimpleLayout><IndividualDashboard /></SimpleLayout></ProtectedRoute>} />
-      <Route path="/catalog" element={<ProtectedRoute><AppLayout><div>Catalog Coming Soon</div></AppLayout></ProtectedRoute>} />
-      <Route path="/coaching" element={<ProtectedRoute><AppLayout><div>Coaching Coming Soon</div></AppLayout></ProtectedRoute>} />
-      <Route path="/webinars" element={<ProtectedRoute><AppLayout><div>Webinars Coming Soon</div></AppLayout></ProtectedRoute>} />
-      <Route path="/tools" element={<ProtectedRoute><AppLayout><div>Tools Coming Soon</div></AppLayout></ProtectedRoute>} />
+      <Route path="/catalog" element={<ProtectedRoute><RoleBasedLayout><div>Catalog Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
+      <Route path="/coaching" element={<ProtectedRoute><RoleBasedLayout><div>Coaching Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
+      <Route path="/webinars" element={<ProtectedRoute><RoleBasedLayout><div>Webinars Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
+      <Route path="/tools" element={<ProtectedRoute><RoleBasedLayout><div>Tools Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/team" element={<ProtectedRoute allowedRoles={['ADMIN','HR']}><AppLayout><div>Team Coming Soon</div></AppLayout></ProtectedRoute>} />
       <Route path="/billing" element={<ProtectedRoute allowedRoles={['ADMIN','HR']}><AppLayout><div>Billing Coming Soon</div></AppLayout></ProtectedRoute>} />
       <Route path="/admin/organizations" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Organizations /></AppLayout></ProtectedRoute>} />
