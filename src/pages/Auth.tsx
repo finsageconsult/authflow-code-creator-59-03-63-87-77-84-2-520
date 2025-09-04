@@ -121,8 +121,11 @@ export default function Auth() {
       } else {
         const { error } = await signIn(formData.email, formData.password);
         if (error) {
-          if (error.message.includes('Invalid login credentials')) {
+          const msg = (error.message || '').toLowerCase();
+          if (msg.includes('invalid login credentials')) {
             toast.error('Invalid email or password. Please try again.');
+          } else if (msg.includes('email not confirmed')) {
+            toast.error('Please verify your email address via the link we sent, then try again.');
           } else {
             toast.error(error.message);
           }
@@ -156,7 +159,7 @@ export default function Auth() {
           }
           
           toast.success('Successfully signed in!');
-          // Will be redirected automatically by auth hook
+          navigate('/role-redirect', { replace: true });
         }
       }
     } catch (error) {
