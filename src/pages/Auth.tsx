@@ -154,88 +154,63 @@ export default function Auth() {
         return;
       }
 
-      // Check if user already exists in our system
+      // Create account with access code email
       const userEmail = codeData.email as string;
-      console.log('Checking if user exists:', userEmail);
+      const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
+      
+      console.log('Attempting to create account for:', userEmail);
 
-      // Look up the user in our users table to see if they already have an account
-      const { data: existingUser, error: userLookupError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', userEmail)
-        .single();
-
-      if (existingUser) {
-        // User exists - just update their role and organization
-        console.log('User already exists, updating role and organization');
-        
-        const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
-          body: {
-            userId: existingUser.auth_id,
-            code: accessCode.trim(),
-            role: codeData.role,
-            organizationId: codeData.organization_id
+      // Try to sign up the user - if they already exist, we'll handle that
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: userEmail,
+        password: tempPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            name: userEmail.split('@')[0]
           }
-        });
-
-        if (consumeError || !consumeResponse?.success) {
-          console.error('Error consuming access code:', consumeError);
-          toast.error('Failed to update account with access code');
-          return;
         }
+      });
 
-        toast.success(`Access code applied! You've been added to ${codeData.organization_name} as ${codeData.role}. Please sign in with your existing credentials.`);
-        setActiveTab('email'); // Switch to email login tab
-        return;
-      } else {
-        // User doesn't exist - create new account
-        console.log('Creating new user account');
-        
-        const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
-        
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: userEmail,
-          password: tempPassword,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              name: userEmail.split('@')[0]
-            }
-          }
-        });
-
-        if (signUpError) {
+      if (signUpError) {
+        if (signUpError.message.includes('User already registered') || signUpError.message.includes('already registered')) {
+          // User exists - tell them to use regular login
+          console.log('User already exists, prompting for regular login');
+          toast.error(`An account with ${userEmail} already exists. Please use the Email Login tab with your existing password to sign in, then contact your admin to apply the access code to your account.`);
+          setActiveTab('email');
+          return;
+        } else {
           console.error('Sign up failed:', signUpError);
-          toast.error('Failed to create user account');
+          toast.error('Failed to create user account: ' + signUpError.message);
           return;
         }
+      }
 
-        if (!signUpData.user) {
-          console.error('No user data after sign up');
-          toast.error('Failed to create user account');
-          return;
+      if (!signUpData.user) {
+        console.error('No user data after sign up');
+        toast.error('Failed to create user account');
+        return;
+      }
+
+      console.log('User created successfully:', signUpData.user.id);
+
+      // Wait for the user profile to be created by the trigger
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Now consume the access code to set role and organization
+      const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
+        body: {
+          userId: signUpData.user.id,
+          code: accessCode.trim(),
+          role: codeData.role,
+          organizationId: codeData.organization_id
         }
+      });
 
-        console.log('User created successfully:', signUpData.user.id);
-
-        // Wait for the user profile to be created by the trigger
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // Now consume the access code to set role and organization
-        const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
-          body: {
-            userId: signUpData.user.id,
-            code: accessCode.trim(),
-            role: codeData.role,
-            organizationId: codeData.organization_id
-          }
-        });
-
-        if (consumeError || !consumeResponse?.success) {
-          console.error('Error consuming access code:', consumeError);
-          toast.error('Failed to set up account with access code');
-          return;
-        }
+      if (consumeError || !consumeResponse?.success) {
+        console.error('Error consuming access code:', consumeError);
+        toast.error('Failed to set up account with access code');
+        return;
       }
 
       toast.success(`Successfully logged in! Welcome to ${codeData.organization_name} as ${codeData.role}`);
