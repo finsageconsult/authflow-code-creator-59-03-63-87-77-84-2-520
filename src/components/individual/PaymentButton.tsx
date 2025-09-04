@@ -11,7 +11,7 @@ interface PaymentButtonProps {
   programId: string;
   title: string;
   price: number; // in paisa
-  category: 'course' | 'coaching';
+  category: 'short-program' | '1-1-sessions';
   onSuccess?: () => void;
 }
 
@@ -82,7 +82,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
         amount: order.amount,
         currency: order.currency,
         name: 'Finsage',
-        description: `${title} - ${category === 'course' ? 'Course' : '1:1 Coaching'}`,
+        description: `${title} - ${category === 'short-program' ? 'Short Program' : '1:1 Session'}`,
         order_id: order.razorpay_order_id,
         handler: function (response: any) {
           toast.success('Payment successful!');
@@ -146,7 +146,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                 <div>
                   <h3 className="font-semibold text-lg">{title}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {category === 'course' ? 'Online Course' : '1:1 Coaching Session'}
+                    {category === 'short-program' ? 'Short Program' : '1:1 Session'}
                   </p>
                 </div>
                 

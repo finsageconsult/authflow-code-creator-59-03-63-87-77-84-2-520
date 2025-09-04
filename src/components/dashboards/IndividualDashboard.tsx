@@ -33,7 +33,7 @@ export const IndividualDashboard = () => {
   const isMobile = useIsMobile();
   const { userProfile } = useAuth();
   const { programs, purchases, loading, formatPrice, isPurchased, getPurchaseByProgram, getFilteredPrograms, refetch } = useIndividualPrograms();
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'course' | 'coaching'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'short-program' | '1-1-sessions'>('all');
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const currentTab = searchParams.get('tab') || 'programs';
@@ -125,24 +125,24 @@ export const IndividualDashboard = () => {
                     All Programs
                   </Button>
                   <Button 
-                    variant={selectedCategory === 'course' ? 'default' : 'outline'}
+                    variant={selectedCategory === 'short-program' ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setSelectedCategory('course')}
+                    onClick={() => setSelectedCategory('short-program')}
                     className="text-xs sm:text-sm h-9 px-3 sm:px-4"
                   >
-                    Courses
+                    Short Programs
                   </Button>
                   <Button 
-                    variant={selectedCategory === 'coaching' ? 'default' : 'outline'}
+                    variant={selectedCategory === '1-1-sessions' ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setSelectedCategory('coaching')}
+                    onClick={() => setSelectedCategory('1-1-sessions')}
                     className="text-xs sm:text-sm h-9 px-3 sm:px-4"
                   >
-                    Coaching
+                    1:1 Sessions
                   </Button>
                 </div>
 
-                <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
                   {allContent.map((program) => (
                     <Card key={program.id} className="relative hover:shadow-md transition-shadow h-full">
                       <CardContent className="p-4 h-full flex flex-col">

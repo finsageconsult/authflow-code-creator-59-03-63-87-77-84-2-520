@@ -6,7 +6,7 @@ export interface IndividualProgram {
   id: string;
   title: string;
   description: string;
-  category: 'course' | 'coaching';
+  category: 'short-program' | '1-1-sessions';
   level: 'Beginner' | 'Intermediate' | 'Advanced';
   duration: string;
   price: number; // in paisa
@@ -108,7 +108,7 @@ export const useIndividualPrograms = () => {
     );
   };
 
-  const getFilteredPrograms = (category: 'all' | 'course' | 'coaching') => {
+  const getFilteredPrograms = (category: 'all' | 'short-program' | '1-1-sessions') => {
     if (category === 'all') return programs;
     return programs.filter(program => program.category === category);
   };
