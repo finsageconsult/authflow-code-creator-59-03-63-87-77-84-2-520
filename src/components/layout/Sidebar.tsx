@@ -242,7 +242,7 @@ export const Sidebar = () => {
         </Button>
       </SidebarHeader>
       
-      <SidebarContent className="pt-4">
+      <SidebarContent className="pt-4 overflow-y-auto">
         <SidebarGroup>
           <SidebarGroupLabel className={isCollapsed ? 'sr-only' : ''}>
             Navigation
