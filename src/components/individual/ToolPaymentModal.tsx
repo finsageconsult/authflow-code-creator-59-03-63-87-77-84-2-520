@@ -50,7 +50,7 @@ export const ToolPaymentModal: React.FC<ToolPaymentModalProps> = ({
       const { data, error } = await supabase.functions.invoke('create-tool-order', {
         body: {
           toolId: tool.id,
-          amount: tool.price / 100 // Convert from paisa to rupees
+          amount: tool.price // Price is already in paisa
         }
       });
 

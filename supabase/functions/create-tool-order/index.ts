@@ -93,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Calculate GST (18%)
-    const baseAmount = Math.round(amount * 100); // Convert to paise
+    const baseAmount = amount; // Amount is already in paisa
     const gstAmount = Math.round(baseAmount * 0.18);
     const totalAmount = baseAmount + gstAmount;
 
