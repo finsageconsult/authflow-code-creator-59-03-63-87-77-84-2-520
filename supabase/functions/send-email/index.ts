@@ -1,9 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Webhook } from 'https://esm.sh/standardwebhooks@1.0.0';
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,30 +16,21 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const payload = await req.text();
-    const headers = Object.fromEntries(req.headers);
-    
-    if (!hookSecret) {
-      console.error("SEND_EMAIL_HOOK_SECRET not configured");
-      return new Response("Server configuration error", { status: 500 });
-    }
+    console.log("Raw payload received:", payload);
 
-    // Verify webhook signature
-    const wh = new Webhook(hookSecret);
-    const {
-      user,
-      email_data: { token, token_hash, redirect_to, email_action_type },
-    } = wh.verify(payload, headers) as {
-      user: {
-        email: string;
-      };
-      email_data: {
-        token: string;
-        token_hash: string;
-        redirect_to: string;
-        email_action_type: string;
-        site_url: string;
-      };
-    };
+    // Parse the webhook payload directly (Supabase doesn't use standard webhook signatures)
+    const webhookData = JSON.parse(payload);
+    console.log("Received webhook data:", webhookData);
+    
+    const user = webhookData.user;
+    const email_data = webhookData.email_data;
+    
+    if (!user || !email_data || !email_data.token) {
+      console.error("Invalid webhook payload structure:", webhookData);
+      return new Response("Invalid payload", { status: 400 });
+    }
+    
+    const { token, token_hash, redirect_to, email_action_type } = email_data;
 
     console.log("Processing email for user:", user.email, "action:", email_action_type);
 
