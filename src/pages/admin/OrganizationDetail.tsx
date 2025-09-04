@@ -97,7 +97,8 @@ export default function OrganizationDetail() {
       if (codesError) throw codesError;
       setAccessCodes(codesData || []);
 
-      // Fetch users - no need for email mapping since we collect real emails
+      // Fetch users with debug logging
+      console.log('Fetching users for organization:', id);
       const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select(`
@@ -107,12 +108,17 @@ export default function OrganizationDetail() {
           role,
           status,
           created_at,
-          auth_id
+          auth_id,
+          organization_id
         `)
         .eq('organization_id', id)
         .order('created_at', { ascending: false });
 
-      if (usersError) throw usersError;
+      console.log('Users data:', usersData);
+      if (usersError) {
+        console.error('Users error:', usersError);
+        throw usersError;
+      }
       setUsers(usersData || []);
 
     } catch (error) {
