@@ -148,21 +148,27 @@ export default function Auth() {
       const codeData = response.data;
       console.log('Access code verified:', codeData);
 
-      // Create a unique temporary email based on access code and timestamp
-      const timestamp = Date.now();
-      const tempEmail = `${accessCode.trim().toLowerCase()}_${timestamp}@temp.finsage.com`;
-      const tempPassword = `temp_${accessCode.trim()}_${timestamp}`;
+      // Validate email and name are provided
+      if (!accessCodeData.email.trim() || !accessCodeData.name.trim()) {
+        toast.error('Please provide both your email and full name');
+        return;
+      }
 
-      console.log('Creating temporary account with email:', tempEmail);
+      // Use the real email provided by the user
+      const userEmail = accessCodeData.email.trim();
+      const userName = accessCodeData.name.trim();
+      const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
 
-      // Try to sign up with temporary credentials
+      console.log('Creating account with real email:', userEmail);
+
+      // Try to sign up with real email and provided name
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: tempEmail,
+        email: userEmail,
         password: tempPassword,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            name: `${codeData.role} User`,
+            name: userName,
             access_code: accessCode.trim()
           }
         }
@@ -281,11 +287,43 @@ export default function Auth() {
                     Enter the access code sent to your email
                   </p>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accessCodeEmail">Your Email Address</Label>
+                  <Input
+                    id="accessCodeEmail"
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={accessCodeData.email}
+                    onChange={(e) => setAccessCodeData(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Provide your real email address for account creation
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accessCodeName">Full Name</Label>
+                  <Input
+                    id="accessCodeName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={accessCodeData.name}
+                    onChange={(e) => setAccessCodeData(prev => ({ ...prev, name: e.target.value }))}
+                    required
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Your name will be displayed in the system
+                  </p>
+                </div>
                 
-                <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading || !accessCode.trim()}>
+                <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading || !accessCode.trim() || !accessCodeData.email.trim() || !accessCodeData.name.trim()}>
                   {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   <Key className="w-4 h-4 mr-2" />
-                  <span className="text-sm sm:text-base">Login with Access Code</span>
+                  <span className="text-sm sm:text-base">Create Account with Access Code</span>
                 </Button>
               </form>
             </TabsContent>
