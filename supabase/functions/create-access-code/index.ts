@@ -29,10 +29,8 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // For coaches, use a special placeholder UUID if organization_id is provided as placeholder
-    const actualOrgId = (role === 'COACH' && organization_id === '00000000-0000-0000-0000-000000000000') 
-      ? '00000000-0000-0000-0000-000000000000' 
-      : organization_id;
+    // For coaches, organization_id should be null as they're not tied to orgs
+    const actualOrgId = role === 'COACH' ? null : organization_id;
 
     // Check if an active access code already exists for this email (for coaches, check globally)
     let checkError = null;

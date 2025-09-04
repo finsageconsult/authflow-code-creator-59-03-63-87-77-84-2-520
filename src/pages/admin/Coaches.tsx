@@ -127,7 +127,7 @@ export default function Coaches() {
       const { data: codeData, error: codeError } = await supabase.functions.invoke('create-access-code', {
         body: {
           code,
-          organization_id: '00000000-0000-0000-0000-000000000000', // Use a placeholder UUID for coaches
+          organization_id: null, // Coaches are not tied to organizations
           role: 'COACH',
           expires_at: expiresAt.toISOString(),
           max_uses: 1,

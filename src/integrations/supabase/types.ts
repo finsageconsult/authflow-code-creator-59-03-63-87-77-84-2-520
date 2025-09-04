@@ -22,7 +22,7 @@ export type Database = {
           expires_at: string
           id: string
           max_uses: number
-          organization_id: string
+          organization_id: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           used_count: number
@@ -34,7 +34,7 @@ export type Database = {
           expires_at: string
           id?: string
           max_uses?: number
-          organization_id: string
+          organization_id?: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           used_count?: number
@@ -46,7 +46,7 @@ export type Database = {
           expires_at?: string
           id?: string
           max_uses?: number
-          organization_id?: string
+          organization_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           used_count?: number
