@@ -182,8 +182,6 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      console.log('Starting access code login with code:', accessCode.trim());
-      
       // Verify access code
       const { data: response, error: functionError } = await supabase.functions.invoke('verify-access-code', {
         body: { code: accessCode.trim() }
@@ -195,93 +193,49 @@ export default function Auth() {
       }
 
       const codeData = response.data;
-      console.log('Access code verified:', codeData);
-
-      if (!codeData?.email) {
-        toast.error('Invalid or expired access code');
-        return;
-      }
-
       const userEmail = codeData.email as string;
+
+      // Try to sign in existing user first
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: `temp_${accessCode.trim()}`
+      });
+
       let userId: string;
 
-      // Check if user is already logged in
-      const { data: existingUser } = await supabase.auth.getUser();
-      
-      if (existingUser.user) {
-        // User is already authenticated
-        userId = existingUser.user.id;
+      if (!signInError && signInData.user) {
+        // User exists and signed in successfully
+        userId = signInData.user.id;
       } else {
-        // Try to sign in existing user first with various password attempts
-        const passwordVariations = [
-          `temp_${accessCode.trim()}_default`,
-          `temp_${accessCode.trim()}_retry`,
-          `temp_${accessCode.trim()}_existing`
-        ];
-        
-        let signInSuccess = false;
-        
-        for (const password of passwordVariations) {
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email: userEmail,
-            password: password
-          });
-          
-          if (!signInError && signInData.user) {
-            userId = signInData.user.id;
-            signInSuccess = true;
-            console.log('Successfully signed in existing user');
-            break;
+        // Create new user
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: userEmail,
+          password: `temp_${accessCode.trim()}`,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              name: userEmail.split('@')[0]
+            }
           }
+        });
+
+        if (signUpError) {
+          if (signUpError.message.includes('already registered')) {
+            toast.error('Account exists. Please use regular login.');
+            return;
+          }
+          toast.error('Unable to create account. Please try again.');
+          return;
         }
 
-        if (!signInSuccess) {
-          // Create new user
-          console.log('Creating new user for access code');
-          const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
-          
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: userEmail,
-            password: tempPassword,
-            options: {
-              emailRedirectTo: `${window.location.origin}/`,
-              data: {
-                name: userEmail.split('@')[0]
-              }
-            }
-          });
-
-          if (signUpError) {
-            if (signUpError.message.includes('already registered')) {
-              // Try one more sign in attempt
-              const { data: finalSignIn, error: finalError } = await supabase.auth.signInWithPassword({
-                email: userEmail,
-                password: `temp_${accessCode.trim()}_final`
-              });
-              
-              if (finalError) {
-                toast.error('Unable to access account. Please contact support.');
-                return;
-              }
-              userId = finalSignIn.user.id;
-            } else {
-              console.error('Sign up failed:', signUpError);
-              toast.error('Unable to create account. Please try again.');
-              return;
-            }
-          } else {
-            if (!signUpData?.user) {
-              toast.error('Unable to create account. Please try again.');
-              return;
-            }
-            userId = signUpData.user.id;
-            // Wait for user profile creation
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
+        if (!signUpData?.user) {
+          toast.error('Unable to create account. Please try again.');
+          return;
         }
+        userId = signUpData.user.id;
       }
 
-      // Consume access code to apply role and organization
+      // Apply role and organization
       const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
         body: {
           userId: userId,
@@ -292,18 +246,14 @@ export default function Auth() {
       });
 
       if (consumeError || !consumeResponse?.success) {
-        console.error('Error consuming access code:', consumeError);
         toast.error('Failed to apply access code. Please try again.');
         return;
       }
 
       toast.success(`Welcome to ${codeData.organization_name}!`);
-      
-      // Redirect to appropriate dashboard based on role
       redirectToDashboard(codeData.role);
       
     } catch (error) {
-      console.error('Error with access code login:', error);
       toast.error('Invalid or expired access code');
     } finally {
       setIsLoading(false);
