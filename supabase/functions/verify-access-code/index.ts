@@ -116,18 +116,22 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Usage check (ignored):", { used: codeData.used_count, max: codeData.max_uses });
 
     console.log("Access code verified successfully");
+    
+    const responseData = {
+      code: codeData.code,
+      role: codeData.role,
+      organization_id: codeData.organization_id,
+      organization_name: codeData.organizations?.name || 'Unknown Organization',
+      email: codeData.email,
+      expires_at: codeData.expires_at
+    };
+    
+    console.log("Returning response data:", responseData);
 
     return new Response(
       JSON.stringify({
         success: true,
-        data: {
-          code: codeData.code,
-          role: codeData.role,
-          organization_id: codeData.organization_id,
-          organization_name: codeData.organizations?.name || 'Unknown Organization',
-          email: codeData.email,
-          expires_at: codeData.expires_at
-        }
+        data: responseData
       }),
       {
         status: 200,
