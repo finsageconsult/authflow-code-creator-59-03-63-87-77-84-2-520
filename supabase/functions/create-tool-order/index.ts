@@ -106,7 +106,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
-        user_id: userProfile.id,
+        user_id: user.id, // Use auth user ID instead of profile user ID
         organization_id: userProfile.organization_id,
         user_type: 'individual',
         service_type: 'tool_purchase',
@@ -125,7 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
         }
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (orderError) {
       console.error("Error creating order:", orderError);
