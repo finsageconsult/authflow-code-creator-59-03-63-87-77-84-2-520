@@ -209,14 +209,31 @@ export default function Auth() {
       const { data: existingUser } = await supabase.auth.getUser();
       
       if (!existingUser.user) {
-        // No current session, try to sign in with temporary password
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: userEmail,
-          password: `temp_${accessCode.trim()}_default`
-        });
+        // No current session, try multiple password variations for existing users
+        const passwordVariations = [
+          `temp_${accessCode.trim()}_default`,
+          `temp_${accessCode.trim()}_retry`,
+          `temp_${accessCode.trim()}_existing`
+        ];
+        
+        let signInSuccess = false;
+        
+        for (const password of passwordVariations) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: userEmail,
+            password: password
+          });
+          
+          if (!signInError && signInData.user) {
+            userId = signInData.user.id;
+            signInSuccess = true;
+            console.log('Successfully signed in existing user');
+            break;
+          }
+        }
 
-        if (signInError) {
-          // User doesn't exist, create new user
+        if (!signInSuccess) {
+          // User doesn't exist or none of the passwords worked, create new user
           console.log('Creating new user for access code');
           const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
           
@@ -232,34 +249,37 @@ export default function Auth() {
           });
 
           if (signUpError) {
-            // Handle user already exists case
+            // If user already exists, that's expected - try a magic link approach
             if (signUpError.message.includes('already registered')) {
-              // Try to sign in with a different temp password
-              const { data: retrySignIn, error: retryError } = await supabase.auth.signInWithPassword({
+              console.log('User already exists, sending magic link');
+              const { error: magicLinkError } = await supabase.auth.signInWithOtp({
                 email: userEmail,
-                password: `temp_${accessCode.trim()}_retry`
+                options: {
+                  emailRedirectTo: `${window.location.origin}/auth?code=${accessCode.trim()}`
+                }
               });
               
-              if (retryError) {
-                toast.error('Invalid or expired access code');
+              if (magicLinkError) {
+                toast.error('Unable to send login link. Please contact support.');
                 return;
               }
-              userId = retrySignIn.user.id;
+              
+              toast.success('Check your email for a login link!');
+              return;
             } else {
               console.error('Sign up failed:', signUpError);
-              toast.error('Invalid or expired access code');
+              toast.error('Unable to create account. Please try again.');
               return;
             }
-          } else {
-            if (!signUpData?.user) {
-              toast.error('Invalid or expired access code');
-              return;
-            }
-            userId = signUpData.user.id;
-            shouldCreateSession = true;
           }
-        } else {
-          userId = signInData.user.id;
+
+          if (!signUpData?.user) {
+            toast.error('Unable to create account. Please try again.');
+            return;
+          }
+          
+          userId = signUpData.user.id;
+          shouldCreateSession = true;
         }
       } else {
         userId = existingUser.user.id;
