@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { 
   Plus, 
   Edit, 
@@ -38,6 +39,7 @@ interface Program {
   is_active: boolean;
   thumbnail_url?: string;
   content_url?: string;
+  course_type?: string;
 }
 
 interface ProgramManagerProps {
@@ -48,6 +50,7 @@ interface ProgramManagerProps {
 export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -100,7 +103,8 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
       const programData = {
         ...formData,
         price: formData.price * 100, // Convert to paise
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        course_type: formData.course_type
       };
 
       if (editingProgram) {
@@ -126,6 +130,13 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
           title: 'Success',
           description: 'Program created successfully'
         });
+
+        // Navigate based on course type
+        if (formData.course_type === 'hr-dashboard') {
+          navigate('/hr-dashboard');
+        } else if (formData.course_type === 'individual') {
+          navigate('/individual-dashboard');
+        }
       }
 
       setFormData({
@@ -167,7 +178,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
       thumbnail_url: program.thumbnail_url || '',
       content_url: program.content_url || '',
       is_active: program.is_active,
-      course_type: 'individual'
+      course_type: program.course_type || 'individual'
     });
     setIsCreateDialogOpen(true);
   };

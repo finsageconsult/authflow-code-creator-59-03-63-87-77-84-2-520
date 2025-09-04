@@ -726,6 +726,7 @@ export type Database = {
         Row: {
           category: string
           content_url: string | null
+          course_type: string | null
           created_at: string
           description: string | null
           duration: string
@@ -743,6 +744,7 @@ export type Database = {
         Insert: {
           category?: string
           content_url?: string | null
+          course_type?: string | null
           created_at?: string
           description?: string | null
           duration: string
@@ -760,6 +762,7 @@ export type Database = {
         Update: {
           category?: string
           content_url?: string | null
+          course_type?: string | null
           created_at?: string
           description?: string | null
           duration?: string
