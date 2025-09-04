@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          email: string | null
           expires_at: string
           id: string
           max_uses: number
@@ -29,6 +30,7 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string
+          email?: string | null
           expires_at: string
           id?: string
           max_uses?: number
@@ -40,6 +42,7 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string
+          email?: string | null
           expires_at?: string
           id?: string
           max_uses?: number

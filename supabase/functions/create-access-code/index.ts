@@ -32,26 +32,16 @@ const handler = async (req: Request): Promise<Response> => {
     // Check if an active access code already exists for this email in this organization
     const { data: existingCodes, error: checkError } = await supabaseAdmin
       .from('access_codes')
-      .select('id, code, expires_at')
+      .select('id, code, expires_at, email')
       .eq('organization_id', organization_id)
-      .eq('role', role)
+      .eq('email', email)
       .gt('expires_at', new Date().toISOString())
       .gt('max_uses', 0);
 
     if (checkError) throw checkError;
 
-    // Filter codes that might be associated with this email by checking recent email events
-    const { data: emailEvents, error: emailError } = await supabaseAdmin
-      .from('email_events')
-      .select('metadata')
-      .eq('recipient_email', email)
-      .eq('email_type', 'access_code')
-      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-
-    if (emailError) console.warn('Could not check email events:', emailError);
-
-    // If there are existing codes and recent email events for this email, prevent creation
-    if (existingCodes && existingCodes.length > 0 && emailEvents && emailEvents.length > 0) {
+    // If there are existing active codes for this email, prevent creation
+    if (existingCodes && existingCodes.length > 0) {
       throw new Error(`An active access code already exists for email ${email}. Please use the existing code or wait for it to expire.`);
     }
 
@@ -64,7 +54,8 @@ const handler = async (req: Request): Promise<Response> => {
         role,
         expires_at,
         max_uses,
-        used_count: 0
+        used_count: 0,
+        email
       })
       .select()
       .single();
