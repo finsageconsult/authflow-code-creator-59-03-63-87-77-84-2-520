@@ -28,6 +28,8 @@ export default function Auth() {
     email: '',
     name: ''
   });
+  const [showForgotAccessCode, setShowForgotAccessCode] = useState(false);
+  const [forgotAccessCodeEmail, setForgotAccessCodeEmail] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -347,7 +349,86 @@ export default function Auth() {
     }
   };
 
+  const handleSendAccessCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotAccessCodeEmail.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data: response, error } = await supabase.functions.invoke('send-access-code', {
+        body: { email: forgotAccessCodeEmail.trim() }
+      });
+
+      if (error || !response?.success) {
+        toast.error(response?.error || 'Failed to send access code');
+        return;
+      }
+
+      toast.success('Access code sent to your email!');
+      setShowForgotAccessCode(false);
+      setForgotAccessCodeEmail('');
+      setActiveTab('access-code');
+    } catch (error) {
+      console.error('Send access code error:', error);
+      toast.error('Failed to send access code. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Handle different view states
+  if (showForgotAccessCode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
+        <div className="w-full max-w-md relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowForgotAccessCode(false)}
+            className="absolute -top-12 sm:-top-14 left-0 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <Card className="w-full shadow-professional-lg border-0 sm:border">
+            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8">
+              <CardTitle className="text-xl sm:text-2xl font-bold">
+                Request Access Code
+              </CardTitle>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Enter your email to receive your access code
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4 px-4 sm:px-6 pb-6 sm:pb-8">
+              <form onSubmit={handleSendAccessCode} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="forgotAccessCodeEmail">Email Address</Label>
+                  <Input
+                    id="forgotAccessCodeEmail"
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={forgotAccessCodeEmail}
+                    onChange={(e) => setForgotAccessCodeEmail(e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                
+                <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading}>
+                  {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  <span className="text-sm sm:text-base">Send Access Code</span>
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   if (showOtpVerification) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
@@ -548,9 +629,19 @@ export default function Auth() {
                       disabled={isLoading}
                       className="font-mono"
                     />
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Enter the access code sent to your email
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Enter the access code sent to your email
+                      </p>
+                      <button
+                        type="button"
+                        className="text-xs text-primary hover:text-primary/80 transition-colors"
+                        onClick={() => setShowForgotAccessCode(true)}
+                        disabled={isLoading}
+                      >
+                        Forgot Code?
+                      </button>
+                    </div>
                   </div>
                   
                   <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading || !accessCode.trim()}>

@@ -1,281 +1,173 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface AccessCodeRequest {
+interface SendAccessCodeRequest {
   email: string;
-  code: string;
-  role: string;
-  organizationName: string;
-  expiresAt: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { email, code, role, organizationName, expiresAt }: AccessCodeRequest = await req.json();
+    const { email }: SendAccessCodeRequest = await req.json();
+    console.log("Sending access code to email:", email);
 
-    console.log(`Sending access code to ${email} for role ${role}`);
+    if (!email || !email.trim()) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Email is required" 
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
-    const expiryDate = new Date(expiresAt).toLocaleDateString();
+    // Create Supabase client with service role to bypass RLS
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
-    const baseUrl = "https://589b9689-010c-46a4-851f-fe53b65b2fc5.sandbox.lovable.dev";
-    const loginUrl = `${baseUrl}/auth?code=${code}`;
+    const supabaseAdmin = createClient(
+      supabaseUrl ?? "",
+      supabaseServiceKey ?? ""
+    );
+
+    // Find active access codes for this email
+    const { data: accessCodes, error: fetchError } = await supabaseAdmin
+      .from('access_codes')
+      .select(`
+        *,
+        organizations (
+          id,
+          name,
+          plan,
+          status
+        )
+      `)
+      .eq('email', email.trim())
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false });
+
+    if (fetchError) {
+      console.error("Error fetching access codes:", fetchError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Failed to find access codes" 
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    if (!accessCodes || accessCodes.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "No active access codes found for this email" 
+        }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Get the most recent access code
+    const accessCode = accessCodes[0];
     
-    const subject = `Your ${role} Access Code for ${organizationName}`;
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${subject}</title>
-        <style>
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f9fafb;
-          }
-          .container {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-          }
-          .header {
-            text-align: center;
-            padding-bottom: 30px;
-            border-bottom: 2px solid #f3f4f6;
-            margin-bottom: 30px;
-          }
-          .logo {
-            font-size: 32px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-          }
-          .tagline {
-            color: #6b7280;
-            font-size: 16px;
-            margin: 0;
-          }
-          .welcome-title {
-            color: #1f2937;
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 16px;
-            text-align: center;
-          }
-          .code-section {
-            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-            border: 2px solid #d1d5db;
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            margin: 30px 0;
-            position: relative;
-          }
-          .role-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          }
-          .access-code {
-            font-size: 42px;
-            font-weight: bold;
-            color: #1f2937;
-            letter-spacing: 4px;
-            font-family: 'Courier New', monospace;
-            margin: 20px 0;
-            padding: 20px;
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #d1d5db;
-          }
-          .code-note {
-            margin: 15px 0 0 0; 
-            color: #6b7280; 
-            font-size: 14px;
-            font-style: italic;
-          }
-          .login-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white !important;
-            padding: 16px 32px;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
-            margin: 25px 0;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-            transition: transform 0.2s ease;
-          }
-          .login-button:hover {
-            transform: translateY(-2px);
-          }
-          .steps-section {
-            background: #f8fafc;
-            border-left: 4px solid #3b82f6;
-            padding: 25px;
-            margin: 30px 0;
-            border-radius: 0 12px 12px 0;
-          }
-          .steps-title {
-            margin-top: 0;
-            color: #1f2937;
-            font-weight: 600;
-          }
-          .steps-list {
-            margin: 0;
-            padding-left: 20px;
-          }
-          .steps-list li {
-            margin-bottom: 8px;
-            color: #374151;
-          }
-          .expiry-info {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 20px 0;
-            text-align: center;
-          }
-          .expiry-info strong {
-            color: #92400e;
-          }
-          .footer {
-            margin-top: 50px;
-            padding-top: 30px;
-            border-top: 2px solid #f3f4f6;
-            text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-          }
-          .footer-logo {
-            font-weight: 600;
-            color: #3b82f6;
-          }
-          .support-text {
-            color: #6b7280;
-            font-size: 14px;
-            text-align: center;
-            margin: 20px 0;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <div class="logo">Finsage</div>
-            <p class="tagline">Your Financial Learning Platform</p>
-          </div>
-          
-          <div class="welcome-title">Welcome to ${organizationName}!</div>
-          
-          <p style="text-align: center; font-size: 16px; color: #374151; margin-bottom: 30px;">
-            You've been invited to join as a <strong>${role}</strong>. Get started with your access code below:
+    // Create email content
+    const emailContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+          <h1 style="color: #667eea; font-size: 32px; margin: 0;">Finsage</h1>
+          <p style="color: #666; margin: 8px 0 0 0;">Financial Wellness Platform</p>
+        </div>
+        
+        <div style="background: #f8fafc; padding: 32px; border-radius: 12px; margin-bottom: 32px;">
+          <h2 style="color: #333; margin: 0 0 16px 0;">Your Access Code</h2>
+          <p style="color: #666; margin: 0 0 24px 0;">
+            Here is your access code for ${accessCode.organizations?.name || 'your organization'}:
           </p>
           
-          <div class="code-section">
-            <div class="role-badge">${role} Access</div>
-            <div class="access-code">${code}</div>
-            <p class="code-note">Your unique access code</p>
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 8px; text-align: center; margin: 24px 0;">
+            <div style="font-size: 32px; font-weight: bold; letter-spacing: 4px;">${accessCode.code}</div>
           </div>
           
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${loginUrl}" class="login-button">
-              🚀 Login with Access Code
-            </a>
-          </div>
+          <p style="color: #666; margin: 16px 0 0 0;">
+            <strong>Role:</strong> ${accessCode.role}<br>
+            <strong>Organization:</strong> ${accessCode.organizations?.name || 'N/A'}
+          </p>
           
-          <div class="steps-section">
-            <h3 class="steps-title">Get Started in 3 Easy Steps:</h3>
-            <ol class="steps-list">
-              <li><strong>Click the login button above</strong> or visit <a href="${baseUrl}/auth" style="color: #3b82f6;">${baseUrl}/auth</a></li>
-              <li><strong>Enter your access code:</strong> ${code}</li>
-              <li><strong>Complete your profile</strong> and start your learning journey!</li>
-            </ol>
-          </div>
-          
-          <div class="expiry-info">
-            <strong>⏰ Important:</strong> This access code expires on <strong>${expiryDate}</strong>
-          </div>
-          
-          <p class="support-text">
-            Need help? Contact your administrator or reply to this email for assistance.
+          <p style="color: #999; font-size: 14px; text-align: center; margin: 16px 0 0 0;">
+            This code expires on ${new Date(accessCode.expires_at).toLocaleDateString()}.
           </p>
         </div>
         
-        <div class="footer">
-          <p><span class="footer-logo">Finsage</span> - Empowering Financial Learning</p>
-          <p>This invitation was sent for ${organizationName}</p>
-          <p>If you didn't expect this email, you can safely ignore it.</p>
-        </div>
-      </body>
-     </html>
+        <p style="color: #999; font-size: 12px; text-align: center;">
+          Powered by Finsage
+        </p>
+      </div>
     `;
 
-    const emailResponse = await resend.emails.send({
-      from: "Finsage <noreply@finsage.co>",
-      to: [email],
-      subject,
-      html,
-    });
+    // Send email in background to avoid timeout
+    const emailPromise = async () => {
+      try {
+        console.log("Attempting to send access code email via Resend...");
+        const emailResponse = await resend.emails.send({
+          from: "Finsage <noreply@finsage.co>",
+          to: [email.trim()],
+          subject: "Your Finsage Access Code",
+          html: emailContent,
+        });
+        console.log("Access code email sent successfully:", emailResponse);
+      } catch (error) {
+        console.error("Error sending access code email:", error);
+      }
+    };
+    
+    // Use background task to send email without blocking response
+    if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
+      EdgeRuntime.waitUntil(emailPromise());
+    } else {
+      // Fallback for local development
+      emailPromise();
+    }
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log("Access code email request processed successfully");
 
-    // Handle domain verification errors gracefully
-    const hasEmailError = emailResponse.error && (
-      emailResponse.error.message?.includes('You can only send testing emails') ||
-      emailResponse.error.message?.includes('verify a domain') ||
-      emailResponse.error.message?.includes('rate_limit_exceeded')
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Access code sent to your email!"
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
     );
 
-    // Return success even if email fails due to domain verification
-    // The access code is still created and can be used
-    return new Response(JSON.stringify({
-      success: !emailResponse.error || hasEmailError,
-      data: emailResponse.data,
-      error: emailResponse.error?.message,
-      warning: hasEmailError ? 'Email delivery limited - verify domain at resend.com/domains to send to all recipients.' : null
-    }), {
-      status: !emailResponse.error || hasEmailError ? 200 : 500,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
   } catch (error: any) {
     console.error("Error in send-access-code function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        error: "Failed to send access code" 
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
