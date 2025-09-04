@@ -250,7 +250,7 @@ export const IndividualDashboard = () => {
     <div className="flex gap-6 w-full min-h-screen">
       {/* Left Sidebar Navigation */}
       <div className="w-64 flex-shrink-0 bg-background border-r">
-        <div className="border-b">
+        <div className="p-6 border-b">
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-bold truncate">
               Welcome, {userProfile?.name?.split(' ')[0]}!
@@ -262,7 +262,7 @@ export const IndividualDashboard = () => {
         </div>
         
         {/* Navigation Tabs - Vertical */}
-        <div>
+        <div className="p-4">
           <nav className="space-y-2">
             {navigationTabs.map((tab) => (
               <button
@@ -272,7 +272,7 @@ export const IndividualDashboard = () => {
                   newParams.set('tab', tab.id);
                   setSearchParams(newParams);
                 }}
-                className={`w-full flex items-center gap-3 pr-4 py-3 text-left text-sm font-medium rounded-lg transition-colors ${
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium rounded-lg transition-colors ${
                   currentTab === tab.id
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
