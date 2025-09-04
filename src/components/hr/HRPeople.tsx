@@ -324,9 +324,8 @@ export const HRPeople = () => {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border shadow-md z-50">
                   <SelectItem value="EMPLOYEE">Employee</SelectItem>
-                  <SelectItem value="HR">HR Manager</SelectItem>
                 </SelectContent>
               </Select>
             </div>
