@@ -55,7 +55,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'course',
+    category: '1-1-sessions',
     level: 'Beginner',
     duration: '',
     price: 0,
@@ -130,7 +130,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
       setFormData({
         title: '',
         description: '',
-        category: 'course',
+        category: '1-1-sessions',
         level: 'Beginner',
         duration: '',
         price: 0,
@@ -260,10 +260,8 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="course">Course</SelectItem>
-                      <SelectItem value="coaching">Coaching</SelectItem>
-                      <SelectItem value="tool">Tool</SelectItem>
-                      <SelectItem value="webinar">Webinar</SelectItem>
+                      <SelectItem value="1-1-sessions">1:1 Sessions</SelectItem>
+                      <SelectItem value="short-program">Short Program</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
