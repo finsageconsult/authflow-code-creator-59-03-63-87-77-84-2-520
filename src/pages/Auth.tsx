@@ -57,7 +57,8 @@ export default function Auth() {
               
               if (consumeResponse?.success) {
                 toast.success(`Access code applied! You've joined ${codeData.organization_name} as ${codeData.role}`);
-                // Redirect will happen automatically via auth hook
+                // Redirect to appropriate dashboard
+                redirectToDashboard(codeData.role);
               }
             }
           } catch (error) {
@@ -201,115 +202,23 @@ export default function Auth() {
         return;
       }
 
-      const userEmail = codeData.email as string;
-      let userId: string;
-      let shouldCreateSession = false;
-
-      // Check if user exists by trying to get user data
-      const { data: existingUser } = await supabase.auth.getUser();
-      
-      if (!existingUser.user) {
-        // No current session, try multiple password variations for existing users
-        const passwordVariations = [
-          `temp_${accessCode.trim()}_default`,
-          `temp_${accessCode.trim()}_retry`,
-          `temp_${accessCode.trim()}_existing`
-        ];
-        
-        let signInSuccess = false;
-        
-        for (const password of passwordVariations) {
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email: userEmail,
-            password: password
-          });
-          
-          if (!signInError && signInData.user) {
-            userId = signInData.user.id;
-            signInSuccess = true;
-            console.log('Successfully signed in existing user');
-            break;
-          }
-        }
-
-        if (!signInSuccess) {
-          // User doesn't exist or none of the passwords worked, create new user
-          console.log('Creating new user for access code');
-          const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
-          
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: userEmail,
-            password: tempPassword,
-            options: {
-              emailRedirectTo: `${window.location.origin}/`,
-              data: {
-                name: userEmail.split('@')[0]
-              }
-            }
-          });
-
-          if (signUpError) {
-            // If user already exists, that's expected - try a magic link approach
-            if (signUpError.message.includes('already registered')) {
-              console.log('User already exists, sending magic link');
-              const { error: magicLinkError } = await supabase.auth.signInWithOtp({
-                email: userEmail,
-                options: {
-                  emailRedirectTo: `${window.location.origin}/auth?code=${accessCode.trim()}`
-                }
-              });
-              
-              if (magicLinkError) {
-                toast.error('Unable to send login link. Please contact support.');
-                return;
-              }
-              
-              toast.success('Check your email for a login link!');
-              return;
-            } else {
-              console.error('Sign up failed:', signUpError);
-              toast.error('Unable to create account. Please try again.');
-              return;
-            }
-          }
-
-          if (!signUpData?.user) {
-            toast.error('Unable to create account. Please try again.');
-            return;
-          }
-          
-          userId = signUpData.user.id;
-          shouldCreateSession = true;
-        }
-      } else {
-        userId = existingUser.user.id;
-      }
-
-      // Wait a moment for user profile creation if needed
-      if (shouldCreateSession) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-
-      // Consume access code
-      const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
+      // Send magic link to user's email
+      const { data: magicLinkResponse, error: magicLinkError } = await supabase.functions.invoke('send-magic-link', {
         body: {
-          userId: userId,
-          code: accessCode.trim(),
-          role: codeData.role,
-          organizationId: codeData.organization_id
+          email: codeData.email,
+          accessCode: accessCode.trim(),
+          organizationName: codeData.organization_name,
+          role: codeData.role
         }
       });
 
-      if (consumeError || !consumeResponse?.success) {
-        console.error('Error consuming access code:', consumeError);
-        toast.error('Invalid or expired access code');
+      if (magicLinkError || !magicLinkResponse?.success) {
+        console.error('Error sending magic link:', magicLinkError);
+        toast.error('Failed to send login link. Please try again.');
         return;
       }
 
-      toast.success(`Welcome to ${codeData.organization_name}!`);
-      
-      // Redirect to appropriate dashboard based on role
-      redirectToDashboard(codeData.role);
+      toast.success(`Login link sent to ${codeData.email}! Check your email to continue.`);
       
     } catch (error) {
       console.error('Error with access code login:', error);
@@ -362,14 +271,14 @@ export default function Auth() {
                       className="font-mono"
                     />
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      Enter the access code sent to your email
+                      We'll send a login link to the email associated with this code
                     </p>
                   </div>
                   
                   <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading || !accessCode.trim()}>
                     {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     <Key className="w-4 h-4 mr-2" />
-                    <span className="text-sm sm:text-base">Sign In</span>
+                    <span className="text-sm sm:text-base">Send Login Link</span>
                   </Button>
                 </form>
               </TabsContent>
