@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { useIndividualPrograms } from '@/hooks/useIndividualPrograms';
 import { MoodCheckIn } from '@/components/MoodCheckIn';
@@ -11,6 +12,7 @@ import { PaymentButton } from '@/components/individual/PaymentButton';
 import { ToolShortcuts } from '@/components/individual/ToolShortcuts';
 import { SecureQuestionnaireForm } from '@/components/security/SecureQuestionnaireForm';
 import { ConsentManager } from '@/components/privacy/ConsentManager';
+import { IndividualSidebar } from './IndividualSidebar';
 import { 
   BookOpen, 
   GraduationCap,
@@ -22,7 +24,8 @@ import {
   Calendar,
   FileText,
   Award,
-  CreditCard
+  CreditCard,
+  Menu
 } from 'lucide-react';
 
 export const IndividualDashboard = () => {
@@ -237,59 +240,36 @@ export const IndividualDashboard = () => {
     }
   };
 
-  const navigationTabs = [
-    { id: 'programs', label: 'Dashboard', icon: BookOpen },
-    { id: 'bookings', label: 'My Bookings', icon: Calendar },
-    { id: 'payments', label: 'Payments', icon: CreditCard },
-    { id: 'mood', label: 'Wellness Check', icon: Star },
-    { id: 'questionnaire', label: 'Assessment', icon: FileText },
-    { id: 'privacy', label: 'Privacy', icon: Award },
-  ];
-
   return (
-    <div className="flex gap-6 w-full min-h-screen">
-      {/* Left Sidebar Navigation */}
-      <div className="w-64 flex-shrink-0 bg-background border-r">
-        <div className="p-6 border-b">
+    <SidebarProvider>
+      <div className="flex w-full min-h-screen">
+        {/* Mobile Header with Hamburger Menu */}
+        <header className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 bg-background border-b lg:hidden">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold truncate">
-              Welcome, {userProfile?.name?.split(' ')[0]}!
-            </h1>
+            <SidebarTrigger className="h-8 w-8 p-0">
+              <Menu className="h-4 w-4" />
+            </SidebarTrigger>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-semibold truncate">
+                Welcome, {userProfile?.name?.split(' ')[0]}!
+              </h1>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs hidden sm:inline-flex">
+                Individual Learner  
+              </Badge>
+            </div>
           </div>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs mt-2">
-            Individual Learner  
-          </Badge>
-        </div>
-        
-        {/* Navigation Tabs - Vertical */}
-        <div className="p-4">
-          <nav className="space-y-2">
-            {navigationTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  const newParams = new URLSearchParams(searchParams);
-                  newParams.set('tab', tab.id);
-                  setSearchParams(newParams);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium rounded-lg transition-colors ${
-                  currentTab === tab.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                <tab.icon className="h-5 w-5 flex-shrink-0" />
-                <span className="truncate">{tab.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
+        </header>
 
-      {/* Main Content */}
-      <div className="flex-1 min-w-0 py-6 pr-6">
-        {renderContent()}
+        {/* Sidebar */}
+        <IndividualSidebar />
+
+        {/* Main Content */}
+        <main className="flex-1 pt-14 lg:pt-0 p-4 lg:p-6">
+          <div className="max-w-7xl mx-auto">
+            {renderContent()}
+          </div>
+        </main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };

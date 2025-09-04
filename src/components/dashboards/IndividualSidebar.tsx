@@ -12,6 +12,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { X } from 'lucide-react'
 import { 
   BookOpen, 
@@ -85,7 +86,12 @@ export function IndividualSidebar() {
       {/* Mobile/Tablet header with close button */}
       <SidebarHeader className="flex flex-row items-center justify-between p-3 sm:p-4 border-b bg-background/95 lg:hidden">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="font-semibold text-sm truncate">Individual Learning</span>
+          <div>
+            <span className="font-semibold text-sm truncate">Individual Learning</span>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs mt-1 block sm:hidden">
+              Individual Learner  
+            </Badge>
+          </div>
         </div>
         <Button 
           variant="ghost" 
@@ -95,6 +101,13 @@ export function IndividualSidebar() {
         >
           <X className="h-4 w-4" />
         </Button>
+      </SidebarHeader>
+
+      {/* Desktop header - hidden on mobile */}
+      <SidebarHeader className="hidden lg:block p-4 border-b bg-background/95">
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-base">Individual Learning</span>
+        </div>
       </SidebarHeader>
       
       <SidebarContent className="pt-2 lg:pt-4 bg-background/95">
