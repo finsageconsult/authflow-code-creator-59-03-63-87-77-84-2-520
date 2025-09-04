@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   Calendar, 
@@ -30,8 +31,12 @@ interface CoachStats {
 
 export const CoachDashboard = () => {
   const { userProfile } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'overview';
+  
+  const setActiveTab = (tab: string) => {
+    setSearchParams({ tab });
+  };
   
   console.log('CoachDashboard loaded with activeTab:', activeTab);
   
@@ -109,15 +114,125 @@ export const CoachDashboard = () => {
   ];
 
   const renderContent = () => {
-    switch (activeTab) {
-      case 'analytics':
-        return <CoachAnalyticsDashboard />;
-      case 'sessions':
-        return <SessionManager />;
-      case 'clients':
-        return (
+    // Default overview content
+    return (
+      <div className="space-y-6">
+        {/* Coach Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {coachStats.map((stat, index) => (
+            <Card key={index} className="relative overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </CardTitle>
+                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stat.change}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Button className="h-20 flex-col gap-2">
+                <Calendar className="w-6 h-6" />
+                <span>Schedule Session</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2">
+                <Settings className="w-6 h-6" />
+                <span>Set Availability</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2">
+                <FileText className="w-6 h-6" />
+                <span>Session Notes</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2">
+                <Coins className="w-6 h-6" />
+                <span>View Payouts</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Outcomes Tracking */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Client Outcomes This Month
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Celebrating the positive impact you're making in your clients' financial lives
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {outcomes.map((outcome, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-2xl font-bold mb-1">{outcome.count}</div>
+                  <Badge variant="outline" className={outcome.color}>
+                    {outcome.tag}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold">Coach Dashboard</h1>
+        <div className="flex items-center gap-2">
+          <p className="text-muted-foreground">
+            Welcome back, {userProfile?.name}
+          </p>
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+            Coach
+          </Badge>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="sessions">Sessions</TabsTrigger>
+          <TabsTrigger value="clients">Clients</TabsTrigger>
+          <TabsTrigger value="availability">Availability</TabsTrigger>
+          <TabsTrigger value="payouts">Payouts</TabsTrigger>
+          <TabsTrigger value="support">Support</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          {renderContent()}
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <CoachAnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="sessions" className="space-y-6">
+          <SessionManager />
+        </TabsContent>
+
+        <TabsContent value="clients" className="space-y-6">
+          {/* Client List */}
           <div className="space-y-4 md:space-y-6">
-            {/* Client List */}
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -181,98 +296,24 @@ export const CoachDashboard = () => {
               </CardContent>
             </Card>
           </div>
-        );
-      case 'content':
-        return <ContentCatalog />;
-      case 'availability':
-        return <AvailabilitySettings />;
-      case 'payouts':
-        return <PayoutView />;
-      case 'support':
-        return <SupportQuery />;
-      default:
-        return (
-          <div className="space-y-6">
-            {/* Coach Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {coachStats.map((stat, index) => (
-                <Card key={index} className="relative overflow-hidden">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {stat.title}
-                    </CardTitle>
-                    <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stat.value}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {stat.change}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+        </TabsContent>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Button className="h-20 flex-col gap-2">
-                    <Calendar className="w-6 h-6" />
-                    <span>Schedule Session</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col gap-2">
-                    <Settings className="w-6 h-6" />
-                    <span>Set Availability</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col gap-2">
-                    <FileText className="w-6 h-6" />
-                    <span>Session Notes</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col gap-2">
-                    <Coins className="w-6 h-6" />
-                    <span>View Payouts</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+        <TabsContent value="content" className="space-y-6">
+          <ContentCatalog />
+        </TabsContent>
 
-            {/* Outcomes Tracking */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Client Outcomes This Month
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Celebrating the positive impact you're making in your clients' financial lives
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {outcomes.map((outcome, index) => (
-                    <div key={index} className="text-center">
-                      <div className="text-2xl font-bold mb-1">{outcome.count}</div>
-                      <Badge variant="outline" className={outcome.color}>
-                        {outcome.tag}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-    }
-  };
+        <TabsContent value="availability" className="space-y-6">
+          <AvailabilitySettings />
+        </TabsContent>
 
-  return (
-    <div className="space-y-6">
-      {/* Content */}
-      {renderContent()}
+        <TabsContent value="payouts" className="space-y-6">
+          <PayoutView />
+        </TabsContent>
+
+        <TabsContent value="support" className="space-y-6">
+          <SupportQuery />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
