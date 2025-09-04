@@ -33,6 +33,11 @@ const handler = async (req: Request): Promise<Response> => {
     const keyData = encoder.encode(webhookSecret);
     const dataBuffer = encoder.encode(body);
 
+    // Create Supabase client early so we can log verification failures too
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
       keyData,
@@ -42,11 +47,15 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, dataBuffer);
-    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    const bytes = new Uint8Array(signatureBuffer);
+    const expectedHex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    const expectedBase64 = btoa(String.fromCharCode(...bytes));
     
-    if (signature !== expectedSignature) {
+    console.log("Expected hex:", expectedHex.substring(0,12)+"...");
+    console.log("Expected base64:", expectedBase64.substring(0,12)+"...");
+    console.log("Received signature:", (signature||'').substring(0,12)+"...");
+    
+    if (signature !== expectedHex && signature !== expectedBase64) {
       console.error("Invalid signature - potential security threat");
       
       // Log security event for invalid webhook signature
@@ -54,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
         p_event_type: 'webhook_invalid_signature',
         p_event_details: { 
           webhook_type: 'razorpay',
-          expected_signature: expectedSignature.substring(0, 10) + '...',
+          expected_signature: expectedHex.substring(0, 10) + '...',
           received_signature: signature.substring(0, 10) + '...'
         },
         p_success: false,
@@ -67,10 +76,7 @@ const handler = async (req: Request): Promise<Response> => {
     const event = JSON.parse(body);
     console.log("Processing webhook event:", event.event);
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+    // Supabase client already initialized above
     
     // Log successful webhook verification
     await supabase.rpc('log_security_event', {
