@@ -61,28 +61,33 @@ export default function Coaches() {
 
   const fetchCoaches = async () => {
     try {
-      // Fetch coaches with basic information first - simplified query
+      // Fetch coaches basic information first
       const { data: coachesData, error: coachesError } = await supabase
         .from('users')
-        .select(`
-          *,
-          coaching_offerings(id, title, category, credits_needed, is_active),
-          coach_availability(id, is_available)
-        `)
+        .select('*')
         .eq('role', 'COACH')
         .order('created_at', { ascending: false });
 
       if (coachesError) throw coachesError;
       
-      // Process the data and handle any relationship errors
       if (coachesData && coachesData.length > 0) {
         const processedCoaches = await Promise.all(
           coachesData.map(async (coach: any) => {
-            // Fetch coaching sessions separately
-            const { data: sessions } = await supabase
-              .from('coaching_sessions')
-              .select('id, status')
-              .eq('coach_id', coach.id);
+            // Fetch related data separately to avoid join issues
+            const [offeringsResult, sessionsResult, availabilityResult] = await Promise.all([
+              supabase
+                .from('coaching_offerings')
+                .select('id, title, category, credits_needed, is_active')
+                .eq('coach_id', coach.id),
+              supabase
+                .from('coaching_sessions')
+                .select('id, status')
+                .eq('coach_id', coach.id),
+              supabase
+                .from('coach_availability')
+                .select('id, is_available')
+                .eq('coach_id', coach.id)
+            ]);
             
             return {
               id: coach.id,
@@ -95,9 +100,9 @@ export default function Coaches() {
               avatar_url: coach.avatar_url,
               organization_id: coach.organization_id,
               updated_at: coach.updated_at,
-              coaching_offerings: Array.isArray(coach.coaching_offerings) ? coach.coaching_offerings : [],
-              coaching_sessions: sessions || [],
-              coach_availability: Array.isArray(coach.coach_availability) ? coach.coach_availability : []
+              coaching_offerings: offeringsResult.data || [],
+              coaching_sessions: sessionsResult.data || [],
+              coach_availability: availabilityResult.data || []
             };
           })
         );
