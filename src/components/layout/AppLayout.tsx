@@ -2,8 +2,6 @@ import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { TopNav } from './TopNav';
-import { Sidebar } from './Sidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { Loader2 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -26,20 +24,15 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   }
 
   return (
-    <SidebarProvider 
-      defaultOpen={false}
-    >
-      <div className="relative flex min-h-screen w-full bg-background">
-        <Sidebar />
-        <div className="flex flex-1 flex-col min-w-0 transition-all duration-300 ease-in-out">
-          <TopNav />
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 pl-8 sm:pl-12 lg:pl-16 pr-4 sm:pr-6 lg:pr-8 overflow-auto">
-            <div className="max-w-7xl mx-auto">
-              {children}
-            </div>
-          </main>
-        </div>
+    <div className="relative flex min-h-screen w-full bg-background">
+      <div className="flex flex-1 flex-col min-w-0">
+        <TopNav />
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+          <div className="max-w-full mx-auto">
+            {children}
+          </div>
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
