@@ -62,7 +62,8 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
     tags: '',
     thumbnail_url: '',
     content_url: '',
-    is_active: true
+    is_active: true,
+    course_type: 'individual'
   });
 
   useEffect(() => {
@@ -137,7 +138,8 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
         tags: '',
         thumbnail_url: '',
         content_url: '',
-        is_active: true
+        is_active: true,
+        course_type: 'individual'
       });
       setEditingProgram(null);
       setIsCreateDialogOpen(false);
@@ -164,7 +166,8 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
       tags: program.tags.join(', '),
       thumbnail_url: program.thumbnail_url || '',
       content_url: program.content_url || '',
-      is_active: program.is_active
+      is_active: program.is_active,
+      course_type: 'individual'
     });
     setIsCreateDialogOpen(true);
   };
@@ -266,19 +269,34 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="level">Level</Label>
-                  <Select value={formData.level} onValueChange={(value) => setFormData({...formData, level: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Beginner">Beginner</SelectItem>
-                      <SelectItem value="Intermediate">Intermediate</SelectItem>
-                      <SelectItem value="Advanced">Advanced</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                 <div>
+                   <Label htmlFor="level">Level</Label>
+                   <Select value={formData.level} onValueChange={(value) => setFormData({...formData, level: value})}>
+                     <SelectTrigger>
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="Beginner">Beginner</SelectItem>
+                       <SelectItem value="Intermediate">Intermediate</SelectItem>
+                       <SelectItem value="Advanced">Advanced</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div>
+
+                 {formData.category === '1-1-sessions' && (
+                   <div>
+                     <Label htmlFor="course_type">Course Type</Label>
+                     <Select value={formData.course_type} onValueChange={(value) => setFormData({...formData, course_type: value})}>
+                       <SelectTrigger>
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="individual">Individual</SelectItem>
+                         <SelectItem value="hr-dashboard">HR Dashboard</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </div>
+                 )}
 
                 <div>
                   <Label htmlFor="duration">Duration</Label>
