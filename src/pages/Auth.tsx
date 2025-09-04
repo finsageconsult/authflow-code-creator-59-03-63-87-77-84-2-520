@@ -149,6 +149,29 @@ export default function Auth() {
     }
   };
 
+  const redirectToDashboard = (role: string) => {
+    switch (role.toLowerCase()) {
+      case 'admin':
+        navigate('/admin-dashboard');
+        break;
+      case 'hr':
+        navigate('/hr-dashboard');
+        break;
+      case 'coach':
+        navigate('/coach-dashboard');
+        break;
+      case 'employee':
+        navigate('/employee-dashboard');
+        break;
+      case 'individual':
+        navigate('/individual-dashboard');
+        break;
+      default:
+        navigate('/dashboard');
+        break;
+    }
+  };
+
   const handleAccessCodeLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accessCode.trim()) {
@@ -179,47 +202,72 @@ export default function Auth() {
       }
 
       const userEmail = codeData.email as string;
-
-      // Try to sign in existing user first
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: userEmail,
-        password: `temp_${accessCode.trim()}_default`
-      });
-
       let userId: string;
+      let shouldCreateSession = false;
 
-      if (signInError) {
-        // User doesn't exist or wrong password, create new user
-        console.log('Creating new user for access code');
-        const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
-        
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      // Check if user exists by trying to get user data
+      const { data: existingUser } = await supabase.auth.getUser();
+      
+      if (!existingUser.user) {
+        // No current session, try to sign in with temporary password
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: userEmail,
-          password: tempPassword,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              name: userEmail.split('@')[0]
-            }
-          }
+          password: `temp_${accessCode.trim()}_default`
         });
 
-        if (signUpError) {
-          console.error('Sign up failed:', signUpError);
-          toast.error('Invalid or expired access code');
-          return;
-        }
+        if (signInError) {
+          // User doesn't exist, create new user
+          console.log('Creating new user for access code');
+          const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
+          
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: userEmail,
+            password: tempPassword,
+            options: {
+              emailRedirectTo: `${window.location.origin}/`,
+              data: {
+                name: userEmail.split('@')[0]
+              }
+            }
+          });
 
-        if (!signUpData?.user) {
-          toast.error('Invalid or expired access code');
-          return;
+          if (signUpError) {
+            // Handle user already exists case
+            if (signUpError.message.includes('already registered')) {
+              // Try to sign in with a different temp password
+              const { data: retrySignIn, error: retryError } = await supabase.auth.signInWithPassword({
+                email: userEmail,
+                password: `temp_${accessCode.trim()}_retry`
+              });
+              
+              if (retryError) {
+                toast.error('Invalid or expired access code');
+                return;
+              }
+              userId = retrySignIn.user.id;
+            } else {
+              console.error('Sign up failed:', signUpError);
+              toast.error('Invalid or expired access code');
+              return;
+            }
+          } else {
+            if (!signUpData?.user) {
+              toast.error('Invalid or expired access code');
+              return;
+            }
+            userId = signUpData.user.id;
+            shouldCreateSession = true;
+          }
+        } else {
+          userId = signInData.user.id;
         }
-
-        userId = signUpData.user.id;
-        // Wait for user profile creation
-        await new Promise(resolve => setTimeout(resolve, 2000));
       } else {
-        userId = signInData.user.id;
+        userId = existingUser.user.id;
+      }
+
+      // Wait a moment for user profile creation if needed
+      if (shouldCreateSession) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       // Consume access code
@@ -239,7 +287,9 @@ export default function Auth() {
       }
 
       toast.success(`Welcome to ${codeData.organization_name}!`);
-      // Redirect will happen automatically via auth state change
+      
+      // Redirect to appropriate dashboard based on role
+      redirectToDashboard(codeData.role);
       
     } catch (error) {
       console.error('Error with access code login:', error);
