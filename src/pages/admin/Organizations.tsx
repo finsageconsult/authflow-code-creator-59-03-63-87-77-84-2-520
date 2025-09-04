@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Eye, Users, Calendar, TrendingUp, Key, Send } from 'lucide-react';
+import { Plus, Eye, Users, Calendar, TrendingUp, Key, Send, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -46,10 +47,32 @@ export default function Organizations() {
     name: '',
     plan: 'STARTER'
   });
+  const [deletingOrg, setDeletingOrg] = useState<string | null>(null);
 
   useEffect(() => {
     if (userProfile?.role === 'ADMIN') {
       fetchOrganizations();
+
+      // Set up real-time subscription for organizations
+      const channel = supabase
+        .channel('admin-organizations-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'organizations'
+          },
+          (payload) => {
+            console.log('Organization change detected:', payload);
+            fetchOrganizations(); // Refresh data on any change
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [userProfile]);
 
@@ -187,6 +210,49 @@ export default function Organizations() {
         description: 'Failed to create access code',
         variant: 'destructive'
       });
+    }
+  };
+
+  const deleteOrganization = async (orgId: string, orgName: string) => {
+    if (!userProfile?.id) return;
+
+    setDeletingOrg(orgId);
+    try {
+      // Delete the organization (cascade will handle related records)
+      const { error } = await supabase
+        .from('organizations')
+        .delete()
+        .eq('id', orgId);
+
+      if (error) throw error;
+
+      // Log the deletion activity
+      await supabase
+        .from('audit_logs')
+        .insert({
+          action: 'DELETE',
+          entity: 'ORGANIZATION',
+          entity_id: orgId,
+          actor_id: userProfile.id,
+          before_data: { name: orgName },
+          after_data: null
+        });
+
+      toast({
+        title: "Organization Deleted",
+        description: `${orgName} has been permanently removed from the platform`
+      });
+
+      // Real-time update will handle UI refresh
+    } catch (error) {
+      console.error('Error deleting organization:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete organization",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingOrg(null);
     }
   };
 
@@ -342,6 +408,36 @@ export default function Organizations() {
                               <Key className="h-4 w-4 mr-1" />
                               HR Access Code
                             </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  disabled={deletingOrg === org.id}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Organization</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete <strong>{org.name}</strong>? 
+                                    This action cannot be undone and will permanently remove this organization and all its data.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteOrganization(org.id, org.name)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    {deletingOrg === org.id ? 'Deleting...' : 'Delete Organization'}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -382,6 +478,36 @@ export default function Organizations() {
                             <Key className="h-4 w-4 mr-1" />
                             HR Code
                           </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                disabled={deletingOrg === org.id}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Organization</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete <strong>{org.name}</strong>? 
+                                  This action cannot be undone and will permanently remove this organization and all its data.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteOrganization(org.id, org.name)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {deletingOrg === org.id ? 'Deleting...' : 'Delete Organization'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                       

@@ -5,9 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Mail, Search, UserCheck, Clock, BookOpen, Calendar } from 'lucide-react';
+import { Plus, Mail, Search, UserCheck, Clock, BookOpen, Calendar, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -52,10 +53,33 @@ export default function Coaches() {
     email: '',
     expiresIn: '7'
   });
+  const [deletingCoach, setDeletingCoach] = useState<string | null>(null);
 
   useEffect(() => {
     if (userProfile?.role === 'ADMIN') {
       fetchCoaches();
+
+      // Set up real-time subscription for coaches
+      const channel = supabase
+        .channel('admin-coaches-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'users',
+            filter: 'role=eq.COACH'
+          },
+          (payload) => {
+            console.log('Coach change detected:', payload);
+            fetchCoaches(); // Refresh data on any change
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [userProfile]);
 
@@ -175,6 +199,50 @@ export default function Coaches() {
     }
   };
 
+  const deleteCoach = async (coachId: string, coachName: string) => {
+    if (!userProfile?.id) return;
+
+    setDeletingCoach(coachId);
+    try {
+      // Delete the coach
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', coachId)
+        .eq('role', 'COACH');
+
+      if (error) throw error;
+
+      // Log the deletion activity
+      await supabase
+        .from('audit_logs')
+        .insert({
+          action: 'DELETE',
+          entity: 'USER',
+          entity_id: coachId,
+          actor_id: userProfile.id,
+          before_data: { name: coachName, role: 'COACH' },
+          after_data: null
+        });
+
+      toast({
+        title: "Coach Deleted",
+        description: `${coachName} has been permanently removed from the platform`
+      });
+
+      // Real-time update will handle UI refresh
+    } catch (error) {
+      console.error('Error deleting coach:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete coach",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingCoach(null);
+    }
+  };
+
   // Helper function to count completed sessions
   const getCompletedSessions = (sessions: any[]) => {
     if (!sessions || sessions.length === 0) return 0;
@@ -276,6 +344,7 @@ export default function Coaches() {
                 <TableHead>Availability</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -335,6 +404,38 @@ export default function Coaches() {
                     <div className="text-sm">
                       {new Date(coach.created_at).toLocaleDateString()}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          disabled={deletingCoach === coach.id}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Coach</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete <strong>{coach.name}</strong>? 
+                            This action cannot be undone and will permanently remove this coach from the platform.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteCoach(coach.id, coach.name)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {deletingCoach === coach.id ? 'Deleting...' : 'Delete Coach'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               ))}

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { 
   Users, 
   UserPlus,
@@ -17,7 +18,8 @@ import {
   Clock,
   Key,
   Send,
-  Calendar
+  Calendar,
+  Trash2
 } from 'lucide-react';
 
 interface Employee {
@@ -44,6 +46,7 @@ export const HRPeople = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingEmployee, setDeletingEmployee] = useState<string | null>(null);
 
   // Communication form state
   const [communication, setCommunication] = useState({
@@ -116,6 +119,28 @@ export const HRPeople = () => {
     };
 
     fetchPeopleData();
+
+    // Set up real-time subscription for employees
+    const channel = supabase
+      .channel('hr-people-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'users',
+          filter: `organization_id=eq.${userProfile?.organization_id}`
+        },
+        (payload) => {
+          console.log('Employee change detected:', payload);
+          fetchPeopleData(); // Refresh data on any change
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userProfile?.organization_id]);
 
   const sendCommunication = async () => {
@@ -277,6 +302,51 @@ export const HRPeople = () => {
     });
   };
 
+  const deleteEmployee = async (employeeId: string, employeeName: string) => {
+    if (!userProfile?.id) return;
+
+    setDeletingEmployee(employeeId);
+    try {
+      // Delete the employee
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', employeeId)
+        .eq('organization_id', userProfile.organization_id);
+
+      if (error) throw error;
+
+      // Log the deletion activity
+      await supabase
+        .from('audit_logs')
+        .insert({
+          action: 'DELETE',
+          entity: 'USER',
+          entity_id: employeeId,
+          actor_id: userProfile.id,
+          organization_id: userProfile.organization_id,
+          before_data: { name: employeeName },
+          after_data: null
+        });
+
+      toast({
+        title: "Employee Deleted",
+        description: `${employeeName} has been permanently removed from the organization`
+      });
+
+      // Real-time update will handle UI refresh
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete employee",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingEmployee(null);
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-96">Loading people data...</div>;
   }
@@ -395,13 +465,44 @@ export const HRPeople = () => {
                     </p>
                   </div>
                 </div>
-                <Badge 
-                  variant={employee.status === 'ACTIVE' ? 'default' : 'secondary'}
-                  className="self-start sm:self-center flex-shrink-0"
-                >
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  {employee.status}
-                </Badge>
+                <div className="flex items-center gap-2 self-start sm:self-center flex-shrink-0">
+                  <Badge 
+                    variant={employee.status === 'ACTIVE' ? 'default' : 'secondary'}
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    {employee.status}
+                  </Badge>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        disabled={deletingEmployee === employee.id}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Employee</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete <strong>{employee.name}</strong>? 
+                          This action cannot be undone and will permanently remove this employee from your organization.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteEmployee(employee.id, employee.name)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {deletingEmployee === employee.id ? 'Deleting...' : 'Delete Employee'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             ))}
             {employees.length === 0 && (
