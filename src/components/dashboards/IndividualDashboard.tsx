@@ -160,7 +160,7 @@ export const IndividualDashboard = () => {
                         <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-3 flex-1">
                           {program.description}
                         </p>
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-auto">
+                        <div className="flex flex-col gap-2 mt-auto">
                           <span className="font-semibold text-sm sm:text-base truncate">
                             {formatPrice(program.price)}
                           </span>
