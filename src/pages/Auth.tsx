@@ -148,19 +148,70 @@ export default function Auth() {
       const codeData = response.data;
       console.log('Access code verified:', codeData);
 
+      // The code is verified, now we need to authenticate the user
+      // First, try to sign in with the email from the access code
+      const userEmail = codeData.email;
+      const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
+
+      console.log('Attempting to authenticate user with email:', userEmail);
+
+      // Try to sign in first (in case user already exists)
+      let { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: tempPassword
+      });
+
+      // If sign in fails, try to sign up
+      if (signInError) {
+        console.log('Sign in failed, attempting sign up:', signInError.message);
+        
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: userEmail,
+          password: tempPassword,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              name: userEmail.split('@')[0] // Use email prefix as name fallback
+            }
+          }
+        });
+
+        if (signUpError) {
+          console.error('Both sign in and sign up failed:', { signInError, signUpError });
+          toast.error('Failed to authenticate user');
+          return;
+        }
+
+        signInData = signUpData;
+      }
+
+      if (!signInData.user) {
+        console.error('No user data after authentication');
+        toast.error('Authentication failed');
+        return;
+      }
+
+      console.log('User authenticated successfully:', signInData.user.id);
+
+      // Now consume the access code to set role and organization
+      const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
+        body: {
+          userId: signInData.user.id,
+          code: accessCode.trim(),
+          role: codeData.role,
+          organizationId: codeData.organization_id
+        }
+      });
+
+      if (consumeError || !consumeResponse?.success) {
+        console.error('Error consuming access code:', consumeError);
+        toast.error('Failed to set up account with access code');
+        return;
+      }
+
       toast.success(`Successfully logged in! Welcome to ${codeData.organization_name} as ${codeData.role}`);
       
-      // Force immediate navigation to correct dashboard
-      const correctDashboard = codeData.role === 'ADMIN' ? '/admin-dashboard' :
-                              codeData.role === 'HR' ? '/hr-dashboard' :
-                              codeData.role === 'EMPLOYEE' ? '/employee-dashboard' :
-                              codeData.role === 'COACH' ? '/coach-dashboard' :
-                              '/individual-dashboard';
-      
-      console.log('Redirecting to:', correctDashboard);
-      setTimeout(() => {
-        window.location.href = correctDashboard;
-      }, 1000);
+      // The auth hook will handle the redirect automatically
       
     } catch (error) {
       console.error('Error with access code login:', error);
