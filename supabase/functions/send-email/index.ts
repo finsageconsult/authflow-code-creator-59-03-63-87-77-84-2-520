@@ -82,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         console.log("Attempting to send email via Resend...");
         const emailResponse = await resend.emails.send({
-          from: "Finsage <onboarding@resend.dev>",
+          from: "Finsage <noreply@finsage.co>",
           to: [user.email],
           subject: "Your Finsage Login Code",
           html: emailContent,
