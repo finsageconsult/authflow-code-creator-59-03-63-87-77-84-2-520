@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { useAuth } from '@/hooks/useAuth';
-import { useLocation } from 'react-router-dom';
 import { 
   Smile, 
   Frown, 
@@ -21,6 +20,7 @@ import {
 import { CreditWallet } from '@/components/credits/CreditWallet';
 import { EmployeeAnalyticsDashboard } from '@/components/analytics/EmployeeAnalyticsDashboard';
 import { SupportQuery } from '@/components/support/SupportQuery';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MoodCheckIn {
   mood: 'excited' | 'optimistic' | 'neutral' | 'worried' | 'stressed' | null;
@@ -33,7 +33,6 @@ interface MoodCheckIn {
 
 export const EmployeeDashboard = () => {
   const { userProfile, organization } = useAuth();
-  const location = useLocation();
   const [checkIn, setCheckIn] = useState<MoodCheckIn>({
     mood: null,
     stressLevel: 5,
@@ -399,40 +398,6 @@ export const EmployeeDashboard = () => {
     );
   }
 
-  // Determine current view based on URL path
-  const currentView = location.pathname.includes('/progress') ? 'progress' : 
-                      location.pathname.includes('/credits') ? 'credits' :
-                      location.pathname.includes('/support') ? 'support' : 'dashboard';
-
-  // Render based on current view
-  if (currentView === 'progress') {
-    return <EmployeeAnalyticsDashboard />;
-  }
-
-  if (currentView === 'credits') {
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold">My Credits</h1>
-          <p className="text-muted-foreground">Manage and track your credit usage</p>
-        </div>
-        <CreditWallet />
-      </div>
-    );
-  }
-
-  if (currentView === 'support') {
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold">Support</h1>
-          <p className="text-muted-foreground">Get help and submit support queries</p>
-        </div>
-        <SupportQuery />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -460,6 +425,16 @@ export const EmployeeDashboard = () => {
           </Badge>
         </div>
       </div>
+
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList role="tablist" aria-label="Employee dashboard navigation">
+          <TabsTrigger value="dashboard" role="tab" aria-controls="dashboard-panel">Dashboard</TabsTrigger>
+          <TabsTrigger value="analytics" role="tab" aria-controls="analytics-panel">My Progress</TabsTrigger>
+          <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>
+          <TabsTrigger value="support" role="tab" aria-controls="support-panel">Support</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-6" role="tabpanel" id="dashboard-panel" aria-labelledby="dashboard-tab">
 
       {/* Personalized Recommendations */}
       <Card>
@@ -591,6 +566,20 @@ export const EmployeeDashboard = () => {
           </CardContent>
         </Card>
       </div>
+      </TabsContent>
+
+      <TabsContent value="analytics" className="space-y-6">
+        <EmployeeAnalyticsDashboard />
+      </TabsContent>
+
+      <TabsContent value="credits" className="space-y-6">
+        <CreditWallet />
+      </TabsContent>
+
+      <TabsContent value="support" className="space-y-6">
+        <SupportQuery />
+      </TabsContent>
+      </Tabs>
     </div>
   );
 };
