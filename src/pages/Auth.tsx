@@ -29,10 +29,44 @@ export default function Auth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const codeFromUrl = searchParams.get('code');
+    const codeFromUrl = searchParams.get('code') || searchParams.get('access_code');
     if (codeFromUrl) {
       setAccessCode(codeFromUrl);
       setActiveTab('access-code');
+      
+      // If user is already authenticated and there's an access code, process it
+      const processUrlAccessCode = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // User is already logged in, just apply the access code
+          try {
+            const { data: response } = await supabase.functions.invoke('verify-access-code', {
+              body: { code: codeFromUrl }
+            });
+            
+            if (response?.success) {
+              const codeData = response.data;
+              const { data: consumeResponse } = await supabase.functions.invoke('consume-access-code', {
+                body: {
+                  userId: user.id,
+                  code: codeFromUrl,
+                  role: codeData.role,
+                  organizationId: codeData.organization_id
+                }
+              });
+              
+              if (consumeResponse?.success) {
+                toast.success(`Access code applied! You've joined ${codeData.organization_name} as ${codeData.role}`);
+                // Redirect will happen automatically via auth hook
+              }
+            }
+          } catch (error) {
+            console.error('Error processing URL access code:', error);
+          }
+        }
+      };
+      
+      processUrlAccessCode();
     }
   }, [searchParams]);
 
@@ -154,13 +188,13 @@ export default function Auth() {
         return;
       }
 
-      // Create account with access code email
+      // Create account or handle existing user with access code email
       const userEmail = codeData.email as string;
       const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
       
-      console.log('Attempting to create account for:', userEmail);
+      console.log('Processing access code for:', userEmail);
 
-      // Try to sign up the user - if they already exist, we'll handle that
+      // Try to sign up the user first
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: userEmail,
         password: tempPassword,
@@ -172,13 +206,39 @@ export default function Auth() {
         }
       });
 
+      let userId: string;
+
       if (signUpError) {
         if (signUpError.message.includes('User already registered') || signUpError.message.includes('already registered')) {
-          // User exists - tell them to use regular login
-          console.log('User already exists, prompting for regular login');
-          toast.error(`An account with ${userEmail} already exists. Please use the Email Login tab with your existing password to sign in, then contact your admin to apply the access code to your account.`);
-          setActiveTab('email');
-          return;
+          // User exists - try to sign them in with a magic link approach
+          console.log('User already exists, attempting to sign them in');
+          
+          // For existing users, we'll use the magic link approach since we don't know their password
+          const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+            email: userEmail,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth?access_code=${accessCode.trim()}`
+            }
+          });
+
+          if (magicLinkError) {
+            console.error('Magic link error:', magicLinkError);
+            toast.error(`Please sign in with your existing password using the Email Login tab. After signing in, your access code will be automatically applied.`);
+            
+            // Store the access code for when they sign in normally
+            sessionStorage.setItem('pendingAccessCode', JSON.stringify({
+              code: accessCode.trim(),
+              role: codeData.role,
+              organizationId: codeData.organization_id,
+              organizationName: codeData.organization_name
+            }));
+            
+            setActiveTab('email');
+            return;
+          } else {
+            toast.success(`A sign-in link has been sent to ${userEmail}. Click the link to sign in and your access code will be automatically applied.`);
+            return;
+          }
         } else {
           console.error('Sign up failed:', signUpError);
           toast.error('Failed to create user account: ' + signUpError.message);
@@ -186,13 +246,14 @@ export default function Auth() {
         }
       }
 
-      if (!signUpData.user) {
+      if (!signUpData?.user) {
         console.error('No user data after sign up');
         toast.error('Failed to create user account');
         return;
       }
 
-      console.log('User created successfully:', signUpData.user.id);
+      userId = signUpData.user.id;
+      console.log('New user created successfully:', userId);
 
       // Wait for the user profile to be created by the trigger
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -200,7 +261,7 @@ export default function Auth() {
       // Now consume the access code to set role and organization
       const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
         body: {
-          userId: signUpData.user.id,
+          userId: userId,
           code: accessCode.trim(),
           role: codeData.role,
           organizationId: codeData.organization_id
