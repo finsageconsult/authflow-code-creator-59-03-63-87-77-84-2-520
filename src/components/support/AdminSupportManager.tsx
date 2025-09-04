@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Clock, CheckCircle, User, Calendar, Filter, Search } from 'lucide-react';
+import { Clock, CheckCircle, User, Calendar, Filter, Search, Paperclip, Download, ExternalLink } from 'lucide-react';
 
 interface SupportQuery {
   id: string;
@@ -17,6 +17,7 @@ interface SupportQuery {
   description: string;
   status: string;
   created_at: string;
+  attachment_url?: string;
   users?: {
     name: string;
     email: string;
@@ -235,6 +236,7 @@ export const AdminSupportManager = () => {
                     <TableHead>Role</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Description</TableHead>
+                    <TableHead>Attachment</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Actions</TableHead>
@@ -257,6 +259,22 @@ export const AdminSupportManager = () => {
                       </TableCell>
                       <TableCell className="max-w-[300px] truncate">
                         {query.description}
+                      </TableCell>
+                      <TableCell>
+                        {query.attachment_url ? (
+                          <a
+                            href={supabase.storage.from('support-attachments').getPublicUrl(query.attachment_url).data.publicUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                          >
+                            <Paperclip className="w-3 h-3" />
+                            View Attachment
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">No attachment</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(query.status)}
