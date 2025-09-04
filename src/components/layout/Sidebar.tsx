@@ -229,9 +229,9 @@ export const Sidebar = () => {
     collapsible="icon" 
     className={`
       border-r transition-all duration-300 z-30
-      ${isMobile ? 'fixed' : 'relative'}
+      ${isMobile ? 'fixed left-0 top-0 h-screen' : 'fixed left-0 top-0 h-screen'}
       ${state === 'expanded' ? 'w-64' : 'w-16'}
-      ${isMobile && !openMobile ? 'hidden' : 'block'}
+      ${isMobile && !openMobile ? '-translate-x-full' : 'translate-x-0'}
     `}
   >
       {/* Mobile header with close button */}

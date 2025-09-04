@@ -3,12 +3,35 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { TopNav } from './TopNav';
 import { Sidebar } from './Sidebar';
-import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger, SidebarInset, useSidebar } from '@/components/ui/sidebar';
 import { Loader2 } from 'lucide-react';
 
 interface AppLayoutProps {
   children: ReactNode;
 }
+
+const AppLayoutContent = ({ children }: { children: ReactNode }) => {
+  const { state, isMobile } = useSidebar();
+  
+  return (
+    <div className="sidebar-layout min-h-screen flex w-full bg-background">
+      <Sidebar />
+      <SidebarInset className={`flex-1 flex flex-col transition-all duration-300 ${!isMobile ? (state === 'expanded' ? 'ml-64' : 'ml-16') : 'ml-0'}`}>
+        <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="ml-auto">
+            <TopNav />
+          </div>
+        </header>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+          <div className="max-w-full mx-auto">
+            {children}
+          </div>
+        </main>
+      </SidebarInset>
+    </div>
+  );
+};
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const { user, userProfile, loading } = useAuth();
@@ -27,22 +50,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <div className="sidebar-layout min-h-screen flex w-full bg-background">
-        <Sidebar />
-        <SidebarInset className="flex-1 flex flex-col">
-          <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <div className="ml-auto">
-              <TopNav />
-            </div>
-          </header>
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
-            <div className="max-w-full mx-auto">
-              {children}
-            </div>
-          </main>
-        </SidebarInset>
-      </div>
+      <AppLayoutContent>{children}</AppLayoutContent>
     </SidebarProvider>
   );
 };
