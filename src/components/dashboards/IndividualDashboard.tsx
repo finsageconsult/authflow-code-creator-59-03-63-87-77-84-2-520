@@ -263,8 +263,8 @@ export const IndividualDashboard = () => {
         {/* Sidebar */}
         <IndividualSidebar />
 
-        {/* Main Content */}
-        <main className="flex-1 pt-14 lg:pt-0 p-4 lg:p-6">
+        {/* Main Content - responsive to sidebar state */}
+        <main className="flex-1 pt-14 lg:pt-0 p-4 lg:p-6 transition-all duration-200">
           <div className="max-w-7xl mx-auto">
             {renderContent()}
           </div>
