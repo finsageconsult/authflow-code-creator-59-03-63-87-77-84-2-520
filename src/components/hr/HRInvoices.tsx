@@ -5,7 +5,7 @@ import {
   FileText,
   Download,
   Calendar,
-  DollarSign
+  IndianRupee
 } from 'lucide-react';
 
 export const HRInvoices = () => {
@@ -14,21 +14,21 @@ export const HRInvoices = () => {
     {
       id: 'INV-2024-001',
       date: '2024-01-15',
-      amount: 2500.00,
+      amount: 200000.00,
       status: 'paid',
       description: 'Monthly Employee Wellness Program'
     },
     {
       id: 'INV-2024-002', 
       date: '2024-02-15',
-      amount: 2500.00,
+      amount: 200000.00,
       status: 'paid',
       description: 'Monthly Employee Wellness Program'
     },
     {
       id: 'INV-2024-003',
       date: '2024-03-15', 
-      amount: 2500.00,
+      amount: 200000.00,
       status: 'pending',
       description: 'Monthly Employee Wellness Program'
     }
@@ -54,10 +54,10 @@ export const HRInvoices = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Spent (YTD)</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
+            <IndianRupee className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$7,500.00</div>
+            <div className="text-2xl font-bold">₹6,00,000.00</div>
             <p className="text-xs text-muted-foreground">3 invoices this year</p>
           </CardContent>
         </Card>
@@ -65,10 +65,10 @@ export const HRInvoices = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
-            <FileText className="h-4 w-4 text-orange-600" />
+            <IndianRupee className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$2,500.00</div>
+            <div className="text-2xl font-bold">₹2,00,000.00</div>
             <p className="text-xs text-muted-foreground">1 pending invoice</p>
           </CardContent>
         </Card>
@@ -111,7 +111,7 @@ export const HRInvoices = () => {
                 </div>
                 <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
                   <div className="text-left sm:text-right">
-                    <p className="font-medium text-sm md:text-base">${invoice.amount.toFixed(2)}</p>
+                    <p className="font-medium text-sm md:text-base">₹{invoice.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                     <Badge variant={invoice.status === 'paid' ? 'default' : 'destructive'} className="text-xs">
                       {invoice.status}
                     </Badge>
@@ -137,7 +137,7 @@ export const HRInvoices = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
+            <IndianRupee className="h-5 w-5" />
             Payment Information
           </CardTitle>
         </CardHeader>
