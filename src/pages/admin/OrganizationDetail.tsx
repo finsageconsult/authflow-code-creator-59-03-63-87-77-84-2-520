@@ -213,17 +213,17 @@ export default function OrganizationDetail() {
         </Card>
       </div>
 
-      {/* Employee Profiles Section */}
+      {/* HR Profiles Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Employee Profiles</CardTitle>
+          <CardTitle>HR Profiles</CardTitle>
           <p className="text-sm text-muted-foreground">
-            {employees.length} employees registered in this organization
+            {employees.filter(emp => emp.role === 'HR').length} HR members registered in this organization
           </p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {employees.map((employee) => (
+            {employees.filter(employee => employee.role === 'HR').map((employee) => (
               <Card key={employee.id} className="p-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-medium">
@@ -251,7 +251,57 @@ export default function OrganizationDetail() {
             ))}
           </div>
           
-          {employees.length === 0 && (
+          {employees.filter(emp => emp.role === 'HR').length === 0 && (
+            <div className="text-center py-8">
+              <Users className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-2 text-sm font-medium">No HR members yet</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                HR members will appear here once they join the organization.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Employee Profiles Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Employee Profiles</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {employees.filter(emp => emp.role === 'EMPLOYEE').length} employees registered in this organization
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {employees.filter(employee => employee.role === 'EMPLOYEE').map((employee) => (
+              <Card key={employee.id} className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-medium">
+                    {employee.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-sm">{employee.name}</h4>
+                    <p className="text-xs text-muted-foreground">{employee.email}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge className={getRoleColor(employee.role)} variant="secondary">
+                        {employee.role}
+                      </Badge>
+                      <Badge className={getStatusColor(employee.status)} variant="secondary">
+                        {employee.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    Joined: {new Date(employee.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </Card>
+            ))}
+          </div>
+          
+          {employees.filter(emp => emp.role === 'EMPLOYEE').length === 0 && (
             <div className="text-center py-8">
               <Users className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-2 text-sm font-medium">No employees yet</h3>
