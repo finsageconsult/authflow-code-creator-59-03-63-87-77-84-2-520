@@ -17,7 +17,7 @@ import {
   Archive, 
   Star, 
   Clock, 
-  DollarSign,
+  CreditCard,
   Tag,
   Users,
   BookOpen
@@ -394,7 +394,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                   <span className="text-sm truncate">{program.duration}</span>
                 </div>
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <CreditCard className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span className="text-sm">₹{(program.price / 100).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-1.5">

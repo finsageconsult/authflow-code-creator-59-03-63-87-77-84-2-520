@@ -5,14 +5,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Heart, TrendingUp, AlertCircle, DollarSign, Home, Briefcase } from 'lucide-react';
+import { Heart, TrendingUp, AlertCircle, Coins, Home, Briefcase } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 const financialConcerns = [
   { id: 'debt', label: 'Debt Management', icon: <AlertCircle className="h-4 w-4" /> },
-  { id: 'savings', label: 'Emergency Savings', icon: <DollarSign className="h-4 w-4" /> },
+  { id: 'savings', label: 'Emergency Savings', icon: <Coins className="h-4 w-4" /> },
   { id: 'retirement', label: 'Retirement Planning', icon: <TrendingUp className="h-4 w-4" /> },
   { id: 'housing', label: 'Housing Costs', icon: <Home className="h-4 w-4" /> },
   { id: 'job', label: 'Job Security', icon: <Briefcase className="h-4 w-4" /> },

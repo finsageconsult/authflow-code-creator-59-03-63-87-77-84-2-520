@@ -18,7 +18,7 @@ import {
   Tag,
   Users,
   Clock,
-  DollarSign,
+  CreditCard,
   Edit,
   Eye,
   Archive

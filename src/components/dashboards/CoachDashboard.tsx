@@ -12,7 +12,7 @@ import {
   FileText,
   Star,
   CheckCircle,
-  DollarSign
+  Coins
 } from 'lucide-react';
 import { AvailabilitySettings } from '@/components/coach/AvailabilitySettings';
 import { SessionManager } from '@/components/coach/SessionManager';
@@ -230,7 +230,7 @@ export const CoachDashboard = () => {
                     <span>Session Notes</span>
                   </Button>
                   <Button variant="outline" className="h-20 flex-col gap-2">
-                    <DollarSign className="w-6 h-6" />
+                    <Coins className="w-6 h-6" />
                     <span>View Payouts</span>
                   </Button>
                 </div>

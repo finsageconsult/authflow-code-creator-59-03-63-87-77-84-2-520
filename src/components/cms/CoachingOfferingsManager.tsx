@@ -14,7 +14,6 @@ import {
   Plus, 
   Edit, 
   Clock, 
-  DollarSign,
   CreditCard,
   Users,
   Archive,
@@ -450,7 +449,7 @@ export const CoachingOfferingsManager = ({ searchTerm, category }: CoachingOffer
                   <span>{offering.credits_needed} credits</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <span>₹{(offering.price / 100).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-1">

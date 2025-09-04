@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calculator, TrendingUp, FileText, PieChart, DollarSign, Target } from 'lucide-react';
+import { Calculator, TrendingUp, FileText, PieChart, Coins, Target } from 'lucide-react';
 
 const tools = [
   {
@@ -39,7 +39,7 @@ const tools = [
     id: 'sip-calculator',
     name: 'SIP Calculator',
     description: 'Calculate SIP returns and goals',
-    icon: DollarSign,
+    icon: Coins,
     color: 'bg-indigo-100 text-indigo-600',
     comingSoon: true
   },

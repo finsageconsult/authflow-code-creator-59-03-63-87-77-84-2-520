@@ -3,7 +3,7 @@ import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroup
 import { useAuth } from '@/hooks/useAuth';
 import { hasRole } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock, DollarSign } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock } from 'lucide-react';
 const menuItems = [{
   title: 'Dashboard',
   url: '/individual-dashboard',
@@ -131,7 +131,7 @@ const coachMenuItems = [{
 }, {
   title: 'Payouts',
   url: '/coach-dashboard?tab=payouts',
-  icon: DollarSign,
+  icon: Coins,
   roles: ['COACH']
 }];
 
