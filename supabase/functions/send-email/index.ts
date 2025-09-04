@@ -81,7 +81,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Send email with timeout
     const emailPromise = resend.emails.send({
-      from: "Finsage <noreply@finsage.com>",
+      from: "Finsage <onboarding@resend.dev>",
       to: [user.email],
       subject: "Your Finsage Login Code",
       html: emailContent,
