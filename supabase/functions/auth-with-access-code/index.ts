@@ -89,12 +89,14 @@ const handler = async (req: Request): Promise<Response> => {
     const userEmail = codeData.email;
 
     // Check if user exists in auth.users
-    const { data: existingAuthUser, error: authUserError } = await supabaseAdmin.auth.admin.getUserByEmail(userEmail);
+    const { data: existingUsers, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    const existingAuthUser = existingUsers?.users?.find(user => user.email === userEmail);
     
     let authUserId: string;
     let isNewUser = false;
 
-    if (authUserError || !existingAuthUser?.user) {
+    if (!existingAuthUser) {
       // Create new auth user
       const { data: newAuthUser, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
         email: userEmail,
@@ -124,7 +126,7 @@ const handler = async (req: Request): Promise<Response> => {
     } else {
       // Update existing user's password to match access code
       const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-        existingAuthUser.user.id,
+        existingAuthUser.id,
         { password: code.trim() }
       );
 
@@ -142,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
       
-      authUserId = existingAuthUser.user.id;
+      authUserId = existingAuthUser.id;
     }
 
     // Update/create user in public.users table
