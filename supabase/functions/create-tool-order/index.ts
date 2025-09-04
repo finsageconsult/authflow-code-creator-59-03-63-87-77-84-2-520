@@ -105,7 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
       .insert({
         user_id: userProfile.id,
         organization_id: userProfile.organization_id,
-        user_type: 'INDIVIDUAL',
+        user_type: 'individual',
         service_type: 'tool_purchase',
         quantity: 1,
         unit_price: baseAmount,

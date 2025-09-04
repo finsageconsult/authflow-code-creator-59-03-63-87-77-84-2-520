@@ -168,7 +168,7 @@ async function handlePaymentCaptured(supabase: any, payment: any) {
   if (orderData.service_type === 'tool_purchase') {
     // Handle tool purchase
     await handleToolPurchase(supabase, orderData);
-  } else if (orderData.user_type === 'EMPLOYEE') {
+  } else if (orderData.user_type === 'employee') {
     // Create credits for employee
     await createCreditsForEmployee(supabase, orderData);
   }

@@ -92,9 +92,9 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
-        user_id: user.id,
+        user_id: userProfile.id,
         organization_id: organizationId || userProfile.organization_id,
-        user_type: userType,
+        user_type: userType.toLowerCase() as any,
         service_type: serviceType,
         quantity,
         unit_price: baseAmount,
