@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Eye, Users, Calendar, TrendingUp } from 'lucide-react';
+import { Plus, Eye, Users, Calendar, TrendingUp, Key, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +36,12 @@ export default function Organizations() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showAccessCodeDialog, setShowAccessCodeDialog] = useState(false);
+  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [accessCodeForm, setAccessCodeForm] = useState({
+    email: '',
+    role: 'HR'
+  });
   const [newOrg, setNewOrg] = useState({
     name: '',
     plan: 'STARTER'
@@ -120,6 +126,65 @@ export default function Organizations() {
       toast({
         title: 'Error',
         description: 'Failed to create organization',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const createAccessCode = async () => {
+    if (!selectedOrg || !accessCodeForm.email || !accessCodeForm.role) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all fields',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      // Generate a unique access code
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      
+      // Set expiry to 30 days from now
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      const { error } = await supabase.functions.invoke('create-access-code', {
+        body: {
+          code,
+          organization_id: selectedOrg.id,
+          role: accessCodeForm.role,
+          expires_at: expiresAt.toISOString(),
+          max_uses: 1,
+          email: accessCodeForm.email
+        }
+      });
+
+      if (error) throw error;
+
+      // Send the access code via email  
+      const { error: sendError } = await supabase.functions.invoke('send-access-code', {
+        body: { email: accessCodeForm.email }
+      });
+
+      if (sendError) {
+        console.error('Error sending access code email:', sendError);
+        // Don't throw error here, code was created successfully
+      }
+
+      toast({
+        title: 'Success',
+        description: `Access code created and sent to ${accessCodeForm.email}`
+      });
+
+      setShowAccessCodeDialog(false);
+      setAccessCodeForm({ email: '', role: 'HR' });
+      setSelectedOrg(null);
+    } catch (error) {
+      console.error('Error creating access code:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create access code',
         variant: 'destructive'
       });
     }
@@ -257,14 +322,27 @@ export default function Organizations() {
                           {new Date(org.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => navigate(`/admin/organizations/${org.id}`)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => navigate(`/admin/organizations/${org.id}`)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedOrg(org);
+                                setShowAccessCodeDialog(true);
+                              }}
+                            >
+                              <Key className="h-4 w-4 mr-1" />
+                              Create Access Code
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -284,14 +362,27 @@ export default function Organizations() {
                             Created {new Date(org.created_at).toLocaleDateString()}
                           </p>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => navigate(`/admin/organizations/${org.id}`)}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/admin/organizations/${org.id}`)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedOrg(org);
+                              setShowAccessCodeDialog(true);
+                            }}
+                          >
+                            <Key className="h-4 w-4 mr-1" />
+                            Access Code
+                          </Button>
+                        </div>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4">
@@ -367,6 +458,51 @@ export default function Organizations() {
               </Button>
               <Button onClick={createOrganization} disabled={!newOrg.name}>
                 Create Organization
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Access Code Dialog */}
+      <Dialog open={showAccessCodeDialog} onOpenChange={setShowAccessCodeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Access Code for {selectedOrg?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Create an access code for HR or Coach to join this organization. The code will be valid for 30 days.
+            </p>
+            <div>
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={accessCodeForm.email}
+                onChange={(e) => setAccessCodeForm({ ...accessCodeForm, email: e.target.value })}
+                placeholder="Enter email address"
+              />
+            </div>
+            <div>
+              <Label htmlFor="role">Role</Label>
+              <Select value={accessCodeForm.role} onValueChange={(value) => setAccessCodeForm({ ...accessCodeForm, role: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="HR">HR</SelectItem>
+                  <SelectItem value="COACH">Coach</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowAccessCodeDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={createAccessCode} disabled={!accessCodeForm.email || !accessCodeForm.role}>
+                <Send className="h-4 w-4 mr-2" />
+                Create & Send Code
               </Button>
             </div>
           </div>
