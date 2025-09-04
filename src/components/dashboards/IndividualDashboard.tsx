@@ -250,7 +250,7 @@ export const IndividualDashboard = () => {
     <div className="flex gap-6 w-full min-h-screen">
       {/* Left Sidebar Navigation */}
       <div className="w-64 flex-shrink-0 bg-background border-r">
-        <div className="p-6 border-b">
+        <div className="border-b">
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-bold truncate">
               Welcome, {userProfile?.name?.split(' ')[0]}!
@@ -262,7 +262,7 @@ export const IndividualDashboard = () => {
         </div>
         
         {/* Navigation Tabs - Vertical */}
-        <div className="p-4">
+        <div>
           <nav className="space-y-2">
             {navigationTabs.map((tab) => (
               <button
