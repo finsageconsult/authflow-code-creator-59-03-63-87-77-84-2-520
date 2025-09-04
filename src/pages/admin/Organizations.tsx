@@ -340,7 +340,7 @@ export default function Organizations() {
                               }}
                             >
                               <Key className="h-4 w-4 mr-1" />
-                              Create Access Code
+                              HR Access Code
                             </Button>
                           </div>
                         </TableCell>
@@ -380,7 +380,7 @@ export default function Organizations() {
                             }}
                           >
                             <Key className="h-4 w-4 mr-1" />
-                            Access Code
+                            HR Code
                           </Button>
                         </div>
                       </div>
@@ -472,7 +472,7 @@ export default function Organizations() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Create an access code for HR or Coach to join this organization. The code will be valid for 30 days.
+              Create an access code for HR to join this organization. The code will be valid for 30 days.
             </p>
             <div>
               <Label htmlFor="email">Email Address</Label>
@@ -492,7 +492,6 @@ export default function Organizations() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="HR">HR</SelectItem>
-                  <SelectItem value="COACH">Coach</SelectItem>
                 </SelectContent>
               </Select>
             </div>
