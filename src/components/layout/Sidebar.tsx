@@ -72,9 +72,14 @@ const adminMenuItems = [{
   icon: LayoutDashboard,
   roles: ['ADMIN']
 }, {
-  title: 'Analytics',
-  url: '/admin-dashboard?tab=analytics',
-  icon: BarChart3,
+  title: 'Organizations',
+  url: '/admin/organizations',
+  icon: Shield,
+  roles: ['ADMIN']
+}, {
+  title: 'Coaches',
+  url: '/admin/coaches',
+  icon: UserCheck,
   roles: ['ADMIN']
 }, {
   title: 'Credits Engine',
@@ -87,6 +92,11 @@ const adminMenuItems = [{
   icon: FileText,
   roles: ['ADMIN']
 }, {
+  title: 'Analytics',
+  url: '/admin-dashboard?tab=analytics',
+  icon: BarChart3,
+  roles: ['ADMIN']
+}, {
   title: 'Security Audit',
   url: '/admin-dashboard?tab=security',
   icon: ShieldCheck,
@@ -95,16 +105,6 @@ const adminMenuItems = [{
   title: 'Support',
   url: '/admin-dashboard?tab=support',
   icon: HelpCircle,
-  roles: ['ADMIN']
-}, {
-  title: 'Organizations',
-  url: '/admin/organizations',
-  icon: Shield,
-  roles: ['ADMIN']
-}, {
-  title: 'Coaches',
-  url: '/admin/coaches',
-  icon: UserCheck,
   roles: ['ADMIN']
 }];
 
