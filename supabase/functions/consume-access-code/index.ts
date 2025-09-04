@@ -19,10 +19,10 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { userId, code, role, organizationId }: ConsumeAccessCodeRequest = await req.json();
-    console.log("Consuming access code:", { userId, code, role, organizationId });
+    const { userId, code, role, organizationId, email }: ConsumeAccessCodeRequest & { email?: string } = await req.json();
+    console.log("Consuming access code:", { userId, code, role, organizationId, email });
 
-    if (!userId || !code || !role || !organizationId) {
+    if (!code || !role || !organizationId) {
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -48,7 +48,7 @@ const handler = async (req: Request): Promise<Response> => {
     // First, verify the access code is still valid and increment usage
     const { data: codeData, error: codeError } = await supabaseAdmin
       .from('access_codes')
-      .select('used_count, max_uses, expires_at')
+      .select('used_count, max_uses, expires_at, email')
       .eq('code', code)
       .eq('organization_id', organizationId)
       .eq('role', role)
@@ -88,20 +88,35 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Usage limit ignored for access codes', { used: codeData.used_count, max: codeData.max_uses });
 
     // Check if user exists in users table first
-    const { data: existingUser, error: userCheckError } = await supabaseAdmin
-      .from('users')
-      .select('id, auth_id')
-      .eq('auth_id', userId)
-      .single();
+    let existingUser;
+    if (userId) {
+      const { data, error: userCheckError } = await supabaseAdmin
+        .from('users')
+        .select('id, auth_id')
+        .eq('auth_id', userId)
+        .single();
+      existingUser = data;
+    } else if (email) {
+      // Look up user by email if no userId provided
+      const { data, error: userCheckError } = await supabaseAdmin
+        .from('users')
+        .select('id, auth_id')
+        .eq('email', email)
+        .single();
+      existingUser = data;
+    }
 
-    if (!existingUser && !userCheckError) {
+    if (!existingUser) {
       // User doesn't exist in users table, create them
+      const userAuthId = userId || null; // Use provided userId or null for email-based lookup
+      const userEmail = email || codeData.email;
+      
       const { error: createUserError } = await supabaseAdmin
         .from('users')
         .insert({
-          auth_id: userId,
-          email: codeData.email,
-          name: codeData.email.split('@')[0],
+          auth_id: userAuthId,
+          email: userEmail,
+          name: userEmail.split('@')[0],
           organization_id: organizationId,
           role: role,
           status: 'ACTIVE'
@@ -122,14 +137,21 @@ const handler = async (req: Request): Promise<Response> => {
       }
     } else {
       // Update existing user's role and organization
-      const { error: updateUserError } = await supabaseAdmin
+      const updateQuery = supabaseAdmin
         .from('users')
         .update({
           organization_id: organizationId,
           role: role,
           status: 'ACTIVE'
-        })
-        .eq('auth_id', userId);
+        });
+      
+      if (userId) {
+        updateQuery.eq('auth_id', userId);
+      } else if (email) {
+        updateQuery.eq('email', email);
+      }
+      
+      const { error: updateUserError } = await updateQuery;
 
       if (updateUserError) {
         console.error("Error updating user profile:", updateUserError);

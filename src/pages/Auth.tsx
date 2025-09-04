@@ -182,67 +182,31 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      // Verify access code directly from database
-      const { data: response, error: functionError } = await supabase.functions.invoke('verify-access-code', {
+      // Use admin function to authenticate with access code
+      const { data: authResponse, error: authError } = await supabase.functions.invoke('auth-with-access-code', {
         body: { code: accessCode.trim() }
       });
 
-      if (functionError || !response?.success) {
-        toast.error('Invalid or expired access code');
+      if (authError || !authResponse?.success) {
+        toast.error(authResponse?.error || 'Invalid or expired access code');
         return;
       }
 
-      const codeData = response.data;
+      const userData = authResponse.data;
       
-      // Simple authentication using access code
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: codeData.email,
+      // Now sign in the user with the access code as password
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: userData.email,
         password: accessCode.trim()
       });
 
-      if (authError) {
-        // If sign in fails, try to create account
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: codeData.email,
-          password: accessCode.trim(),
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              name: codeData.email.split('@')[0]
-            }
-          }
-        });
-
-        if (signUpError) {
-          toast.error('Authentication failed. Please contact support.');
-          return;
-        }
-      }
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (signInError) {
         toast.error('Authentication failed. Please try again.');
         return;
       }
 
-      // Update user role and organization in database
-      const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
-        body: {
-          userId: user.id,
-          code: accessCode.trim(),
-          role: codeData.role,
-          organizationId: codeData.organization_id
-        }
-      });
-
-      if (consumeError || !consumeResponse?.success) {
-        toast.error('Failed to update user role. Please try again.');
-        return;
-      }
-
-      toast.success(`Welcome to ${codeData.organization_name}!`);
-      redirectToDashboard(codeData.role);
+      toast.success(`Welcome to ${userData.organizationName}!`);
+      redirectToDashboard(userData.role);
       
     } catch (error) {
       console.error('Access code login error:', error);
@@ -251,7 +215,6 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
