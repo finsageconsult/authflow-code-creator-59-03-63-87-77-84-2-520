@@ -17,7 +17,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AdminCreditIssuance } from '@/components/credits/AdminCreditIssuance';
 import { ContentCatalog } from '@/components/cms/ContentCatalog';
-import { OrgAnalyticsDashboard } from '@/components/analytics/OrgAnalyticsDashboard';
+import { AdminAnalyticsDashboard } from '@/components/analytics/AdminAnalyticsDashboard';
 import { SecurityAuditDashboard } from '@/components/security/SecurityAuditDashboard';
 import { AdminSupportManager } from '@/components/support/AdminSupportManager';
 
@@ -146,7 +146,7 @@ export const AdminDashboard = () => {
 
   // Render different views based on active tab
   if (activeTab === 'analytics') {
-    return <OrgAnalyticsDashboard />;
+    return <AdminAnalyticsDashboard />;
   }
 
   if (activeTab === 'credits') {
