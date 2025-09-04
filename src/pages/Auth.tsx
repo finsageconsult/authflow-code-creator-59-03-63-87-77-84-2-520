@@ -165,16 +165,7 @@ export default function Auth() {
         body: { code: accessCode.trim() }
       });
 
-      console.log('Verify response:', { response, functionError });
-
-      if (functionError) {
-        console.error('Function error:', functionError);
-        toast.error('Failed to verify access code. Please try again.');
-        return;
-      }
-
-      if (!response || !response.success) {
-        console.error('Verification failed:', response?.error);
+      if (functionError || !response?.success) {
         toast.error(response?.error || 'Invalid access code. Please check and try again.');
         return;
       }
@@ -182,131 +173,44 @@ export default function Auth() {
       const codeData = response.data;
       console.log('Access code verified:', codeData);
 
-      if (!codeData?.email) {
-        console.error('Verified code missing email. Cannot auto-authenticate.');
-        toast.error('This access code is not linked to an email. Please use Email Login.');
-        return;
-      }
-
-      // Create account or handle existing user with access code email
-      const userEmail = codeData.email as string;
-      console.log('Processing access code for:', userEmail);
-
-      // First check if user exists in our database
-      const { data: existingUser, error: userCheckError } = await supabase
-        .from('users')
-        .select('auth_id')
-        .eq('email', userEmail)
-        .maybeSingle();
-
-      if (existingUser) {
-        // User exists, consume access code directly
-        console.log('User exists in database, consuming access code');
-        
-        const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
-          body: {
-            userId: existingUser.auth_id,
-            code: accessCode.trim(),
-            role: codeData.role,
-            organizationId: codeData.organization_id
-          }
-        });
-
-        if (consumeError || !consumeResponse?.success) {
-          console.error('Error consuming access code:', consumeError);
-          toast.error('Failed to apply access code');
-          return;
-        }
-
-        // Send magic link to existing user
-        const { error: magicLinkError } = await supabase.auth.signInWithOtp({
-          email: userEmail,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`
-          }
-        });
-
-        if (magicLinkError) {
-          console.error('Magic link error:', magicLinkError);
-          toast.error('Please use the Email Login tab to sign in with your existing password.');
-          setActiveTab('email');
-          return;
-        }
-
-        toast.success(`A sign-in link has been sent to ${userEmail}. Your access code has been applied to your account.`);
-        return;
-      }
-
-      // User doesn't exist, create new account
-      console.log('User does not exist, creating new account');
-      const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
-      
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: userEmail,
-        password: tempPassword,
+      // Try to sign in with magic link (existing user)
+      const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+        email: codeData.email,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            name: userEmail.split('@')[0]
-          }
+          emailRedirectTo: `${window.location.origin}/auth?access_code=${accessCode.trim()}`
         }
       });
 
-      if (signUpError) {
-        console.error('Sign up failed:', signUpError);
-        if (signUpError.message.includes('User already registered')) {
-          toast.error('User already exists. Please use the Email Login tab.');
-          setActiveTab('email');
-        } else {
-          toast.error('Failed to create user account: ' + signUpError.message);
-        }
+      if (!magicLinkError) {
+        toast.success(`A sign-in link has been sent to ${codeData.email}. Click the link to sign in and your access code will be automatically applied.`);
         return;
       }
 
-      if (!signUpData?.user) {
-        console.error('No user data after sign up');
-        toast.error('Failed to create user account');
-        return;
-      }
-
-      const userId = signUpData.user.id;
-      console.log('New user created successfully:', userId);
-
-      // Wait for the user profile to be created by the trigger
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Now consume the access code to set role and organization
-      const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
-        body: {
-          userId: userId,
+      // If magic link fails due to rate limiting or user doesn't exist, handle it
+      if (magicLinkError.message.includes('rate_limit')) {
+        toast.error('Too many email requests. Please wait a moment and try again, or use the Email Login tab.');
+        setActiveTab('email');
+        
+        // Store access code for manual login
+        sessionStorage.setItem('pendingAccessCode', JSON.stringify({
           code: accessCode.trim(),
           role: codeData.role,
-          organizationId: codeData.organization_id
-        }
-      });
-
-      if (consumeError || !consumeResponse?.success) {
-        console.error('Error consuming access code:', consumeError);
-        toast.error('Failed to set up account with access code');
+          organizationId: codeData.organization_id,
+          organizationName: codeData.organization_name
+        }));
         return;
       }
 
-      // For new users, we need to manually sign them in since signUp might not auto-login
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: userEmail,
-        password: tempPassword
-      });
-
-      if (signInError) {
-        console.error('Auto sign-in failed:', signInError);
-        toast.error('Account created but auto sign-in failed. Please use Email Login tab with your email.');
-        setActiveTab('email');
-        return;
-      }
-
-      toast.success(`Successfully logged in! Welcome to ${codeData.organization_name} as ${codeData.role}`);
+      toast.error('Please use the Email Login tab to sign in with your existing password.');
+      setActiveTab('email');
       
-      // The auth hook will handle the redirect automatically
+      // Store access code for manual login
+      sessionStorage.setItem('pendingAccessCode', JSON.stringify({
+        code: accessCode.trim(),
+        role: codeData.role,
+        organizationId: codeData.organization_id,
+        organizationName: codeData.organization_name
+      }));
       
     } catch (error) {
       console.error('Error with access code login:', error);
