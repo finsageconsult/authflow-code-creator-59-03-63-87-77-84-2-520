@@ -262,7 +262,7 @@ export const IndividualDashboard = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-1 border-b -mx-2 px-2">
+        <div className="flex flex-wrap gap-2 border-b -mx-4 px-6 py-2">
           {navigationTabs.map((tab) => (
             <button
               key={tab.id}
@@ -271,7 +271,7 @@ export const IndividualDashboard = () => {
                 newParams.set('tab', tab.id);
                 setSearchParams(newParams);
               }}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-t-lg transition-colors min-w-0 ${
+              className={`flex items-center gap-3 px-6 py-4 text-sm font-medium rounded-t-lg transition-colors min-w-0 ${
                 currentTab === tab.id
                   ? 'bg-background text-foreground border-b-2 border-primary'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
