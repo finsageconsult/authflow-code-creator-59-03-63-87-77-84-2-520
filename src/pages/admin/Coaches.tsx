@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Mail, Search, UserCheck } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Plus, Mail, Search, UserCheck, Clock, BookOpen, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +20,24 @@ interface Coach {
   status: string;
   created_at: string;
   auth_id?: string;
+  avatar_url?: string;
+  organization_id?: string;
+  updated_at: string;
+  coaching_offerings?: {
+    id: string;
+    title: string;
+    category: string;
+    credits_needed: number;
+    is_active: boolean;
+  }[];
+  coaching_sessions?: {
+    id: string;
+    status: string;
+  }[];
+  coach_availability?: {
+    id: string;
+    is_available: boolean;
+  }[];
 }
 
 export default function Coaches() {
@@ -42,14 +61,20 @@ export default function Coaches() {
 
   const fetchCoaches = async () => {
     try {
+      // Fetch coaches with their detailed information
       const { data: coachesData, error: coachesError } = await supabase
         .from('users')
-        .select('*')
+        .select(
+          `*,
+          coaching_offerings(id, title, category, credits_needed, is_active),
+          coaching_sessions(id, status),
+          coach_availability(id, is_available)`
+        )
         .eq('role', 'COACH')
         .order('created_at', { ascending: false });
 
       if (coachesError) throw coachesError;
-      setCoaches(coachesData || []);
+      setCoaches((coachesData as any) || []);
     } catch (error) {
       console.error('Error fetching coaches:', error);
       toast({
@@ -117,6 +142,24 @@ export default function Coaches() {
         variant: 'destructive'
       });
     }
+  };
+
+  // Helper function to count completed sessions
+  const getCompletedSessions = (sessions: any[]) => {
+    if (!sessions || sessions.length === 0) return 0;
+    return sessions.filter(session => session.status === 'completed').length;
+  };
+
+  // Helper function to get active offerings count
+  const getActiveOfferings = (offerings: any[]) => {
+    if (!offerings || offerings.length === 0) return 0;
+    return offerings.filter(offering => offering.is_active).length;
+  };
+
+  // Helper function to check availability
+  const isAvailable = (availability: any[]) => {
+    if (!availability || availability.length === 0) return false;
+    return availability.some(avail => avail.is_available);
   };
 
   const getStatusColor = (status: string) => {
@@ -195,8 +238,11 @@ export default function Coaches() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead>Coach Profile</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Offerings</TableHead>
+                <TableHead>Sessions</TableHead>
+                <TableHead>Availability</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
               </TableRow>
@@ -204,14 +250,61 @@ export default function Coaches() {
             <TableBody>
               {filteredCoaches.map((coach) => (
                 <TableRow key={coach.id}>
-                  <TableCell className="font-medium">{coach.name}</TableCell>
-                  <TableCell>{coach.email}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={coach.avatar_url} alt={coach.name} />
+                        <AvatarFallback>
+                          {coach.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{coach.name}</div>
+                        <div className="text-sm text-muted-foreground">Coach</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div>{coach.email}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-1">
+                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        {getActiveOfferings(coach.coaching_offerings)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">active</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        {getCompletedSessions(coach.coaching_sessions)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">completed</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-1">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <Badge variant={isAvailable(coach.coach_availability) ? "default" : "secondary"}>
+                        {isAvailable(coach.coach_availability) ? "Available" : "Busy"}
+                      </Badge>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(coach.status)}>
                       {coach.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{new Date(coach.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {new Date(coach.created_at).toLocaleDateString()}
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
