@@ -19,6 +19,7 @@ import { SessionManager } from '@/components/coach/SessionManager';
 import { PayoutView } from '@/components/coach/PayoutView';
 import { ContentCatalog } from '@/components/cms/ContentCatalog';
 import { CoachAnalyticsDashboard } from '@/components/analytics/CoachAnalyticsDashboard';
+import { SupportQuery } from '@/components/support/SupportQuery';
 
 interface CoachStats {
   totalClients: number;
@@ -187,6 +188,8 @@ export const CoachDashboard = () => {
         return <AvailabilitySettings />;
       case 'payouts':
         return <PayoutView />;
+      case 'support':
+        return <SupportQuery />;
       default:
         return (
           <div className="space-y-6">

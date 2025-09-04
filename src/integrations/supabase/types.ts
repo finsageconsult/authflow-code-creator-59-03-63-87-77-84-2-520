@@ -1433,6 +1433,39 @@ export type Database = {
         }
         Relationships: []
       }
+      support_queries: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          role: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          role: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          role?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tickets: {
         Row: {
           anonymized_concerns: string[] | null

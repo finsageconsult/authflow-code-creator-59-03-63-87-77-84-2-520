@@ -19,6 +19,7 @@ import { AdminCreditIssuance } from '@/components/credits/AdminCreditIssuance';
 import { ContentCatalog } from '@/components/cms/ContentCatalog';
 import { OrgAnalyticsDashboard } from '@/components/analytics/OrgAnalyticsDashboard';
 import { SecurityAuditDashboard } from '@/components/security/SecurityAuditDashboard';
+import { AdminSupportManager } from '@/components/support/AdminSupportManager';
 
 interface PlatformStats {
   totalOrganizations: number;
@@ -158,6 +159,10 @@ export const AdminDashboard = () => {
 
   if (activeTab === 'security') {
     return <SecurityAuditDashboard />;
+  }
+
+  if (activeTab === 'support') {
+    return <AdminSupportManager />;
   }
 
   // Default overview content

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { CreditWallet } from '@/components/credits/CreditWallet';
 import { EmployeeAnalyticsDashboard } from '@/components/analytics/EmployeeAnalyticsDashboard';
+import { SupportQuery } from '@/components/support/SupportQuery';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MoodCheckIn {
@@ -430,6 +431,7 @@ export const EmployeeDashboard = () => {
           <TabsTrigger value="dashboard" role="tab" aria-controls="dashboard-panel">Dashboard</TabsTrigger>
           <TabsTrigger value="analytics" role="tab" aria-controls="analytics-panel">My Progress</TabsTrigger>
           <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>
+          <TabsTrigger value="support" role="tab" aria-controls="support-panel">Support</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6" role="tabpanel" id="dashboard-panel" aria-labelledby="dashboard-tab">
@@ -566,8 +568,16 @@ export const EmployeeDashboard = () => {
       </div>
       </TabsContent>
 
+      <TabsContent value="analytics" className="space-y-6">
+        <EmployeeAnalyticsDashboard />
+      </TabsContent>
+
       <TabsContent value="credits" className="space-y-6">
         <CreditWallet />
+      </TabsContent>
+
+      <TabsContent value="support" className="space-y-6">
+        <SupportQuery />
       </TabsContent>
       </Tabs>
     </div>

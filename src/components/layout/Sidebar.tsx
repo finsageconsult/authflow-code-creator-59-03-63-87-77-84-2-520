@@ -3,7 +3,7 @@ import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroup
 import { useAuth } from '@/hooks/useAuth';
 import { hasRole } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock, HelpCircle } from 'lucide-react';
 const menuItems = [{
   title: 'Dashboard',
   url: '/individual-dashboard',
@@ -46,6 +46,11 @@ const menuItems = [{
   icon: Wrench,
   roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
 }, {
+  title: 'Support',
+  url: '/employee-dashboard?tab=support',
+  icon: HelpCircle,
+  roles: ['EMPLOYEE']
+}, {
   title: 'Team',
   url: '/team',
   icon: Users,
@@ -85,6 +90,11 @@ const adminMenuItems = [{
   title: 'Security Audit',
   url: '/admin-dashboard?tab=security',
   icon: ShieldCheck,
+  roles: ['ADMIN']
+}, {
+  title: 'Support',
+  url: '/admin-dashboard?tab=support',
+  icon: HelpCircle,
   roles: ['ADMIN']
 }, {
   title: 'Organizations',
@@ -133,6 +143,11 @@ const coachMenuItems = [{
   url: '/coach-dashboard?tab=payouts',
   icon: Coins,
   roles: ['COACH']
+}, {
+  title: 'Support',
+  url: '/coach-dashboard?tab=support',
+  icon: HelpCircle,
+  roles: ['COACH']
 }];
 
 const hrMenuItems = [{
@@ -164,6 +179,11 @@ const hrMenuItems = [{
   title: 'Invoices',
   url: '/hr-dashboard/invoices',
   icon: FileText,
+  roles: ['HR']
+}, {
+  title: 'Support',
+  url: '/hr-dashboard/support',
+  icon: HelpCircle,
   roles: ['HR']
 }];
 
