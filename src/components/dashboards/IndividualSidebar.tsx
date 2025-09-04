@@ -97,7 +97,9 @@ export function IndividualSidebar() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => setOpenMobile(false)} 
+          onClick={() => {
+            setOpenMobile(false);
+          }} 
           className="h-8 w-8 p-0 hover:bg-muted shrink-0"
         >
           <X className="h-4 w-4" />
