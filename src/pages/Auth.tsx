@@ -190,11 +190,29 @@ export default function Auth() {
 
       // Create account or handle existing user with access code email
       const userEmail = codeData.email as string;
-      const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
-      
       console.log('Processing access code for:', userEmail);
 
-      // Try to sign up the user first
+      // Check if user already exists by trying to sign in with magic link first
+      console.log('Checking if user exists with magic link...');
+      
+      const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+        email: userEmail,
+        options: {
+          shouldCreateUser: false // Don't create user if they don't exist
+        }
+      });
+
+      if (!magicLinkError) {
+        // User exists, send magic link and consume access code upon return
+        console.log('User exists, sending magic link');
+        toast.success(`A sign-in link has been sent to ${userEmail}. Click the link to sign in and your access code will be automatically applied.`);
+        return;
+      }
+
+      // User doesn't exist, create new account
+      console.log('User does not exist, creating new account');
+      const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
+      
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: userEmail,
         password: tempPassword,
@@ -206,44 +224,10 @@ export default function Auth() {
         }
       });
 
-      let userId: string;
-
       if (signUpError) {
-        if (signUpError.message.includes('User already registered') || signUpError.message.includes('already registered')) {
-          // User exists - try to sign them in with a magic link approach
-          console.log('User already exists, attempting to sign them in');
-          
-          // For existing users, we'll use the magic link approach since we don't know their password
-          const { error: magicLinkError } = await supabase.auth.signInWithOtp({
-            email: userEmail,
-            options: {
-              emailRedirectTo: `${window.location.origin}/auth?access_code=${accessCode.trim()}`
-            }
-          });
-
-          if (magicLinkError) {
-            console.error('Magic link error:', magicLinkError);
-            toast.error(`Please sign in with your existing password using the Email Login tab. After signing in, your access code will be automatically applied.`);
-            
-            // Store the access code for when they sign in normally
-            sessionStorage.setItem('pendingAccessCode', JSON.stringify({
-              code: accessCode.trim(),
-              role: codeData.role,
-              organizationId: codeData.organization_id,
-              organizationName: codeData.organization_name
-            }));
-            
-            setActiveTab('email');
-            return;
-          } else {
-            toast.success(`A sign-in link has been sent to ${userEmail}. Click the link to sign in and your access code will be automatically applied.`);
-            return;
-          }
-        } else {
-          console.error('Sign up failed:', signUpError);
-          toast.error('Failed to create user account: ' + signUpError.message);
-          return;
-        }
+        console.error('Sign up failed:', signUpError);
+        toast.error('Failed to create user account: ' + signUpError.message);
+        return;
       }
 
       if (!signUpData?.user) {
@@ -252,7 +236,7 @@ export default function Auth() {
         return;
       }
 
-      userId = signUpData.user.id;
+      const userId = signUpData.user.id;
       console.log('New user created successfully:', userId);
 
       // Wait for the user profile to be created by the trigger
@@ -271,6 +255,19 @@ export default function Auth() {
       if (consumeError || !consumeResponse?.success) {
         console.error('Error consuming access code:', consumeError);
         toast.error('Failed to set up account with access code');
+        return;
+      }
+
+      // For new users, we need to manually sign them in since signUp might not auto-login
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: tempPassword
+      });
+
+      if (signInError) {
+        console.error('Auto sign-in failed:', signInError);
+        toast.error('Account created but auto sign-in failed. Please use Email Login tab with your email.');
+        setActiveTab('email');
         return;
       }
 
