@@ -192,20 +192,48 @@ export default function Auth() {
       const userEmail = codeData.email as string;
       console.log('Processing access code for:', userEmail);
 
-      // Check if user already exists by trying to sign in with magic link first
-      console.log('Checking if user exists with magic link...');
-      
-      const { error: magicLinkError } = await supabase.auth.signInWithOtp({
-        email: userEmail,
-        options: {
-          shouldCreateUser: false // Don't create user if they don't exist
-        }
-      });
+      // First check if user exists in our database
+      const { data: existingUser, error: userCheckError } = await supabase
+        .from('users')
+        .select('auth_id')
+        .eq('email', userEmail)
+        .maybeSingle();
 
-      if (!magicLinkError) {
-        // User exists, send magic link and consume access code upon return
-        console.log('User exists, sending magic link');
-        toast.success(`A sign-in link has been sent to ${userEmail}. Click the link to sign in and your access code will be automatically applied.`);
+      if (existingUser) {
+        // User exists, consume access code directly
+        console.log('User exists in database, consuming access code');
+        
+        const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
+          body: {
+            userId: existingUser.auth_id,
+            code: accessCode.trim(),
+            role: codeData.role,
+            organizationId: codeData.organization_id
+          }
+        });
+
+        if (consumeError || !consumeResponse?.success) {
+          console.error('Error consuming access code:', consumeError);
+          toast.error('Failed to apply access code');
+          return;
+        }
+
+        // Send magic link to existing user
+        const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+          email: userEmail,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`
+          }
+        });
+
+        if (magicLinkError) {
+          console.error('Magic link error:', magicLinkError);
+          toast.error('Please use the Email Login tab to sign in with your existing password.');
+          setActiveTab('email');
+          return;
+        }
+
+        toast.success(`A sign-in link has been sent to ${userEmail}. Your access code has been applied to your account.`);
         return;
       }
 
@@ -226,7 +254,12 @@ export default function Auth() {
 
       if (signUpError) {
         console.error('Sign up failed:', signUpError);
-        toast.error('Failed to create user account: ' + signUpError.message);
+        if (signUpError.message.includes('User already registered')) {
+          toast.error('User already exists. Please use the Email Login tab.');
+          setActiveTab('email');
+        } else {
+          toast.error('Failed to create user account: ' + signUpError.message);
+        }
         return;
       }
 
