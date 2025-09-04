@@ -305,6 +305,146 @@ export default function Auth() {
     }
   };
 
+  // Handle different view states
+  if (showOtpVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
+        <div className="w-full max-w-md relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowOtpVerification(false);
+              setShowForgotPassword(true);
+            }}
+            className="absolute -top-12 sm:-top-14 left-0 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <Card className="w-full shadow-professional-lg border-0 sm:border">
+            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8">
+              <CardTitle className="text-xl sm:text-2xl font-bold">
+                Verify OTP & Set New Password
+              </CardTitle>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Check your email for the OTP code
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4 px-4 sm:px-6 pb-6 sm:pb-8">
+              <form onSubmit={handleOtpVerification} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="otp">OTP Code</Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    placeholder="Enter the 6-digit OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    className="font-mono text-center"
+                    maxLength={6}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    minLength={6}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    minLength={6}
+                  />
+                </div>
+                
+                <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading}>
+                  {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  <span className="text-sm sm:text-base">Reset Password</span>
+                </Button>
+              </form>
+              
+              {/* Success notification */}
+              <div className="flex items-center justify-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  OTP sent to your email! Check your inbox.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
+        <div className="w-full max-w-md relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowForgotPassword(false)}
+            className="absolute -top-12 sm:-top-14 left-0 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <Card className="w-full shadow-professional-lg border-0 sm:border">
+            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8">
+              <CardTitle className="text-xl sm:text-2xl font-bold">
+                Reset Password
+              </CardTitle>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Enter your email to receive an OTP
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4 px-4 sm:px-6 pb-6 sm:pb-8">
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="otpEmail">Email Address</Label>
+                  <Input
+                    id="otpEmail"
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={otpEmail}
+                    onChange={(e) => setOtpEmail(e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                
+                <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading}>
+                  {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  <span className="text-sm sm:text-base">Send OTP</span>
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
       <div className="w-full max-w-md relative">
@@ -476,129 +616,6 @@ export default function Auth() {
             </Tabs>
           </CardContent>
         </Card>
-        
-        {/* Forgot Password Modal */}
-        {showForgotPassword && (
-          <Card className="w-full shadow-professional-lg border-0 sm:border mt-4">
-            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8">
-              <CardTitle className="text-lg sm:text-xl font-bold">
-                Reset Password
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Enter your email to receive an OTP
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4 px-4 sm:px-6 pb-6 sm:pb-8">
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="otpEmail">Email Address</Label>
-                  <Input
-                    id="otpEmail"
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={otpEmail}
-                    onChange={(e) => setOtpEmail(e.target.value)}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button type="submit" className="flex-1" disabled={isLoading}>
-                    {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Send OTP
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setShowForgotPassword(false)}
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* OTP Verification Modal */}
-        {showOtpVerification && (
-          <Card className="w-full shadow-professional-lg border-0 sm:border mt-4">
-            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8">
-              <CardTitle className="text-lg sm:text-xl font-bold">
-                Verify OTP & Set New Password
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Check your email for the OTP code
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4 px-4 sm:px-6 pb-6 sm:pb-8">
-              <form onSubmit={handleOtpVerification} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="otp">OTP Code</Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    placeholder="Enter the 6-digit OTP"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className="font-mono text-center"
-                    maxLength={6}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    placeholder="Enter new password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    minLength={6}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Confirm new password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    minLength={6}
-                  />
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button type="submit" className="flex-1" disabled={isLoading}>
-                    {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Reset Password
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => {
-                      setShowOtpVerification(false);
-                      setShowForgotPassword(true);
-                    }}
-                    disabled={isLoading}
-                  >
-                    Back
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
