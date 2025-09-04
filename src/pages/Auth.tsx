@@ -22,6 +22,8 @@ export default function Auth() {
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(false);
   const [accessCodeData, setAccessCodeData] = useState({
     email: '',
     name: ''
@@ -76,6 +78,23 @@ export default function Auth() {
       processUrlAccessCode();
     }
   }, [searchParams]);
+
+  // Countdown timer for resend OTP
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (resendCountdown > 0) {
+      interval = setInterval(() => {
+        setResendCountdown(prev => {
+          if (prev <= 1) {
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendCountdown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,6 +241,35 @@ export default function Auth() {
     }
   };
 
+  const sendOTP = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: false
+        }
+      });
+
+      if (error) {
+        if (error.message.includes('rate_limit')) {
+          toast.error('Please wait before requesting another OTP. Check your email for the previous code.');
+          return false;
+        }
+        toast.error(error.message);
+        return false;
+      } else {
+        toast.success('OTP sent to your email! Check your inbox.');
+        // Start countdown for resend
+        setResendCountdown(60);
+        setCanResend(false);
+        return true;
+      }
+    } catch (error) {
+      toast.error('Failed to send OTP. Please try again.');
+      return false;
+    }
+  };
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpEmail.trim()) {
@@ -230,26 +278,20 @@ export default function Auth() {
     }
 
     setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: otpEmail,
-        options: {
-          shouldCreateUser: false
-        }
-      });
-
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('OTP sent to your email! Check your inbox.');
-        setShowOtpVerification(true);
-        setShowForgotPassword(false);
-      }
-    } catch (error) {
-      toast.error('Failed to send OTP. Please try again.');
-    } finally {
-      setIsLoading(false);
+    const success = await sendOTP(otpEmail);
+    if (success) {
+      setShowOtpVerification(true);
+      setShowForgotPassword(false);
     }
+    setIsLoading(false);
+  };
+
+  const handleResendOTP = async () => {
+    if (!canResend || resendCountdown > 0) return;
+    
+    setIsLoading(true);
+    await sendOTP(otpEmail);
+    setIsLoading(false);
   };
 
   const handleOtpVerification = async (e: React.FormEvent) => {
@@ -382,12 +424,31 @@ export default function Auth() {
                 </Button>
               </form>
               
-              {/* Success notification */}
-              <div className="flex items-center justify-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  OTP sent to your email! Check your inbox.
-                </p>
+              {/* Resend OTP Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    OTP sent to {otpEmail}! Check your inbox.
+                  </p>
+                </div>
+                
+                <div className="text-center">
+                  {resendCountdown > 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Didn't receive the code? Resend in {resendCountdown}s
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendOTP}
+                      disabled={isLoading || !canResend}
+                      className="text-sm text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                    >
+                      {isLoading ? 'Sending...' : 'Resend OTP'}
+                    </button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
