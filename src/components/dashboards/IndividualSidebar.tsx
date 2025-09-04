@@ -78,32 +78,32 @@ export function IndividualSidebar() {
 
   return (
     <Sidebar
-      className="border-r bg-background"
+      className="border-r bg-background/95 backdrop-blur-sm"
       collapsible="icon"
       variant="sidebar"
     >
       {/* Mobile/Tablet header with close button */}
-      <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b bg-background lg:hidden">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm">Individual Learning</span>
+      <SidebarHeader className="flex flex-row items-center justify-between p-3 sm:p-4 border-b bg-background/95 lg:hidden">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-semibold text-sm truncate">Individual Learning</span>
         </div>
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => setOpenMobile(false)} 
-          className="h-8 w-8 p-0 hover:bg-muted"
+          className="h-8 w-8 p-0 hover:bg-muted shrink-0"
         >
           <X className="h-4 w-4" />
         </Button>
       </SidebarHeader>
       
-      <SidebarContent className="pt-2 lg:pt-4 bg-background">
+      <SidebarContent className="pt-2 lg:pt-4 bg-background/95">
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? "sr-only" : ""}>
+          <SidebarGroupLabel className={`px-3 py-2 text-sm font-medium ${isCollapsed ? "sr-only" : ""}`}>
             Individual Learning
           </SidebarGroupLabel>
           
-          <SidebarGroupContent>
+          <SidebarGroupContent className="px-2">
             <SidebarMenu className="space-y-1">
               {menuItems.map((item) => {
                 const active = isActive(item.param)
@@ -112,18 +112,16 @@ export function IndividualSidebar() {
                     <SidebarMenuButton 
                       asChild
                       isActive={active}
-                      className="w-full justify-start"
+                      className="w-full justify-start hover:bg-accent/50 data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
                     >
                       <NavLink
                         to={`${item.url}?tab=${item.param}`}
                         onClick={handleItemClick}
-                        className={({ isActive: linkActive }) => 
-                          `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm lg:text-base ${
-                            active ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50"
-                          }`
-                        }
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm lg:text-base min-h-[44px] ${
+                          active ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50"
+                        }`}
                       >
-                        <item.icon className="h-4 w-4 lg:h-5 lg:w-5 flex-shrink-0" />
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
                         <span className={`truncate ${isCollapsed ? "hidden" : ""}`}>{item.title}</span>
                       </NavLink>
                     </SidebarMenuButton>

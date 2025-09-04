@@ -240,12 +240,12 @@ export const IndividualDashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen w-full flex">
+      <div className="min-h-screen w-full flex bg-background">
         {/* Sidebar */}
         <IndividualSidebar />
 
         {/* Main Content */}
-        <main className="flex-1 min-h-screen">
+        <main className="flex-1 min-h-screen overflow-hidden">
           {/* Header with Sidebar Trigger */}
           <header className="sticky top-0 z-50 h-14 md:h-16 flex items-center justify-between border-b px-4 md:px-6 bg-background backdrop-blur-sm shadow-sm">
             <div className="flex items-center gap-3 min-w-0 w-full">
@@ -262,9 +262,11 @@ export const IndividualDashboard = () => {
           </header>
 
           {/* Content */}
-          <div className="pt-4 pb-4 px-4 sm:pt-6 sm:pb-6 sm:px-6 lg:pt-8 lg:pb-8 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              {renderContent()}
+          <div className="h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="p-4 sm:p-6 lg:p-8">
+              <div className="max-w-7xl mx-auto">
+                {renderContent()}
+              </div>
             </div>
           </div>
         </main>
