@@ -43,6 +43,7 @@ interface User {
   role: string;
   status: string;
   created_at: string;
+  auth_id?: string;
 }
 
 export default function OrganizationDetail() {
@@ -99,12 +100,45 @@ export default function OrganizationDetail() {
       // Fetch users
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          id,
+          name,
+          email,
+          role,
+          status,
+          created_at,
+          auth_id
+        `)
         .eq('organization_id', id)
         .order('created_at', { ascending: false });
 
       if (usersError) throw usersError;
-      setUsers(usersData || []);
+
+      // Get real email addresses using edge function
+      const authIds = usersData?.map(user => user.auth_id).filter(Boolean) || [];
+      let usersWithRealEmails = usersData || [];
+
+      if (authIds.length > 0) {
+        try {
+          const { data: emailData, error: emailError } = await supabase.functions.invoke('get-user-emails', {
+            body: { userIds: authIds }
+          });
+
+          if (!emailError && emailData?.emailMapping) {
+            usersWithRealEmails = usersData?.map(user => ({
+              ...user,
+              email: user.auth_id && emailData.emailMapping[user.auth_id] 
+                ? emailData.emailMapping[user.auth_id] 
+                : user.email
+            })) || [];
+          }
+        } catch (error) {
+          console.error('Failed to fetch real emails:', error);
+          // Fall back to existing emails if edge function fails
+        }
+      }
+
+      setUsers(usersWithRealEmails);
 
     } catch (error) {
       console.error('Error fetching organization data:', error);
