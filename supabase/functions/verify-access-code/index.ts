@@ -125,6 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
           role: codeData.role,
           organization_id: codeData.organization_id,
           organization_name: codeData.organizations?.name || 'Unknown Organization',
+          email: codeData.email,
           expires_at: codeData.expires_at
         }
       }),

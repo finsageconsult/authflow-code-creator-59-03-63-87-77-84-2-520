@@ -148,9 +148,15 @@ export default function Auth() {
       const codeData = response.data;
       console.log('Access code verified:', codeData);
 
+      if (!codeData?.email) {
+        console.error('Verified code missing email. Cannot auto-authenticate.');
+        toast.error('This access code is not linked to an email. Please use Email Login.');
+        return;
+      }
+
       // The code is verified, now we need to authenticate the user
       // First, try to sign in with the email from the access code
-      const userEmail = codeData.email;
+      const userEmail = codeData.email as string;
       const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
 
       console.log('Attempting to authenticate user with email:', userEmail);
