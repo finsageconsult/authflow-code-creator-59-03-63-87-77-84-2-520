@@ -196,43 +196,41 @@ export default function Auth() {
       const userEmail = codeData.email as string;
       let userId: string;
 
-      // For existing users, try multiple password patterns that might have been used
-      const passwordVariations = [
-        `temp_${accessCode.trim()}`,
-        `temp_${accessCode.trim()}_default`,
-        `temp_${accessCode.trim()}_retry`,
-        `temp_${accessCode.trim()}_existing`,
-        `temp_${accessCode.trim()}_final`
-      ];
+      // Try to sign up user with access code as password
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: userEmail,
+        password: accessCode.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            name: userEmail.split('@')[0]
+          }
+        }
+      });
 
-      let signInSuccess = false;
-      
-      for (const password of passwordVariations) {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: userEmail,
-          password: password
-        });
-        
-        if (!signInError && signInData.user) {
+      if (signUpError) {
+        if (signUpError.message.includes('already registered')) {
+          // User exists, try to sign in
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: userEmail,
+            password: accessCode.trim()
+          });
+          
+          if (signInError) {
+            toast.error('Account exists but password doesn\'t match access code. Please contact support.');
+            return;
+          }
           userId = signInData.user.id;
-          signInSuccess = true;
-          break;
-        }
-      }
-
-      if (!signInSuccess) {
-        // If all password attempts fail, send password reset
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(userEmail, {
-          redirectTo: `${window.location.origin}/auth?code=${accessCode.trim()}`
-        });
-        
-        if (!resetError) {
-          toast.success('Password reset email sent. Please check your email and follow the link to complete login.');
-          return;
         } else {
-          toast.error('Unable to access account. Please contact support.');
+          toast.error('Unable to create account. Please try again.');
           return;
         }
+      } else {
+        if (!signUpData?.user) {
+          toast.error('Unable to create account. Please try again.');
+          return;
+        }
+        userId = signUpData.user.id;
       }
 
       // Apply role and organization

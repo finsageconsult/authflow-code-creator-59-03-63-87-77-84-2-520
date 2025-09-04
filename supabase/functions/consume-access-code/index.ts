@@ -87,28 +87,63 @@ const handler = async (req: Request): Promise<Response> => {
     // Usage limit disabled — allow unlimited uses
     console.log('Usage limit ignored for access codes', { used: codeData.used_count, max: codeData.max_uses });
 
-    // Update the user's profile with role and organization
-    const { error: updateUserError } = await supabaseAdmin
+    // Check if user exists in users table first
+    const { data: existingUser, error: userCheckError } = await supabaseAdmin
       .from('users')
-      .update({
-        organization_id: organizationId,
-        role: role,
-        status: 'ACTIVE'
-      })
-      .eq('auth_id', userId);
+      .select('id, auth_id')
+      .eq('auth_id', userId)
+      .single();
 
-    if (updateUserError) {
-      console.error("Error updating user profile:", updateUserError);
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Failed to update user profile" 
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+    if (!existingUser && !userCheckError) {
+      // User doesn't exist in users table, create them
+      const { error: createUserError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          auth_id: userId,
+          email: codeData.email,
+          name: codeData.email.split('@')[0],
+          organization_id: organizationId,
+          role: role,
+          status: 'ACTIVE'
+        });
+
+      if (createUserError) {
+        console.error("Error creating user record:", createUserError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "Failed to create user record" 
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+    } else {
+      // Update existing user's role and organization
+      const { error: updateUserError } = await supabaseAdmin
+        .from('users')
+        .update({
+          organization_id: organizationId,
+          role: role,
+          status: 'ACTIVE'
+        })
+        .eq('auth_id', userId);
+
+      if (updateUserError) {
+        console.error("Error updating user profile:", updateUserError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "Failed to update user profile" 
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
     }
 
     // Increment access code usage count
