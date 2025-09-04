@@ -106,7 +106,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
-        user_id: user.id, // Use auth user ID instead of profile user ID
+        user_id: userProfile.id, // Use profile user ID from public.users table
         organization_id: userProfile.organization_id,
         user_type: 'individual',
         service_type: 'tool_purchase',
