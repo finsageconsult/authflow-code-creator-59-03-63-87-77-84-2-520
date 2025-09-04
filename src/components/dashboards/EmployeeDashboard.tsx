@@ -256,7 +256,7 @@ export const EmployeeDashboard = () => {
     }));
   };
 
-  if (!hasCheckedIn) {
+  if (!hasCheckedIn && activeTab === 'dashboard') {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center space-y-2">
