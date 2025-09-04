@@ -14,6 +14,35 @@ html, body {
   box-sizing: border-box;
 }
 
+/* Sidebar Layout Responsive Behavior */
+@media (max-width: 767px) {
+  .sidebar-layout .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .sidebar-layout .sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sidebar-layout .sidebar.collapsed {
+    width: 4rem;
+  }
+  
+  .sidebar-layout .sidebar.expanded {
+    width: 16rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sidebar-layout .sidebar {
+    position: relative;
+    transform: none;
+  }
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

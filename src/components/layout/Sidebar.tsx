@@ -201,67 +201,109 @@ export const Sidebar = () => {
   } = useAuth();
   const currentPath = location.pathname;
   const currentSearch = location.search;
+  
   const isActive = (path: string) => {
     if (path.includes('?')) {
       return currentPath + currentSearch === path;
     }
     return currentPath === path;
   };
-  const getNavCls = ({
-    isActive
-  }: {
-    isActive: boolean;
-  }) => isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50';
 
   // Filter menu items based on user role - use specific menus for admin, hr and coach users
   const currentMenuItems = userProfile?.role === 'ADMIN' ? adminMenuItems : 
                            userProfile?.role === 'HR' ? hrMenuItems :
                            userProfile?.role === 'COACH' ? coachMenuItems : menuItems;
   const filteredMenuItems = currentMenuItems.filter(item => userProfile ? hasRole(userProfile, item.roles) : false);
+  
   const isCollapsed = state === 'collapsed';
+  const isExpanded = state === 'expanded';
+  
   const handleNavClick = (url: string) => {
     if (isMobile && openMobile) {
       setOpenMobile(false);
     }
     navigate(url);
   };
-  return <SidebarComponent 
-    collapsible="icon" 
-    className={`
-      border-r transition-all duration-300 z-30
-      ${isMobile ? 'fixed left-0 top-0 h-screen' : 'fixed left-0 top-0 h-screen'}
-      ${state === 'expanded' ? 'w-64' : 'w-16'}
-      ${isMobile && !openMobile ? '-translate-x-full' : 'translate-x-0'}
-    `}
-  >
-      {/* Mobile header with close button */}
-      <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b lg:hidden">
-        
-        <Button variant="ghost" size="sm" onClick={() => setOpenMobile(false)} className="h-8 w-8 p-0">
-          <X className="h-4 w-4" />
-        </Button>
-      </SidebarHeader>
+
+  return (
+    <>
+      {/* Mobile Overlay */}
+      {isMobile && openMobile && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-fade-in" 
+          onClick={() => setOpenMobile(false)}
+        />
+      )}
       
-      <SidebarContent className="pt-4 overflow-y-auto">
-        <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? 'sr-only' : ''}>
-            Navigation
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {filteredMenuItems.map(item => {
-              const itemUrl = (item as any).getRoleUrl && userProfile ? (item as any).getRoleUrl(userProfile.role) : item.url;
-              const active = isActive(itemUrl);
-              return <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton onClick={() => handleNavClick(itemUrl)} isActive={active} className="w-full justify-start">
-                      <item.icon className="h-4 w-4" />
-                      <span className="truncate">{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>;
-            })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </SidebarComponent>;
+      <SidebarComponent 
+        collapsible="icon" 
+        className={`
+          border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/95
+          transition-all duration-300 ease-in-out z-50
+          ${isMobile 
+            ? `fixed left-0 top-0 h-screen shadow-xl ${openMobile ? 'translate-x-0' : '-translate-x-full'}` 
+            : 'fixed left-0 top-0 h-screen'
+          }
+          ${isExpanded ? 'w-64' : 'w-16'}
+          ${isExpanded ? 'animate-slide-in-right' : ''}
+        `}
+      >
+        {/* Mobile header with close button */}
+        {isMobile && (
+          <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b">
+            <span className="font-semibold text-sm">Menu</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setOpenMobile(false)} 
+              className="h-8 w-8 p-0 hover-scale"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </SidebarHeader>
+        )}
+        
+        <SidebarContent className="overflow-y-auto pt-4">
+          <SidebarGroup>
+            <SidebarGroupLabel className={isCollapsed && !isMobile ? 'sr-only' : 'px-4 pb-2'}>
+              Navigation
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-1 px-2">
+                {filteredMenuItems.map(item => {
+                  const itemUrl = (item as any).getRoleUrl && userProfile ? (item as any).getRoleUrl(userProfile.role) : item.url;
+                  const active = isActive(itemUrl);
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        onClick={() => handleNavClick(itemUrl)} 
+                        isActive={active} 
+                        className={`
+                          w-full justify-start transition-all duration-200 hover-scale
+                          ${active 
+                            ? 'bg-primary text-primary-foreground shadow-sm' 
+                            : 'hover:bg-accent/50'
+                          }
+                          ${isCollapsed && !isMobile ? 'justify-center px-2' : 'justify-start px-3'}
+                        `}
+                        tooltip={isCollapsed && !isMobile ? item.title : undefined}
+                      >
+                        <item.icon className={`h-4 w-4 ${active ? 'text-primary-foreground' : ''}`} />
+                        {(!isCollapsed || isMobile) && (
+                          <span className="truncate ml-3 animate-fade-in">{item.title}</span>
+                        )}
+                        {active && isCollapsed && !isMobile && (
+                          <div className="absolute left-full ml-2 w-2 h-2 bg-primary rounded-full" />
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </SidebarComponent>
+    </>
+  );
 };
