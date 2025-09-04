@@ -613,6 +613,8 @@ export type Database = {
           is_active: boolean | null
           is_premium: boolean | null
           name: string
+          one_time_purchase: boolean | null
+          price: number | null
           tags: string[] | null
           tool_config: Json | null
           tool_type: string
@@ -627,6 +629,8 @@ export type Database = {
           is_active?: boolean | null
           is_premium?: boolean | null
           name: string
+          one_time_purchase?: boolean | null
+          price?: number | null
           tags?: string[] | null
           tool_config?: Json | null
           tool_type: string
@@ -641,6 +645,8 @@ export type Database = {
           is_active?: boolean | null
           is_premium?: boolean | null
           name?: string
+          one_time_purchase?: boolean | null
+          price?: number | null
           tags?: string[] | null
           tool_config?: Json | null
           tool_type?: string
@@ -1525,6 +1531,60 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      tool_purchases: {
+        Row: {
+          access_granted_at: string | null
+          amount_paid: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          order_id: string | null
+          status: string
+          tool_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_granted_at?: string | null
+          amount_paid?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          order_id?: string | null
+          status?: string
+          tool_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_granted_at?: string | null
+          amount_paid?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          order_id?: string | null
+          status?: string
+          tool_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tool_purchases_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tool_purchases_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "financial_tools"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_notification_preferences: {
         Row: {
