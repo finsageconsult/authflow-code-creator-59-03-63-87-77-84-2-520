@@ -182,7 +182,7 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      // Verify access code
+      // Verify access code directly from database
       const { data: response, error: functionError } = await supabase.functions.invoke('verify-access-code', {
         body: { code: accessCode.trim() }
       });
@@ -193,50 +193,43 @@ export default function Auth() {
       }
 
       const codeData = response.data;
-      const userEmail = codeData.email as string;
-      let userId: string;
-
-      // Try to sign up user with access code as password
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: userEmail,
-        password: accessCode.trim(),
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            name: userEmail.split('@')[0]
-          }
-        }
+      
+      // Simple authentication using access code
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: codeData.email,
+        password: accessCode.trim()
       });
 
-      if (signUpError) {
-        if (signUpError.message.includes('already registered')) {
-          // User exists, try to sign in
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email: userEmail,
-            password: accessCode.trim()
-          });
-          
-          if (signInError) {
-            toast.error('Account exists but password doesn\'t match access code. Please contact support.');
-            return;
+      if (authError) {
+        // If sign in fails, try to create account
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: codeData.email,
+          password: accessCode.trim(),
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              name: codeData.email.split('@')[0]
+            }
           }
-          userId = signInData.user.id;
-        } else {
-          toast.error('Unable to create account. Please try again.');
+        });
+
+        if (signUpError) {
+          toast.error('Authentication failed. Please contact support.');
           return;
         }
-      } else {
-        if (!signUpData?.user) {
-          toast.error('Unable to create account. Please try again.');
-          return;
-        }
-        userId = signUpData.user.id;
       }
 
-      // Apply role and organization
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Authentication failed. Please try again.');
+        return;
+      }
+
+      // Update user role and organization in database
       const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
         body: {
-          userId: userId,
+          userId: user.id,
           code: accessCode.trim(),
           role: codeData.role,
           organizationId: codeData.organization_id
@@ -244,7 +237,7 @@ export default function Auth() {
       });
 
       if (consumeError || !consumeResponse?.success) {
-        toast.error('Failed to apply access code. Please try again.');
+        toast.error('Failed to update user role. Please try again.');
         return;
       }
 
@@ -252,7 +245,8 @@ export default function Auth() {
       redirectToDashboard(codeData.role);
       
     } catch (error) {
-      toast.error('Invalid or expired access code');
+      console.error('Access code login error:', error);
+      toast.error('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
