@@ -27,11 +27,19 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <div className="sidebar-layout min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-background">
         <Sidebar />
-        <SidebarInset className="flex-1 flex flex-col">
+        <SidebarInset className="flex-1 flex flex-col min-w-0">
           <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
             <SidebarTrigger className="-ml-1" />
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col">
+                <h1 className="text-lg font-semibold">Finsage</h1>
+                {userProfile?.organization_id && (
+                  <p className="text-sm text-muted-foreground">Dashboard</p>
+                )}
+              </div>
+            </div>
             <div className="ml-auto">
               <TopNav />
             </div>

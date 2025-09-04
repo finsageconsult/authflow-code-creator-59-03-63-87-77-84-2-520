@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { hasRole } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock, HelpCircle } from 'lucide-react';
+
 const menuItems = [{
   title: 'Dashboard',
   url: '/individual-dashboard',
@@ -66,6 +67,7 @@ const menuItems = [{
   icon: Shield,
   roles: ['ADMIN']
 }];
+
 const adminMenuItems = [{
   title: 'Dashboard',
   url: '/admin-dashboard',
@@ -189,10 +191,12 @@ const hrMenuItems = [{
 
 export const Sidebar = () => {
   const {
-    state,
+    open,
+    setOpen,
+    openMobile,
     setOpenMobile,
     isMobile,
-    openMobile
+    state
   } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
@@ -201,48 +205,35 @@ export const Sidebar = () => {
   } = useAuth();
   const currentPath = location.pathname;
   const currentSearch = location.search;
+  
   const isActive = (path: string) => {
     if (path.includes('?')) {
       return currentPath + currentSearch === path;
     }
     return currentPath === path;
   };
-  const getNavCls = ({
-    isActive
-  }: {
-    isActive: boolean;
-  }) => isActive ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50';
 
   // Filter menu items based on user role - use specific menus for admin, hr and coach users
   const currentMenuItems = userProfile?.role === 'ADMIN' ? adminMenuItems : 
                            userProfile?.role === 'HR' ? hrMenuItems :
                            userProfile?.role === 'COACH' ? coachMenuItems : menuItems;
   const filteredMenuItems = currentMenuItems.filter(item => userProfile ? hasRole(userProfile, item.roles) : false);
+  
   const isCollapsed = state === 'collapsed';
+  
   const handleNavClick = (url: string) => {
     if (isMobile && openMobile) {
       setOpenMobile(false);
     }
     navigate(url);
   };
-  return <SidebarComponent 
-    collapsible="icon" 
-    className={`
-      border-r transition-all duration-300 z-30
-      ${isMobile ? 'fixed' : 'relative'}
-      ${state === 'expanded' ? 'w-64' : 'w-16'}
-      ${isMobile && !openMobile ? 'hidden' : 'block'}
-    `}
-  >
-      {/* Mobile header with close button */}
-      <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b lg:hidden">
-        
-        <Button variant="ghost" size="sm" onClick={() => setOpenMobile(false)} className="h-8 w-8 p-0">
-          <X className="h-4 w-4" />
-        </Button>
-      </SidebarHeader>
-      
-      <SidebarContent className="pt-4">
+  
+  return (
+    <SidebarComponent 
+      collapsible="icon" 
+      className="border-r bg-background h-screen sticky top-0"
+    >
+      <SidebarContent className="overflow-y-auto">
         <SidebarGroup>
           <SidebarGroupLabel className={isCollapsed ? 'sr-only' : ''}>
             Navigation
@@ -250,18 +241,25 @@ export const Sidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {filteredMenuItems.map(item => {
-              const itemUrl = (item as any).getRoleUrl && userProfile ? (item as any).getRoleUrl(userProfile.role) : item.url;
-              const active = isActive(itemUrl);
-              return <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton onClick={() => handleNavClick(itemUrl)} isActive={active} className="w-full justify-start">
+                const itemUrl = (item as any).getRoleUrl && userProfile ? (item as any).getRoleUrl(userProfile.role) : item.url;
+                const active = isActive(itemUrl);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      onClick={() => handleNavClick(itemUrl)} 
+                      isActive={active} 
+                      className="w-full justify-start"
+                    >
                       <item.icon className="h-4 w-4" />
                       <span className="truncate">{item.title}</span>
                     </SidebarMenuButton>
-                  </SidebarMenuItem>;
-            })}
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-    </SidebarComponent>;
+    </SidebarComponent>
+  );
 };
