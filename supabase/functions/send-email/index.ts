@@ -77,25 +77,31 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    console.log("Attempting to send email via Resend...");
+    // Send email in background to avoid timeout
+    const emailPromise = async () => {
+      try {
+        console.log("Attempting to send email via Resend...");
+        const emailResponse = await resend.emails.send({
+          from: "Finsage <onboarding@resend.dev>",
+          to: [user.email],
+          subject: "Your Finsage Login Code",
+          html: emailContent,
+        });
+        console.log("Email sent successfully:", emailResponse);
+      } catch (error) {
+        console.error("Error sending email:", error);
+      }
+    };
     
-    // Send email with timeout
-    const emailPromise = resend.emails.send({
-      from: "Finsage <onboarding@resend.dev>",
-      to: [user.email],
-      subject: "Your Finsage Login Code",
-      html: emailContent,
-    });
-    
-    // Add timeout to prevent hanging
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("Email send timeout")), 4000);
-    });
-    
-    const emailResponse = await Promise.race([emailPromise, timeoutPromise]);
-    
-    console.log("Email sent successfully:", emailResponse);
+    // Use background task to send email without blocking response
+    if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
+      EdgeRuntime.waitUntil(emailPromise());
+    } else {
+      // Fallback for local development
+      emailPromise();
+    }
 
+    // Return immediate success response
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
