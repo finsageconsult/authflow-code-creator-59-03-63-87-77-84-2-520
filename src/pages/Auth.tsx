@@ -202,23 +202,105 @@ export default function Auth() {
         return;
       }
 
-      // Send magic link to user's email
-      const { data: magicLinkResponse, error: magicLinkError } = await supabase.functions.invoke('send-magic-link', {
+      const userEmail = codeData.email as string;
+      let userId: string;
+
+      // Check if user is already logged in
+      const { data: existingUser } = await supabase.auth.getUser();
+      
+      if (existingUser.user) {
+        // User is already authenticated
+        userId = existingUser.user.id;
+      } else {
+        // Try to sign in existing user first with various password attempts
+        const passwordVariations = [
+          `temp_${accessCode.trim()}_default`,
+          `temp_${accessCode.trim()}_retry`,
+          `temp_${accessCode.trim()}_existing`
+        ];
+        
+        let signInSuccess = false;
+        
+        for (const password of passwordVariations) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: userEmail,
+            password: password
+          });
+          
+          if (!signInError && signInData.user) {
+            userId = signInData.user.id;
+            signInSuccess = true;
+            console.log('Successfully signed in existing user');
+            break;
+          }
+        }
+
+        if (!signInSuccess) {
+          // Create new user
+          console.log('Creating new user for access code');
+          const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
+          
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: userEmail,
+            password: tempPassword,
+            options: {
+              emailRedirectTo: `${window.location.origin}/`,
+              data: {
+                name: userEmail.split('@')[0]
+              }
+            }
+          });
+
+          if (signUpError) {
+            if (signUpError.message.includes('already registered')) {
+              // Try one more sign in attempt
+              const { data: finalSignIn, error: finalError } = await supabase.auth.signInWithPassword({
+                email: userEmail,
+                password: `temp_${accessCode.trim()}_final`
+              });
+              
+              if (finalError) {
+                toast.error('Unable to access account. Please contact support.');
+                return;
+              }
+              userId = finalSignIn.user.id;
+            } else {
+              console.error('Sign up failed:', signUpError);
+              toast.error('Unable to create account. Please try again.');
+              return;
+            }
+          } else {
+            if (!signUpData?.user) {
+              toast.error('Unable to create account. Please try again.');
+              return;
+            }
+            userId = signUpData.user.id;
+            // Wait for user profile creation
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+
+      // Consume access code to apply role and organization
+      const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
         body: {
-          email: codeData.email,
-          accessCode: accessCode.trim(),
-          organizationName: codeData.organization_name,
-          role: codeData.role
+          userId: userId,
+          code: accessCode.trim(),
+          role: codeData.role,
+          organizationId: codeData.organization_id
         }
       });
 
-      if (magicLinkError || !magicLinkResponse?.success) {
-        console.error('Error sending magic link:', magicLinkError);
-        toast.error('Failed to send login link. Please try again.');
+      if (consumeError || !consumeResponse?.success) {
+        console.error('Error consuming access code:', consumeError);
+        toast.error('Failed to apply access code. Please try again.');
         return;
       }
 
-      toast.success(`Login link sent to ${codeData.email}! Check your email to continue.`);
+      toast.success(`Welcome to ${codeData.organization_name}!`);
+      
+      // Redirect to appropriate dashboard based on role
+      redirectToDashboard(codeData.role);
       
     } catch (error) {
       console.error('Error with access code login:', error);
@@ -271,14 +353,14 @@ export default function Auth() {
                       className="font-mono"
                     />
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      We'll send a login link to the email associated with this code
+                      Enter the access code sent to your email
                     </p>
                   </div>
                   
                   <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading || !accessCode.trim()}>
                     {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     <Key className="w-4 h-4 mr-2" />
-                    <span className="text-sm sm:text-base">Send Login Link</span>
+                    <span className="text-sm sm:text-base">Sign In</span>
                   </Button>
                 </form>
               </TabsContent>
