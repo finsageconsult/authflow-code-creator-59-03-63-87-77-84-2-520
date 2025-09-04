@@ -107,19 +107,19 @@ export function IndividualSidebar() {
       </SidebarHeader>
 
       {/* Desktop header - hidden on mobile */}
-      <SidebarHeader className="hidden lg:block p-4 border-b bg-background/95">
-        <div className="flex items-center gap-3">
+      <SidebarHeader className="hidden lg:block p-2 border-b bg-background/95">
+        <div className="flex items-center gap-2">
           <span className="font-semibold text-base">Individual Learning</span>
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="pt-2 lg:pt-4 bg-background/95">
+      <SidebarContent className="pt-1 bg-background/95">
         <SidebarGroup>
-          <SidebarGroupLabel className={`px-3 py-2 text-sm font-medium ${isCollapsed ? "sr-only" : ""}`}>
+          <SidebarGroupLabel className={`px-2 py-1 text-sm font-medium ${isCollapsed ? "sr-only" : ""}`}>
             Individual Learning
           </SidebarGroupLabel>
           
-          <SidebarGroupContent className="px-2">
+          <SidebarGroupContent className="px-1">
             <SidebarMenu className="space-y-1">
               {menuItems.map((item) => {
                 const active = isActive(item.param)
@@ -133,7 +133,7 @@ export function IndividualSidebar() {
                       <NavLink
                         to={`${item.url}?tab=${item.param}`}
                         onClick={handleItemClick}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm lg:text-base min-h-[44px] ${
+                        className={`flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-sm lg:text-base min-h-[40px] ${
                           active ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50"
                         }`}
                       >
