@@ -148,77 +148,6 @@ export default function Auth() {
       const codeData = response.data;
       console.log('Access code verified:', codeData);
 
-      // Validate email and name are provided
-      if (!accessCodeData.email.trim() || !accessCodeData.name.trim()) {
-        toast.error('Please provide both your email and full name');
-        return;
-      }
-
-      // Use the real email provided by the user
-      const userEmail = accessCodeData.email.trim();
-      const userName = accessCodeData.name.trim();
-      const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
-
-      console.log('Creating account with real email:', userEmail);
-
-      // Try to sign up with real email and provided name
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: userEmail,
-        password: tempPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            name: userName,
-            access_code: accessCode.trim()
-          }
-        }
-      });
-
-      console.log('Signup result:', { signUpData, signUpError });
-
-      if (signUpError) {
-        console.error('Signup error:', signUpError);
-        toast.error(`Failed to create account: ${signUpError.message}`);
-        return;
-      }
-
-      if (!signUpData.user) {
-        console.error('No user created');
-        toast.error('Failed to create user account');
-        return;
-      }
-
-      console.log('User created successfully:', signUpData.user.id);
-
-      // Wait for user creation and then update with access code data
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      console.log('Calling consume-access-code function');
-
-      // Use edge function to consume access code and set role
-      const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
-        body: {
-          userId: signUpData.user.id,
-          code: accessCode.trim(),
-          role: codeData.role,
-          organizationId: codeData.organization_id
-        }
-      });
-
-      console.log('Consume response:', { consumeResponse, consumeError });
-
-      if (consumeError) {
-        console.error('Error consuming access code:', consumeError);
-        toast.error('Failed to set up account with access code.');
-        return;
-      }
-
-      if (!consumeResponse?.success) {
-        console.error('Consume failed:', consumeResponse?.error);
-        toast.error(consumeResponse?.error || 'Failed to set up account with access code.');
-        return;
-      }
-
       toast.success(`Successfully logged in! Welcome to ${codeData.organization_name} as ${codeData.role}`);
       
       // Force immediate navigation to correct dashboard
@@ -287,40 +216,8 @@ export default function Auth() {
                       Enter the access code sent to your email
                     </p>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="accessCodeEmail">Your Email Address</Label>
-                    <Input
-                      id="accessCodeEmail"
-                      type="email"
-                      placeholder="Enter your email address"
-                      value={accessCodeData.email}
-                      onChange={(e) => setAccessCodeData(prev => ({ ...prev, email: e.target.value }))}
-                      required
-                      disabled={isLoading}
-                    />
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Provide your real email address for account creation
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="accessCodeName">Full Name</Label>
-                    <Input
-                      id="accessCodeName"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={accessCodeData.name}
-                      onChange={(e) => setAccessCodeData(prev => ({ ...prev, name: e.target.value }))}
-                      required
-                      disabled={isLoading}
-                    />
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Your name will be displayed in the system
-                    </p>
-                  </div>
                   
-                  <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading || !accessCode.trim() || !accessCodeData.email.trim() || !accessCodeData.name.trim()}>
+                  <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading || !accessCode.trim()}>
                     {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     <Key className="w-4 h-4 mr-2" />
                     <span className="text-sm sm:text-base">Login with Access Code</span>
