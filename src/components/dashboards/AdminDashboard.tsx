@@ -11,7 +11,7 @@ import {
   Users,
   Shield,
   Activity,
-  DollarSign,
+  IndianRupee,
   Calendar
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -103,7 +103,7 @@ export const AdminDashboard = () => {
       title: 'Monthly Revenue',
       value: `₹${stats.monthlyRevenue.toLocaleString('en-IN')}`,
       change: '+15%',
-      icon: DollarSign,
+      icon: IndianRupee,
       color: 'text-orange-600'
     }
   ];
