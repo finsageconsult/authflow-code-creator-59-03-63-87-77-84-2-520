@@ -146,7 +146,8 @@ export default function OrganizationDetail() {
           organization_id: id,
           role: newCode.role,
           expires_at: expiresAt.toISOString(),
-          max_uses: 1
+          max_uses: 1,
+          email: newCode.email
         }
       });
 
