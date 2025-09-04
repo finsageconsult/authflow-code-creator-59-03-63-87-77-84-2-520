@@ -11,12 +11,12 @@ interface AppLayoutProps {
 }
 
 const AppLayoutContent = ({ children }: { children: ReactNode }) => {
-  const { state, isMobile } = useSidebar();
+  const { open, isMobile } = useSidebar();
   
   return (
     <div className="sidebar-layout min-h-screen flex w-full bg-background">
       <Sidebar />
-      <SidebarInset className={`flex-1 flex flex-col transition-all duration-300 ${!isMobile ? (state === 'expanded' ? 'ml-64' : 'ml-16') : 'ml-0'}`}>
+      <SidebarInset className={`flex-1 flex flex-col transition-all duration-300 ${!isMobile ? (open ? 'ml-64' : 'ml-16') : 'ml-0'}`}>
         <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="ml-auto">
