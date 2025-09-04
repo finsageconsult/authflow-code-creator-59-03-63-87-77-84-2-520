@@ -245,31 +245,22 @@ export const IndividualDashboard = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        {/* Mobile Sidebar - overlay behavior */}
-        {isMobile && (
-          <IndividualSidebar />
-        )}
+        {/* Single Sidebar instance for proper state management */}
+        <IndividualSidebar />
 
-        {/* Desktop Sidebar - static positioning for push behavior */}
-        {!isMobile && (
-          <div className="hidden md:block">
-            <IndividualSidebar />
-          </div>
-        )}
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col min-h-screen">
+        {/* Main Content using SidebarInset for proper responsive layout */}
+        <SidebarInset className="flex-1">
           {/* Mobile Header with Hamburger Menu */}
-          <header className="sticky top-0 z-40 h-14 flex items-center justify-between px-4 bg-background border-b md:hidden">
-            <div className="flex items-center gap-3">
-              <SidebarTrigger className="h-8 w-8 p-0">
-                <Menu className="h-4 w-4" />
+          <header className="sticky top-0 z-40 h-12 sm:h-14 flex items-center justify-between px-3 sm:px-4 bg-background border-b md:hidden">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <SidebarTrigger className="h-7 w-7 sm:h-8 sm:w-8 p-0 shrink-0">
+                <Menu className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </SidebarTrigger>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-semibold truncate">
+              <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                <h1 className="text-sm sm:text-lg font-semibold truncate">
                   Welcome, {userProfile?.name?.split(' ')[0]}!
                 </h1>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs hidden sm:inline-flex">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-[10px] sm:text-xs hidden sm:inline-flex shrink-0">
                   Individual Learner  
                 </Badge>
               </div>
@@ -277,24 +268,27 @@ export const IndividualDashboard = () => {
           </header>
 
           {/* Desktop Header */}
-          <header className="hidden md:sticky md:top-0 md:z-40 md:h-14 md:flex md:items-center md:justify-between md:px-6 md:bg-background md:border-b">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-semibold">
+          <header className="hidden md:sticky md:top-0 md:z-40 md:h-14 md:flex md:items-center md:justify-between md:px-4 lg:px-6 md:bg-background md:border-b">
+            <div className="flex items-center gap-2 lg:gap-3">
+              <SidebarTrigger className="h-8 w-8 p-0 lg:hidden">
+                <Menu className="h-4 w-4" />
+              </SidebarTrigger>
+              <h1 className="text-lg lg:text-xl font-semibold">
                 Welcome, {userProfile?.name?.split(' ')[0]}!
               </h1>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-sm">
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs lg:text-sm">
                 Individual Learner  
               </Badge>
             </div>
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 p-4 md:p-6">
+          <main className="flex-1 p-3 sm:p-4 md:p-6">
             <div className="max-w-7xl mx-auto">
               {renderContent()}
             </div>
           </main>
-        </div>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );

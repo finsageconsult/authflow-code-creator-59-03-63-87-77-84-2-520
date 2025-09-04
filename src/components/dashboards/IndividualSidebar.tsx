@@ -79,8 +79,8 @@ export function IndividualSidebar() {
 
   return (
     <Sidebar
-      className="border-r bg-background/95 backdrop-blur-sm"
-      collapsible="none"
+      className="border-r bg-background/95 backdrop-blur-sm md:static md:w-64 lg:w-72"
+      collapsible="icon"
       variant="sidebar"
       side="left"
     >
