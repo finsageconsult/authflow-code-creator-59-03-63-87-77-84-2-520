@@ -12,6 +12,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('get-user-emails function called')
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -24,8 +26,10 @@ serve(async (req) => {
     )
 
     const { userIds } = await req.json()
+    console.log('Parsed userIds:', userIds)
 
     if (!userIds || !Array.isArray(userIds)) {
+      console.error('Invalid userIds:', userIds)
       return new Response(
         JSON.stringify({ error: 'userIds array is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -33,6 +37,7 @@ serve(async (req) => {
     }
 
     // Get user emails from auth.users table
+    console.log('Fetching auth users...')
     const { data: authUsers, error } = await supabaseAdmin.auth.admin.listUsers()
 
     if (error) {
@@ -43,14 +48,21 @@ serve(async (req) => {
       )
     }
 
+    console.log('Auth users fetched:', authUsers?.users?.length, 'users')
+    console.log('Sample auth user:', authUsers?.users?.[0])
+
     // Create mapping of auth_id to real email
     const emailMapping: { [key: string]: string } = {}
     
     authUsers.users.forEach(user => {
+      console.log('Processing user:', user.id, user.email)
       if (userIds.includes(user.id)) {
         emailMapping[user.id] = user.email || ''
+        console.log('Added to mapping:', user.id, '->', user.email)
       }
     })
+
+    console.log('Final email mapping:', emailMapping)
 
     return new Response(
       JSON.stringify({ emailMapping }),

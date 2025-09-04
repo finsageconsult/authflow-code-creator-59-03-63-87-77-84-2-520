@@ -118,24 +118,36 @@ export default function OrganizationDetail() {
       const authIds = usersData?.map(user => user.auth_id).filter(Boolean) || [];
       let usersWithRealEmails = usersData || [];
 
+      console.log('Auth IDs found:', authIds);
+      console.log('Users data before email mapping:', usersData);
+
       if (authIds.length > 0) {
         try {
+          console.log('Calling get-user-emails edge function...');
           const { data: emailData, error: emailError } = await supabase.functions.invoke('get-user-emails', {
             body: { userIds: authIds }
           });
 
+          console.log('Edge function response:', { emailData, emailError });
+
           if (!emailError && emailData?.emailMapping) {
+            console.log('Email mapping received:', emailData.emailMapping);
             usersWithRealEmails = usersData?.map(user => ({
               ...user,
               email: user.auth_id && emailData.emailMapping[user.auth_id] 
                 ? emailData.emailMapping[user.auth_id] 
                 : user.email
             })) || [];
+            console.log('Users with real emails:', usersWithRealEmails);
+          } else {
+            console.error('No email mapping or error occurred:', emailError);
           }
         } catch (error) {
           console.error('Failed to fetch real emails:', error);
           // Fall back to existing emails if edge function fails
         }
+      } else {
+        console.log('No auth IDs found in users data');
       }
 
       setUsers(usersWithRealEmails);
