@@ -439,21 +439,18 @@ export default function Auth() {
                       required
                       disabled={isLoading}
                     />
-                     {!isSignUp && (
-                       <div className="text-right">
-                         <button
-                           type="button"
-                           className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
-                           onClick={() => {
-                             console.log('Forgot password clicked, showForgotPassword:', showForgotPassword);
-                             setShowForgotPassword(true);
-                           }}
-                           disabled={isLoading}
-                         >
-                           Forgot Password?
-                         </button>
-                       </div>
-                     )}
+                    {!isSignUp && (
+                      <div className="text-right">
+                        <button
+                          type="button"
+                          className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={() => setShowForgotPassword(true)}
+                          disabled={isLoading}
+                        >
+                          Forgot Password?
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading}>
@@ -514,10 +511,7 @@ export default function Auth() {
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={() => {
-                      console.log('Cancel button clicked');
-                      setShowForgotPassword(false);
-                    }}
+                    onClick={() => setShowForgotPassword(false)}
                     disabled={isLoading}
                   >
                     Cancel
@@ -526,13 +520,6 @@ export default function Auth() {
               </form>
             </CardContent>
           </Card>
-        )}
-
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-2 bg-gray-100 text-xs">
-            Debug: showForgotPassword={showForgotPassword.toString()}, showOtpVerification={showOtpVerification.toString()}
-          </div>
         )}
 
         {/* OTP Verification Modal */}
