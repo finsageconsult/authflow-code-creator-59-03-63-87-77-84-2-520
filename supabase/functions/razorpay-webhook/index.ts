@@ -232,11 +232,23 @@ async function handleToolPurchase(supabase: any, order: any) {
       return;
     }
 
+    // Get user profile ID from auth user ID
+    const { data: userProfile, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('auth_id', order.user_id)
+      .single();
+
+    if (userError || !userProfile) {
+      console.error("Error getting user profile:", userError);
+      return;
+    }
+
     // Create tool purchase record
     const { error: purchaseError } = await supabase
       .from('tool_purchases')
       .insert({
-        user_id: order.user_id,
+        user_id: userProfile.id, // Use profile ID instead of auth ID
         tool_id: toolId,
         order_id: order.id,
         amount_paid: order.final_amount,
@@ -249,7 +261,7 @@ async function handleToolPurchase(supabase: any, order: any) {
       return;
     }
 
-    console.log(`Tool purchase completed for user ${order.user_id}, tool ${toolId}`);
+    console.log(`Tool purchase completed for user ${userProfile.id}, tool ${toolId}`);
   } catch (error) {
     console.error("Error handling tool purchase:", error);
   }
