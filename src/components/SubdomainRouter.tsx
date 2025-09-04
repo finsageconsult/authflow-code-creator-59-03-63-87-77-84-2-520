@@ -14,6 +14,7 @@ import { CoachDashboard } from '@/components/dashboards/CoachDashboard';
 import { IndividualDashboard } from '@/components/dashboards/IndividualDashboard';
 import Organizations from '@/pages/admin/Organizations';
 import OrganizationDetail from '@/pages/admin/OrganizationDetail';
+import Coaches from '@/pages/admin/Coaches';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { SimpleLayout } from '@/components/layout/SimpleLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -69,6 +70,7 @@ export const SubdomainRouter = () => {
       <Route path="/billing" element={<ProtectedRoute allowedRoles={['ADMIN','HR']}><AppLayout><div>Billing Coming Soon</div></AppLayout></ProtectedRoute>} />
       <Route path="/admin/organizations" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Organizations /></AppLayout></ProtectedRoute>} />
       <Route path="/admin/organizations/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><OrganizationDetail /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin/coaches" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Coaches /></AppLayout></ProtectedRoute>} />
       <Route path="*" element={<Index />} />
     </Routes>
   );

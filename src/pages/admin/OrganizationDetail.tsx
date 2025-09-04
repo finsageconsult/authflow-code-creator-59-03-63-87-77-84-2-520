@@ -97,7 +97,7 @@ export default function OrganizationDetail() {
       if (codesError) throw codesError;
       setAccessCodes(codesData || []);
 
-      // Fetch users with debug logging
+      // Fetch users with debug logging - exclude coaches
       console.log('Fetching users for organization:', id);
       const { data: usersData, error: usersError } = await supabase
         .from('users')
@@ -112,6 +112,7 @@ export default function OrganizationDetail() {
           organization_id
         `)
         .eq('organization_id', id)
+        .neq('role', 'COACH')
         .order('created_at', { ascending: false });
 
       console.log('Users data:', usersData);

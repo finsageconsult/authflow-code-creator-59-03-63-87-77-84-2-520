@@ -91,6 +91,11 @@ const adminMenuItems = [{
   url: '/admin/organizations',
   icon: Shield,
   roles: ['ADMIN']
+}, {
+  title: 'Coaches',
+  url: '/admin/coaches',
+  icon: UserCheck,
+  roles: ['ADMIN']
 }];
 
 const coachMenuItems = [{
