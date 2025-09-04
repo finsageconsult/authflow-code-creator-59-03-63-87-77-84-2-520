@@ -61,20 +61,50 @@ export default function Coaches() {
 
   const fetchCoaches = async () => {
     try {
-      // Fetch coaches with their detailed information
+      // Fetch coaches with basic information first - simplified query
       const { data: coachesData, error: coachesError } = await supabase
         .from('users')
-        .select(
-          `*,
+        .select(`
+          *,
           coaching_offerings(id, title, category, credits_needed, is_active),
-          coaching_sessions(id, status),
-          coach_availability(id, is_available)`
-        )
+          coach_availability(id, is_available)
+        `)
         .eq('role', 'COACH')
         .order('created_at', { ascending: false });
 
       if (coachesError) throw coachesError;
-      setCoaches((coachesData as any) || []);
+      
+      // Process the data and handle any relationship errors
+      if (coachesData && coachesData.length > 0) {
+        const processedCoaches = await Promise.all(
+          coachesData.map(async (coach: any) => {
+            // Fetch coaching sessions separately
+            const { data: sessions } = await supabase
+              .from('coaching_sessions')
+              .select('id, status')
+              .eq('coach_id', coach.id);
+            
+            return {
+              id: coach.id,
+              name: coach.name,
+              email: coach.email,
+              role: coach.role,
+              status: coach.status,
+              created_at: coach.created_at,
+              auth_id: coach.auth_id,
+              avatar_url: coach.avatar_url,
+              organization_id: coach.organization_id,
+              updated_at: coach.updated_at,
+              coaching_offerings: Array.isArray(coach.coaching_offerings) ? coach.coaching_offerings : [],
+              coaching_sessions: sessions || [],
+              coach_availability: Array.isArray(coach.coach_availability) ? coach.coach_availability : []
+            };
+          })
+        );
+        setCoaches(processedCoaches);
+      } else {
+        setCoaches([]);
+      }
     } catch (error) {
       console.error('Error fetching coaches:', error);
       toast({
@@ -93,11 +123,11 @@ export default function Coaches() {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + parseInt(newCode.expiresIn));
 
-      // Use edge function to create access code
+      // Use edge function to create access code with proper null handling
       const { data: codeData, error: codeError } = await supabase.functions.invoke('create-access-code', {
         body: {
           code,
-          organization_id: null, // Coaches are not tied to organizations
+          organization_id: '00000000-0000-0000-0000-000000000000', // Use a placeholder UUID for coaches
           role: 'COACH',
           expires_at: expiresAt.toISOString(),
           max_uses: 1,
@@ -110,11 +140,7 @@ export default function Coaches() {
       // Send email via edge function
       const { data: emailData, error: emailError } = await supabase.functions.invoke('send-access-code', {
         body: {
-          email: newCode.email,
-          code,
-          role: 'COACH',
-          organizationName: null,
-          expiresAt: expiresAt.toISOString()
+          email: newCode.email
         }
       });
 

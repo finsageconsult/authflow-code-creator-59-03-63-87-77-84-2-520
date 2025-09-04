@@ -29,14 +29,40 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Check if an active access code already exists for this email in this organization
-    const { data: existingCodes, error: checkError } = await supabaseAdmin
-      .from('access_codes')
-      .select('id, code, expires_at, email')
-      .eq('organization_id', organization_id)
-      .eq('email', email)
-      .gt('expires_at', new Date().toISOString())
-      .gt('max_uses', 0);
+    // For coaches, use a special placeholder UUID if organization_id is provided as placeholder
+    const actualOrgId = (role === 'COACH' && organization_id === '00000000-0000-0000-0000-000000000000') 
+      ? '00000000-0000-0000-0000-000000000000' 
+      : organization_id;
+
+    // Check if an active access code already exists for this email (for coaches, check globally)
+    let checkError = null;
+    let existingCodes = null;
+    
+    if (role === 'COACH') {
+      // For coaches, check globally across all records with this email
+      const { data, error } = await supabaseAdmin
+        .from('access_codes')
+        .select('id, code, expires_at, email')
+        .eq('email', email)
+        .eq('role', 'COACH')
+        .gt('expires_at', new Date().toISOString())
+        .gt('max_uses', 0);
+      
+      existingCodes = data;
+      checkError = error;
+    } else {
+      // For other roles, check within organization
+      const { data, error } = await supabaseAdmin
+        .from('access_codes')
+        .select('id, code, expires_at, email')
+        .eq('organization_id', actualOrgId)
+        .eq('email', email)
+        .gt('expires_at', new Date().toISOString())
+        .gt('max_uses', 0);
+      
+      existingCodes = data;
+      checkError = error;
+    }
 
     if (checkError) throw checkError;
 
@@ -50,7 +76,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from('access_codes')
       .insert({
         code,
-        organization_id,
+        organization_id: actualOrgId,
         role,
         expires_at,
         max_uses,
