@@ -98,6 +98,31 @@ export const AdminSupportManager = () => {
     };
   };
 
+  const handleViewAttachment = async (attachmentUrl: string) => {
+    try {
+      const { data } = await supabase.storage
+        .from('support-attachments')
+        .createSignedUrl(attachmentUrl, 3600); // 1 hour expiry
+
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to generate download link",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error creating signed URL:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to access attachment",
+        variant: "destructive",
+      });
+    }
+  };
+
   const updateQueryStatus = async (queryId: string, newStatus: string) => {
     try {
       const { error } = await supabase
@@ -262,16 +287,14 @@ export const AdminSupportManager = () => {
                       </TableCell>
                       <TableCell>
                         {query.attachment_url ? (
-                          <a
-                            href={supabase.storage.from('support-attachments').getPublicUrl(query.attachment_url).data.publicUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                          <button
+                            onClick={() => handleViewAttachment(query.attachment_url!)}
+                            className="flex items-center gap-1 text-sm text-primary hover:underline cursor-pointer"
                           >
                             <Paperclip className="w-3 h-3" />
                             View Attachment
                             <ExternalLink className="w-3 h-3" />
-                          </a>
+                          </button>
                         ) : (
                           <span className="text-sm text-muted-foreground">No attachment</span>
                         )}
