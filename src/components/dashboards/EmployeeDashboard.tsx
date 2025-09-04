@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { useAuth } from '@/hooks/useAuth';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Smile, 
   Frown, 
@@ -33,6 +34,8 @@ interface MoodCheckIn {
 
 export const EmployeeDashboard = () => {
   const { userProfile, organization } = useAuth();
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [checkIn, setCheckIn] = useState<MoodCheckIn>({
     mood: null,
     stressLevel: 5,
@@ -42,6 +45,14 @@ export const EmployeeDashboard = () => {
     experienceLevel: 'beginner'
   });
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
+
+  // Set active tab based on URL parameter
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['dashboard', 'analytics', 'credits', 'support'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const moodOptions = [
     { id: 'excited', icon: Smile, label: '😄 Excited!', color: 'text-green-600' },
@@ -426,8 +437,8 @@ export const EmployeeDashboard = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList role="tablist" aria-label="Employee dashboard navigation">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList role="tablist" aria-label="Employee dashboard navigation" className="hidden">
           <TabsTrigger value="dashboard" role="tab" aria-controls="dashboard-panel">Dashboard</TabsTrigger>
           <TabsTrigger value="analytics" role="tab" aria-controls="analytics-panel">My Progress</TabsTrigger>
           <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>

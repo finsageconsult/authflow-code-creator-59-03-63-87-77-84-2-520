@@ -9,15 +9,13 @@ const menuItems = [{
   title: 'Dashboard',
   url: '/individual-dashboard',
   icon: LayoutDashboard,
-  roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL'],
+  roles: ['ADMIN', 'HR', 'COACH', 'INDIVIDUAL'],
   getRoleUrl: (role: string) => {
     switch (role) {
       case 'ADMIN':
         return '/admin-dashboard';
       case 'HR':
         return '/hr-dashboard';
-      case 'EMPLOYEE':
-        return '/employee-dashboard';
       case 'COACH':
         return '/coach-dashboard';
       case 'INDIVIDUAL':
@@ -30,27 +28,22 @@ const menuItems = [{
   title: 'Catalog',
   url: '/catalog',
   icon: BookOpen,
-  roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
+  roles: ['ADMIN', 'HR', 'COACH', 'INDIVIDUAL']
 }, {
   title: 'Coaching',
   url: '/coaching',
   icon: GraduationCap,
-  roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
+  roles: ['ADMIN', 'HR', 'COACH', 'INDIVIDUAL']
 }, {
   title: 'Webinars',
   url: '/webinars',
   icon: Calendar,
-  roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
+  roles: ['ADMIN', 'HR', 'COACH', 'INDIVIDUAL']
 }, {
   title: 'Tools',
   url: '/tools',
   icon: Wrench,
-  roles: ['ADMIN', 'HR', 'EMPLOYEE', 'COACH', 'INDIVIDUAL']
-}, {
-  title: 'Support',
-  url: '/employee-dashboard?tab=support',
-  icon: HelpCircle,
-  roles: ['EMPLOYEE']
+  roles: ['ADMIN', 'HR', 'COACH', 'INDIVIDUAL']
 }, {
   title: 'Team',
   url: '/team',

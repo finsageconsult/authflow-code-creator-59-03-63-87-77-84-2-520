@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CreditWallet, CreditTransaction, CreditType, OwnerType } from '@/types/credits';
 import { useToast } from '@/hooks/use-toast';
 
-export const useCredits = () => {
+const useCredits = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -94,6 +94,8 @@ export const useCredits = () => {
     consumeCredits: consumeCredits.mutate
   };
 };
+
+export { useCredits };
 
 // Hook for HR/Admin credit management
 export const useCreditManagement = () => {
