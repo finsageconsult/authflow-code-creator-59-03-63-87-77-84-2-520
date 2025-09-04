@@ -8,7 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { signOut } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -39,7 +38,6 @@ export const TopNav = () => {
   return (
     <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
-        <SidebarTrigger />
         <div className="flex flex-col">
           <h1 className="text-lg font-semibold">Finsage</h1>
           {organization && (
