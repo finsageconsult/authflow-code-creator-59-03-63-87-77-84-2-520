@@ -164,8 +164,11 @@ async function handlePaymentCaptured(supabase: any, payment: any) {
     return;
   }
 
-  // Handle different user types
-  if (orderData.user_type === 'EMPLOYEE') {
+  // Handle different service types
+  if (orderData.service_type === 'tool_purchase') {
+    // Handle tool purchase
+    await handleToolPurchase(supabase, orderData);
+  } else if (orderData.user_type === 'EMPLOYEE') {
     // Create credits for employee
     await createCreditsForEmployee(supabase, orderData);
   }
@@ -217,6 +220,39 @@ async function handlePaymentFailed(supabase: any, payment: any) {
   await sendPaymentFailureEmail(supabase, orderData, paymentData);
   
   console.log("Payment failure handled");
+}
+
+async function handleToolPurchase(supabase: any, order: any) {
+  try {
+    console.log("Processing tool purchase for order:", order.id);
+    
+    const toolId = order.metadata?.tool_id;
+    if (!toolId) {
+      console.error("No tool_id found in order metadata");
+      return;
+    }
+
+    // Create tool purchase record
+    const { error: purchaseError } = await supabase
+      .from('tool_purchases')
+      .insert({
+        user_id: order.user_id,
+        tool_id: toolId,
+        order_id: order.id,
+        amount_paid: order.final_amount,
+        status: 'completed',
+        access_granted_at: new Date().toISOString()
+      });
+
+    if (purchaseError) {
+      console.error("Error creating tool purchase:", purchaseError);
+      return;
+    }
+
+    console.log(`Tool purchase completed for user ${order.user_id}, tool ${toolId}`);
+  } catch (error) {
+    console.error("Error handling tool purchase:", error);
+  }
 }
 
 async function createCreditsForEmployee(supabase: any, order: any) {
