@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Clock, CheckCircle } from 'lucide-react';
+import { Plus, Clock, CheckCircle, Paperclip, Download } from 'lucide-react';
 
 interface SupportQuery {
   id: string;
@@ -16,6 +16,7 @@ interface SupportQuery {
   status: string;
   created_at: string;
   role: string;
+  attachment_url?: string;
 }
 
 export const SupportQuery = () => {
@@ -27,6 +28,8 @@ export const SupportQuery = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (userProfile) {
@@ -87,12 +90,38 @@ export const SupportQuery = () => {
     };
   };
 
+  const uploadAttachment = async (file: File): Promise<string | null> => {
+    if (!userProfile) return null;
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userProfile.id}/${Date.now()}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from('support-attachments')
+      .upload(fileName, file);
+
+    if (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
+
+    return data.path;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userProfile || !title.trim() || !description.trim()) return;
 
     setSubmitting(true);
     try {
+      let attachmentPath: string | null = null;
+
+      // Upload attachment if present
+      if (attachment) {
+        setUploading(true);
+        attachmentPath = await uploadAttachment(attachment);
+      }
+
       const { error } = await supabase
         .from('support_queries')
         .insert({
@@ -100,6 +129,7 @@ export const SupportQuery = () => {
           role: userProfile.role,
           title: title.trim(),
           description: description.trim(),
+          attachment_url: attachmentPath,
         });
 
       if (error) throw error;
@@ -111,6 +141,7 @@ export const SupportQuery = () => {
 
       setTitle('');
       setDescription('');
+      setAttachment(null);
       setShowForm(false);
       fetchQueries();
     } catch (error) {
@@ -122,6 +153,7 @@ export const SupportQuery = () => {
       });
     } finally {
       setSubmitting(false);
+      setUploading(false);
     }
   };
 
@@ -194,9 +226,31 @@ export const SupportQuery = () => {
                 />
               </div>
 
+              <div>
+                <label htmlFor="attachment" className="block text-sm font-medium mb-2">
+                  Attachment (optional)
+                </label>
+                <Input
+                  id="attachment"
+                  type="file"
+                  onChange={(e) => setAttachment(e.target.files?.[0] || null)}
+                  className="cursor-pointer"
+                  accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.txt"
+                />
+                {attachment && (
+                  <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Paperclip className="w-4 h-4" />
+                    {attachment.name}
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-2">
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Submitting...' : 'Submit Query'}
+                <Button type="submit" disabled={submitting || uploading}>
+                  {submitting || uploading ? 
+                    (uploading ? 'Uploading...' : 'Submitting...') : 
+                    'Submit Query'
+                  }
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                   Cancel
@@ -241,6 +295,20 @@ export const SupportQuery = () => {
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {query.description}
                 </p>
+                {query.attachment_url && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <Paperclip className="w-4 h-4 text-muted-foreground" />
+                    <a
+                      href={`${supabase.storage.from('support-attachments').getPublicUrl(query.attachment_url).data.publicUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline flex items-center gap-1"
+                    >
+                      View Attachment
+                      <Download className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))
