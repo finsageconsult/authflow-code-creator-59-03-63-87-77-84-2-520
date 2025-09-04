@@ -161,6 +161,7 @@ const hrMenuItems = [{
   icon: FileText,
   roles: ['HR']
 }];
+
 export const Sidebar = () => {
   const {
     state,
@@ -199,7 +200,15 @@ export const Sidebar = () => {
     }
     navigate(url);
   };
-  return <SidebarComponent collapsible="icon" className="border-r data-[state=expanded]:w-64 data-[state=collapsed]:w-16 transition-all duration-300">
+  return <SidebarComponent 
+    collapsible="icon" 
+    className={`
+      border-r transition-all duration-300 z-30
+      ${isMobile ? 'fixed' : 'relative'}
+      ${state === 'expanded' ? 'w-64' : 'w-16'}
+      ${isMobile && !openMobile ? 'hidden' : 'block'}
+    `}
+  >
       {/* Mobile header with close button */}
       <SidebarHeader className="flex flex-row items-center justify-between p-4 border-b lg:hidden">
         
