@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { useIndividualPrograms } from '@/hooks/useIndividualPrograms';
 import { MoodCheckIn } from '@/components/MoodCheckIn';
@@ -12,7 +11,6 @@ import { PaymentButton } from '@/components/individual/PaymentButton';
 import { ToolShortcuts } from '@/components/individual/ToolShortcuts';
 import { SecureQuestionnaireForm } from '@/components/security/SecureQuestionnaireForm';
 import { ConsentManager } from '@/components/privacy/ConsentManager';
-import { IndividualSidebar } from './IndividualSidebar';
 import { 
   BookOpen, 
   GraduationCap,
@@ -239,38 +237,21 @@ export const IndividualDashboard = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen w-full flex bg-background">
-        {/* Sidebar */}
-        <IndividualSidebar />
-
-        {/* Main Content */}
-        <main className="flex-1 min-h-screen overflow-hidden">
-          {/* Header with Sidebar Trigger */}
-          <header className="sticky top-0 z-50 h-14 md:h-16 flex items-center justify-between border-b px-4 md:px-6 bg-background backdrop-blur-sm shadow-sm">
-            <div className="flex items-center gap-3 min-w-0 w-full">
-              <SidebarTrigger className="lg:hidden shrink-0" />
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0">
-                <h1 className="text-base md:text-lg lg:text-xl xl:text-2xl font-bold truncate">
-                  Welcome, {userProfile?.name?.split(' ')[0]}!
-                </h1>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs shrink-0 w-fit">
-                  Individual Learner
-                </Badge>
-              </div>
-            </div>
-          </header>
-
-          {/* Content */}
-          <div className="h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)] overflow-y-auto">
-            <div className="p-4 sm:p-6 lg:p-8">
-              <div className="max-w-7xl mx-auto">
-                {renderContent()}
-              </div>
-            </div>
-          </div>
-        </main>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 pb-4 border-b">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl lg:text-3xl font-bold">
+            Welcome, {userProfile?.name?.split(' ')[0]}!
+          </h1>
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
+            Individual Learner
+          </Badge>
+        </div>
       </div>
-    </SidebarProvider>
+
+      {/* Content */}
+      {renderContent()}
+    </div>
   );
 };
