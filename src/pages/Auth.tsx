@@ -194,6 +194,7 @@ export default function Auth() {
 
       const codeData = response.data;
       const userEmail = codeData.email as string;
+      let userId: string;
 
       // Try to sign in existing user first
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -201,13 +202,11 @@ export default function Auth() {
         password: `temp_${accessCode.trim()}`
       });
 
-      let userId: string;
-
       if (!signInError && signInData.user) {
         // User exists and signed in successfully
         userId = signInData.user.id;
       } else {
-        // Create new user
+        // Create new user if sign in failed
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: userEmail,
           password: `temp_${accessCode.trim()}`,
@@ -220,19 +219,24 @@ export default function Auth() {
         });
 
         if (signUpError) {
-          if (signUpError.message.includes('already registered')) {
-            toast.error('Account exists. Please use regular login.');
+          // If user already exists, try signing in with different password pattern
+          const { data: retrySignIn, error: retryError } = await supabase.auth.signInWithPassword({
+            email: userEmail,
+            password: `temp_${accessCode.trim()}_retry`
+          });
+          
+          if (!retryError && retrySignIn.user) {
+            userId = retrySignIn.user.id;
+          } else {
+            toast.error('Unable to access account. Please contact support.');
             return;
           }
+        } else if (!signUpData?.user) {
           toast.error('Unable to create account. Please try again.');
           return;
+        } else {
+          userId = signUpData.user.id;
         }
-
-        if (!signUpData?.user) {
-          toast.error('Unable to create account. Please try again.');
-          return;
-        }
-        userId = signUpData.user.id;
       }
 
       // Apply role and organization
@@ -259,6 +263,7 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
