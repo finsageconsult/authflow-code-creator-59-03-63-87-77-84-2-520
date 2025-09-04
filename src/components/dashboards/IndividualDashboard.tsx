@@ -247,7 +247,7 @@ export const IndividualDashboard = () => {
         {/* Main Content */}
         <main className="flex-1 min-h-screen">
           {/* Header with Sidebar Trigger */}
-          <header className="sticky top-0 z-40 h-14 md:h-16 flex items-center justify-between border-b px-4 md:px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-50 h-14 md:h-16 flex items-center justify-between border-b px-4 md:px-6 bg-background backdrop-blur-sm shadow-sm">
             <div className="flex items-center gap-3 min-w-0 w-full">
               <SidebarTrigger className="lg:hidden shrink-0" />
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0">
@@ -262,7 +262,7 @@ export const IndividualDashboard = () => {
           </header>
 
           {/* Content */}
-          <div className="p-4 sm:p-6 lg:p-8">
+          <div className="pt-4 pb-4 px-4 sm:pt-6 sm:pb-6 sm:px-6 lg:pt-8 lg:pb-8 lg:px-8">
             <div className="max-w-7xl mx-auto">
               {renderContent()}
             </div>
