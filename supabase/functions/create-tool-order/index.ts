@@ -64,15 +64,18 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Get user profile
+    console.log("Getting user profile for auth_id:", user.id);
     const { data: userProfile, error: profileError } = await supabase
       .from('users')
       .select('*')
       .eq('auth_id', user.id)
-      .single();
+      .maybeSingle();
 
+    console.log("User profile result:", { userProfile, profileError });
     if (profileError || !userProfile) {
+      console.error("User profile error:", profileError);
       return new Response(
-        JSON.stringify({ error: "User profile not found" }),
+        JSON.stringify({ error: "User profile not found", details: profileError?.message }),
         { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -83,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
       .select('*')
       .eq('id', toolId)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (toolError || !tool) {
       return new Response(
@@ -133,6 +136,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Create Razorpay order
+    console.log("Creating Razorpay order with amount:", totalAmount);
     const razorpayAuth = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
     
     const razorpayResponse = await fetch('https://api.razorpay.com/v1/orders', {
@@ -154,15 +158,19 @@ const handler = async (req: Request): Promise<Response> => {
       })
     });
 
+    console.log("Razorpay response status:", razorpayResponse.status);
     if (!razorpayResponse.ok) {
       const errorText = await razorpayResponse.text();
-      console.error("Razorpay API error:", errorText);
+      console.error("Razorpay API error:", { status: razorpayResponse.status, error: errorText });
       
       // Clean up the order we created
       await supabase.from('orders').delete().eq('id', orderData.id);
       
       return new Response(
-        JSON.stringify({ error: "Failed to create payment order" }),
+        JSON.stringify({ 
+          error: "Failed to create payment order", 
+          details: `Razorpay API returned ${razorpayResponse.status}: ${errorText}`
+        }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }

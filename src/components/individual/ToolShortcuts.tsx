@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { ToolPaymentModal } from './ToolPaymentModal';
 import { useToast } from '@/hooks/use-toast';
+import { RazorpayTest } from '../RazorpayTest';
 
 const iconMap = {
   'calculator': Calculator,
@@ -170,6 +171,12 @@ export const ToolShortcuts = () => {
 
   return (
     <>
+      {/* Temporary Debug Component */}
+      <div className="mb-4 bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+        <h3 className="text-sm font-medium text-yellow-800 mb-2">🔧 Debug: Test Razorpay API Keys</h3>
+        <RazorpayTest />
+      </div>
+
       <Card>
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
