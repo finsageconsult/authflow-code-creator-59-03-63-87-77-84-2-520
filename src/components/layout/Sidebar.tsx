@@ -161,9 +161,14 @@ const hrMenuItems = [{
   icon: CreditCard,
   roles: ['HR']
 }, {
+  title: 'Webinars',
+  url: '/webinars',
+  icon: Calendar,
+  roles: ['HR']
+}, {
   title: 'Calendar',
   url: '/hr-dashboard/calendar',
-  icon: Calendar,
+  icon: Clock,
   roles: ['HR']
 }, {
   title: 'Insights',

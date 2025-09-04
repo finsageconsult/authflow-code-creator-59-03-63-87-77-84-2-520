@@ -20,6 +20,7 @@ import { SimpleLayout } from '@/components/layout/SimpleLayout';
 import { EmployeeLayout } from '@/components/layout/EmployeeLayout';
 import { RoleBasedLayout } from '@/components/layout/RoleBasedLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { WebinarsView } from '@/components/webinars/WebinarsView';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
@@ -66,7 +67,7 @@ export const SubdomainRouter = () => {
       <Route path="/individual-dashboard" element={<ProtectedRoute allowedRoles={['INDIVIDUAL']}><SimpleLayout><IndividualDashboard /></SimpleLayout></ProtectedRoute>} />
       <Route path="/catalog" element={<ProtectedRoute><RoleBasedLayout><div>Catalog Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/coaching" element={<ProtectedRoute><RoleBasedLayout><div>Coaching Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
-      <Route path="/webinars" element={<ProtectedRoute><RoleBasedLayout><div>Webinars Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
+      <Route path="/webinars" element={<ProtectedRoute><RoleBasedLayout><WebinarsView /></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/tools" element={<ProtectedRoute><RoleBasedLayout><div>Tools Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/team" element={<ProtectedRoute allowedRoles={['ADMIN','HR']}><AppLayout><div>Team Coming Soon</div></AppLayout></ProtectedRoute>} />
       <Route path="/billing" element={<ProtectedRoute allowedRoles={['ADMIN','HR']}><AppLayout><div>Billing Coming Soon</div></AppLayout></ProtectedRoute>} />
