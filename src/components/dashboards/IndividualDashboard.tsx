@@ -140,7 +140,7 @@ export const IndividualDashboard = () => {
                   </Button>
                 </div>
 
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                   {allContent.map((program) => (
                     <Card key={program.id} className="relative hover:shadow-md transition-shadow h-full">
                       <CardContent className="p-4 h-full flex flex-col">
@@ -241,7 +241,7 @@ export const IndividualDashboard = () => {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex w-full min-h-screen">
         {/* Mobile Header with Hamburger Menu */}
         <header className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 bg-background border-b lg:hidden">
@@ -264,8 +264,8 @@ export const IndividualDashboard = () => {
         <IndividualSidebar />
 
         {/* Main Content */}
-        <main className="flex-1 pt-14 lg:pt-0 p-4 lg:p-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 pt-14 lg:pt-0 p-4 lg:p-6 min-w-0 max-w-full overflow-x-hidden">
+          <div className="max-w-7xl mx-auto w-full">
             {renderContent()}
           </div>
         </main>
