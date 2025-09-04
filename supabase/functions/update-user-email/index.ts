@@ -12,6 +12,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('update-user-email function called')
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -23,37 +25,49 @@ serve(async (req) => {
       }
     )
 
-    const { userIds } = await req.json()
+    const { userId, newEmail } = await req.json()
+    console.log('Updating email for user:', userId, 'to:', newEmail)
 
-    if (!userIds || !Array.isArray(userIds)) {
+    if (!userId || !newEmail) {
       return new Response(
-        JSON.stringify({ error: 'userIds array is required' }),
+        JSON.stringify({ error: 'userId and newEmail are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Get user emails from auth.users table
-    const { data: authUsers, error } = await supabaseAdmin.auth.admin.listUsers()
+    // Update email in auth.users table
+    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+      userId,
+      { email: newEmail }
+    )
 
-    if (error) {
-      console.error('Error fetching auth users:', error)
+    if (authError) {
+      console.error('Error updating auth user email:', authError)
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch user emails' }),
+        JSON.stringify({ error: 'Failed to update user email' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Create mapping of auth_id to real email
-    const emailMapping: { [key: string]: string } = {}
-    
-    authUsers.users.forEach(user => {
-      if (userIds.includes(user.id)) {
-        emailMapping[user.id] = user.email || ''
-      }
-    })
+    // Also update in public.users table
+    const { data: publicUser, error: publicError } = await supabaseAdmin
+      .from('users')
+      .update({ email: newEmail })
+      .eq('auth_id', userId)
+
+    if (publicError) {
+      console.error('Error updating public user email:', publicError)
+      // Don't fail completely if public update fails, auth is primary
+    }
+
+    console.log('Email updated successfully for user:', userId)
 
     return new Response(
-      JSON.stringify({ emailMapping }),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Email updated successfully',
+        user: authUser.user 
+      }),
       { 
         status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -61,7 +75,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error in get-user-emails function:', error)
+    console.error('Error in update-user-email function:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

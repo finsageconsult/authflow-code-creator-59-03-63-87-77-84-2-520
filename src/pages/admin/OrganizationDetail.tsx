@@ -118,36 +118,24 @@ export default function OrganizationDetail() {
       const authIds = usersData?.map(user => user.auth_id).filter(Boolean) || [];
       let usersWithRealEmails = usersData || [];
 
-      console.log('Auth IDs found:', authIds);
-      console.log('Users data before email mapping:', usersData);
-
       if (authIds.length > 0) {
         try {
-          console.log('Calling get-user-emails edge function...');
           const { data: emailData, error: emailError } = await supabase.functions.invoke('get-user-emails', {
             body: { userIds: authIds }
           });
 
-          console.log('Edge function response:', { emailData, emailError });
-
           if (!emailError && emailData?.emailMapping) {
-            console.log('Email mapping received:', emailData.emailMapping);
             usersWithRealEmails = usersData?.map(user => ({
               ...user,
               email: user.auth_id && emailData.emailMapping[user.auth_id] 
                 ? emailData.emailMapping[user.auth_id] 
                 : user.email
             })) || [];
-            console.log('Users with real emails:', usersWithRealEmails);
-          } else {
-            console.error('No email mapping or error occurred:', emailError);
           }
         } catch (error) {
           console.error('Failed to fetch real emails:', error);
           // Fall back to existing emails if edge function fails
         }
-      } else {
-        console.log('No auth IDs found in users data');
       }
 
       setUsers(usersWithRealEmails);
@@ -405,6 +393,14 @@ export default function OrganizationDetail() {
       <Card>
         <CardHeader>
           <CardTitle>Organization Users</CardTitle>
+          {users.some(user => user.email.includes('@temp.finsage.com')) && (
+            <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-md">
+              <p className="text-sm text-orange-800">
+                ⚠️ Some users are using temporary email addresses. These users signed up with access codes using temporary emails. 
+                To show real emails, users need to update their email addresses in their profile settings.
+              </p>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <Table>
@@ -418,23 +414,35 @@ export default function OrganizationDetail() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge className={getRoleColor(user.role)}>
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(user.status)}>
-                      {user.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                </TableRow>
-              ))}
+              {users.map((user) => {
+                const isTempEmail = user.email.includes('@temp.finsage.com');
+                return (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {user.email}
+                        {isTempEmail && (
+                          <Badge variant="outline" className="text-orange-600 border-orange-200">
+                            Temporary
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getRoleColor(user.role)}>
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(user.status)}>
+                        {user.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
