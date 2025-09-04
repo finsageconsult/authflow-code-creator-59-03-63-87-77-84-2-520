@@ -160,61 +160,90 @@ export default function Auth() {
     try {
       console.log('Starting access code login with code:', accessCode.trim());
       
-      // Call edge function to verify access code
+      // Verify access code
       const { data: response, error: functionError } = await supabase.functions.invoke('verify-access-code', {
         body: { code: accessCode.trim() }
       });
 
       if (functionError || !response?.success) {
-        toast.error(response?.error || 'Invalid access code. Please check and try again.');
+        toast.error('Invalid or expired access code');
         return;
       }
 
       const codeData = response.data;
       console.log('Access code verified:', codeData);
 
-      // Try to sign in with magic link (existing user)
-      const { error: magicLinkError } = await supabase.auth.signInWithOtp({
-        email: codeData.email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth?access_code=${accessCode.trim()}`
+      if (!codeData?.email) {
+        toast.error('Invalid or expired access code');
+        return;
+      }
+
+      const userEmail = codeData.email as string;
+
+      // Try to sign in existing user first
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: `temp_${accessCode.trim()}_default`
+      });
+
+      let userId: string;
+
+      if (signInError) {
+        // User doesn't exist or wrong password, create new user
+        console.log('Creating new user for access code');
+        const tempPassword = `temp_${accessCode.trim()}_${Date.now()}`;
+        
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: userEmail,
+          password: tempPassword,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              name: userEmail.split('@')[0]
+            }
+          }
+        });
+
+        if (signUpError) {
+          console.error('Sign up failed:', signUpError);
+          toast.error('Invalid or expired access code');
+          return;
+        }
+
+        if (!signUpData?.user) {
+          toast.error('Invalid or expired access code');
+          return;
+        }
+
+        userId = signUpData.user.id;
+        // Wait for user profile creation
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        userId = signInData.user.id;
+      }
+
+      // Consume access code
+      const { data: consumeResponse, error: consumeError } = await supabase.functions.invoke('consume-access-code', {
+        body: {
+          userId: userId,
+          code: accessCode.trim(),
+          role: codeData.role,
+          organizationId: codeData.organization_id
         }
       });
 
-      if (!magicLinkError) {
-        toast.success(`A sign-in link has been sent to ${codeData.email}. Click the link to sign in and your access code will be automatically applied.`);
+      if (consumeError || !consumeResponse?.success) {
+        console.error('Error consuming access code:', consumeError);
+        toast.error('Invalid or expired access code');
         return;
       }
 
-      // If magic link fails due to rate limiting or user doesn't exist, handle it
-      if (magicLinkError.message.includes('rate_limit')) {
-        toast.error('Too many email requests. Please wait a moment and try again, or use the Email Login tab.');
-        setActiveTab('email');
-        
-        // Store access code for manual login
-        sessionStorage.setItem('pendingAccessCode', JSON.stringify({
-          code: accessCode.trim(),
-          role: codeData.role,
-          organizationId: codeData.organization_id,
-          organizationName: codeData.organization_name
-        }));
-        return;
-      }
-
-      toast.error('Please use the Email Login tab to sign in with your existing password.');
-      setActiveTab('email');
-      
-      // Store access code for manual login
-      sessionStorage.setItem('pendingAccessCode', JSON.stringify({
-        code: accessCode.trim(),
-        role: codeData.role,
-        organizationId: codeData.organization_id,
-        organizationName: codeData.organization_name
-      }));
+      toast.success(`Welcome to ${codeData.organization_name}!`);
+      // Redirect will happen automatically via auth state change
       
     } catch (error) {
       console.error('Error with access code login:', error);
-      toast.error('Failed to login with access code. Please try again.');
+      toast.error('Invalid or expired access code');
     } finally {
       setIsLoading(false);
     }
@@ -270,7 +299,7 @@ export default function Auth() {
                   <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading || !accessCode.trim()}>
                     {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     <Key className="w-4 h-4 mr-2" />
-                    <span className="text-sm sm:text-base">Login with Access Code</span>
+                    <span className="text-sm sm:text-base">Sign In</span>
                   </Button>
                 </form>
               </TabsContent>
