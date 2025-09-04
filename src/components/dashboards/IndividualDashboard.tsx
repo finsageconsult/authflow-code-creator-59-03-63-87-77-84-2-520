@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { useIndividualPrograms } from '@/hooks/useIndividualPrograms';
 import { MoodCheckIn } from '@/components/MoodCheckIn';
@@ -242,9 +242,13 @@ export const IndividualDashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex w-full min-h-screen">
+      {/* Sidebar */}
+      <IndividualSidebar />
+
+      {/* Main Content using SidebarInset for proper layout */}
+      <SidebarInset>
         {/* Mobile Header with Hamburger Menu */}
-        <header className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 bg-background border-b lg:hidden">
+        <header className="sticky top-0 z-40 h-14 flex items-center justify-between px-4 bg-background border-b lg:hidden">
           <div className="flex items-center gap-3">
             <SidebarTrigger className="h-8 w-8 p-0">
               <Menu className="h-4 w-4" />
@@ -260,16 +264,30 @@ export const IndividualDashboard = () => {
           </div>
         </header>
 
-        {/* Sidebar */}
-        <IndividualSidebar />
+        {/* Desktop Header with Hamburger Menu */}
+        <header className="hidden lg:sticky lg:top-0 lg:z-40 lg:h-14 lg:flex lg:items-center lg:justify-between lg:px-6 lg:bg-background lg:border-b">
+          <div className="flex items-center gap-3">
+            <SidebarTrigger className="h-8 w-8 p-0">
+              <Menu className="h-4 w-4" />
+            </SidebarTrigger>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold">
+                Welcome, {userProfile?.name?.split(' ')[0]}!
+              </h1>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-sm">
+                Individual Learner  
+              </Badge>
+            </div>
+          </div>
+        </header>
 
-        {/* Main Content - responsive to sidebar state */}
-        <main className="flex-1 pt-14 lg:pt-0 p-4 lg:p-6 transition-all duration-200">
+        {/* Main Content */}
+        <main className="flex-1 p-4 lg:p-6">
           <div className="max-w-7xl mx-auto">
             {renderContent()}
           </div>
         </main>
-      </div>
+      </SidebarInset>
     </SidebarProvider>
   );
 };
