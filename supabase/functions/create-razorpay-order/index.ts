@@ -72,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from('users')
       .select('*')
       .eq('auth_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileError || !userProfile) {
       return new Response(
@@ -92,7 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
-        user_id: userProfile.id,
+        user_id: user.id, // Use auth user ID instead of profile user ID
         organization_id: organizationId || userProfile.organization_id,
         user_type: userType.toLowerCase() as any,
         service_type: serviceType,
