@@ -27,8 +27,10 @@ import {
   CreditCard,
   Menu
 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const IndividualDashboard = () => {
+  const isMobile = useIsMobile();
   const { userProfile } = useAuth();
   const { programs, purchases, loading, formatPrice, isPurchased, getPurchaseByProgram, getFilteredPrograms, refetch } = useIndividualPrograms();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'course' | 'coaching'>('all');
@@ -242,34 +244,40 @@ export const IndividualDashboard = () => {
 
   return (
     <SidebarProvider>
-      {/* Sidebar */}
-      <IndividualSidebar />
+      <div className="min-h-screen flex w-full">
+        {/* Mobile Sidebar - overlay behavior */}
+        {isMobile && (
+          <IndividualSidebar />
+        )}
 
-      {/* Main Content using SidebarInset for proper layout */}
-      <SidebarInset>
-        {/* Mobile Header with Hamburger Menu */}
-        <header className="sticky top-0 z-40 h-14 flex items-center justify-between px-4 bg-background border-b lg:hidden">
-          <div className="flex items-center gap-3">
-            <SidebarTrigger className="h-8 w-8 p-0">
-              <Menu className="h-4 w-4" />
-            </SidebarTrigger>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold truncate">
-                Welcome, {userProfile?.name?.split(' ')[0]}!
-              </h1>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs hidden sm:inline-flex">
-                Individual Learner  
-              </Badge>
-            </div>
+        {/* Desktop Sidebar - static positioning for push behavior */}
+        {!isMobile && (
+          <div className="hidden md:block">
+            <IndividualSidebar />
           </div>
-        </header>
+        )}
 
-        {/* Desktop Header with Hamburger Menu */}
-        <header className="hidden lg:sticky lg:top-0 lg:z-40 lg:h-14 lg:flex lg:items-center lg:justify-between lg:px-6 lg:bg-background lg:border-b">
-          <div className="flex items-center gap-3">
-            <SidebarTrigger className="h-8 w-8 p-0">
-              <Menu className="h-4 w-4" />
-            </SidebarTrigger>
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-h-screen">
+          {/* Mobile Header with Hamburger Menu */}
+          <header className="sticky top-0 z-40 h-14 flex items-center justify-between px-4 bg-background border-b md:hidden">
+            <div className="flex items-center gap-3">
+              <SidebarTrigger className="h-8 w-8 p-0">
+                <Menu className="h-4 w-4" />
+              </SidebarTrigger>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-semibold truncate">
+                  Welcome, {userProfile?.name?.split(' ')[0]}!
+                </h1>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs hidden sm:inline-flex">
+                  Individual Learner  
+                </Badge>
+              </div>
+            </div>
+          </header>
+
+          {/* Desktop Header */}
+          <header className="hidden md:sticky md:top-0 md:z-40 md:h-14 md:flex md:items-center md:justify-between md:px-6 md:bg-background md:border-b">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-semibold">
                 Welcome, {userProfile?.name?.split(' ')[0]}!
@@ -278,16 +286,16 @@ export const IndividualDashboard = () => {
                 Individual Learner  
               </Badge>
             </div>
-          </div>
-        </header>
+          </header>
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-6">
-          <div className="max-w-7xl mx-auto">
-            {renderContent()}
-          </div>
-        </main>
-      </SidebarInset>
+          {/* Main Content */}
+          <main className="flex-1 p-4 md:p-6">
+            <div className="max-w-7xl mx-auto">
+              {renderContent()}
+            </div>
+          </main>
+        </div>
+      </div>
     </SidebarProvider>
   );
 };

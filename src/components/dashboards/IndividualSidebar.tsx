@@ -80,8 +80,8 @@ export function IndividualSidebar() {
   return (
     <Sidebar
       className="border-r bg-background/95 backdrop-blur-sm"
-      collapsible="icon"
-      variant="inset"
+      collapsible="none"
+      variant="sidebar"
       side="left"
     >
       {/* Mobile/Tablet header with close button */}
