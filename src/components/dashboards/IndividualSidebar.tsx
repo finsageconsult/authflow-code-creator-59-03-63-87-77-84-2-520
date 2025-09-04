@@ -79,9 +79,9 @@ export function IndividualSidebar() {
 
   return (
     <Sidebar
-      className="border-r bg-background/95 backdrop-blur-sm lg:relative lg:translate-x-0"
+      className="border-r bg-background/95 backdrop-blur-sm"
       collapsible="icon"
-      variant="inset"
+      variant="sidebar"
     >
       {/* Mobile/Tablet header with close button */}
       <SidebarHeader className="flex flex-row items-center justify-between p-3 sm:p-4 border-b bg-background/95 lg:hidden">
