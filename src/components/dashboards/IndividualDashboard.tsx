@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,8 @@ export const IndividualDashboard = () => {
   const { userProfile } = useAuth();
   const { programs, purchases, loading, formatPrice, isPurchased, getPurchaseByProgram, getFilteredPrograms, refetch } = useIndividualPrograms();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'course' | 'coaching'>('all');
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const currentTab = searchParams.get('tab') || 'programs';
 
   // Get purchased programs for "My Learning" section
@@ -236,17 +237,50 @@ export const IndividualDashboard = () => {
     }
   };
 
+  const navigationTabs = [
+    { id: 'programs', label: 'Dashboard', icon: BookOpen },
+    { id: 'bookings', label: 'My Bookings', icon: Calendar },
+    { id: 'payments', label: 'Payments', icon: CreditCard },
+    { id: 'mood', label: 'Wellness Check', icon: Star },
+    { id: 'questionnaire', label: 'Assessment', icon: FileText },
+    { id: 'privacy', label: 'Privacy', icon: Award },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 pb-4 border-b">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl lg:text-3xl font-bold">
-            Welcome, {userProfile?.name?.split(' ')[0]}!
-          </h1>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
-            Individual Learner
-          </Badge>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 pb-4 border-b">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl lg:text-3xl font-bold">
+              Welcome, {userProfile?.name?.split(' ')[0]}!
+            </h1>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
+              Individual Learner
+            </Badge>
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap gap-1 border-b">
+          {navigationTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('tab', tab.id);
+                setSearchParams(newParams);
+              }}
+              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+                currentTab === tab.id
+                  ? 'bg-background text-foreground border-b-2 border-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              }`}
+            >
+              <tab.icon className="h-4 w-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
