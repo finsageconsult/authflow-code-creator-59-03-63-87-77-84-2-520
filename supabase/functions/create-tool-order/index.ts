@@ -103,7 +103,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
-        user_id: user.id,
+        user_id: userProfile.auth_id,
         organization_id: userProfile.organization_id,
         user_type: 'INDIVIDUAL',
         service_type: 'tool_purchase',
