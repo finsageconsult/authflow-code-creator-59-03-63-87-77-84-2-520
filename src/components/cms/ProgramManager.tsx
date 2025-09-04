@@ -65,8 +65,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
     tags: '',
     thumbnail_url: '',
     content_url: '',
-    is_active: true,
-    course_type: 'individual'
+    is_active: true
   });
 
   useEffect(() => {
@@ -103,8 +102,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
       const programData = {
         ...formData,
         price: formData.price * 100, // Convert to paise
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        course_type: formData.course_type
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
       };
 
       if (editingProgram) {
@@ -130,13 +128,6 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
           title: 'Success',
           description: 'Program created successfully'
         });
-
-        // Navigate based on course type
-        if (formData.course_type === 'hr-dashboard') {
-          navigate('/hr-dashboard');
-        } else if (formData.course_type === 'individual') {
-          navigate('/individual-dashboard');
-        }
       }
 
       setFormData({
@@ -149,8 +140,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
         tags: '',
         thumbnail_url: '',
         content_url: '',
-        is_active: true,
-        course_type: 'individual'
+        is_active: true
       });
       setEditingProgram(null);
       setIsCreateDialogOpen(false);
@@ -177,8 +167,7 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
       tags: program.tags.join(', '),
       thumbnail_url: program.thumbnail_url || '',
       content_url: program.content_url || '',
-      is_active: program.is_active,
-      course_type: program.course_type || 'individual'
+      is_active: program.is_active
     });
     setIsCreateDialogOpen(true);
   };
@@ -294,30 +283,15 @@ export const ProgramManager = ({ searchTerm, category }: ProgramManagerProps) =>
                    </Select>
                  </div>
 
-                 {formData.category === '1-1-sessions' && (
-                   <div>
-                     <Label htmlFor="course_type">Course Type</Label>
-                     <Select value={formData.course_type} onValueChange={(value) => setFormData({...formData, course_type: value})}>
-                       <SelectTrigger>
-                         <SelectValue />
-                       </SelectTrigger>
-                       <SelectContent>
-                         <SelectItem value="individual">Individual</SelectItem>
-                         <SelectItem value="hr-dashboard">HR Dashboard</SelectItem>
-                       </SelectContent>
-                     </Select>
-                   </div>
-                 )}
-
-                <div>
-                  <Label htmlFor="duration">Duration</Label>
-                  <Input
-                    id="duration"
-                    value={formData.duration}
-                    onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                    placeholder="e.g., 3 hours, 2 weeks"
-                  />
-                </div>
+                 <div>
+                   <Label htmlFor="duration">Duration</Label>
+                   <Input
+                     id="duration"
+                     value={formData.duration}
+                     onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                     placeholder="e.g., 3 hours, 2 weeks"
+                   />
+                 </div>
 
                 <div>
                   <Label htmlFor="price">Price (₹)</Label>
