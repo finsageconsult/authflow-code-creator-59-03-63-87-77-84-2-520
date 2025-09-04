@@ -14,7 +14,10 @@ import {
   Mail,
   Download,
   CheckCircle,
-  Clock
+  Clock,
+  Key,
+  Send,
+  Calendar
 } from 'lucide-react';
 
 interface Employee {
@@ -49,6 +52,14 @@ export const HRPeople = () => {
     message: '',
     webinarId: ''
   });
+
+  // Access code form state
+  const [accessCodeForm, setAccessCodeForm] = useState({
+    email: '',
+    role: 'EMPLOYEE' as string,
+    expiryDays: 7
+  });
+  const [creatingAccessCode, setCreatingAccessCode] = useState(false);
 
   useEffect(() => {
     const fetchPeopleData = async () => {
@@ -167,6 +178,78 @@ export const HRPeople = () => {
     }
   };
 
+  const createAccessCode = async () => {
+    if (!userProfile?.organization_id || !accessCodeForm.email) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide an email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setCreatingAccessCode(true);
+    try {
+      // Generate a random access code
+      const code = Math.random().toString(36).substr(2, 8).toUpperCase();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + accessCodeForm.expiryDays);
+
+      // Create access code via edge function
+      const { error: createError } = await supabase.functions.invoke('create-access-code', {
+        body: {
+          code,
+          organization_id: userProfile.organization_id,
+          role: accessCodeForm.role,
+          expires_at: expiresAt.toISOString(),
+          max_uses: 1,
+          email: accessCodeForm.email
+        }
+      });
+
+      if (createError) throw createError;
+
+      // Send access code via email
+      const { error: sendError } = await supabase.functions.invoke('send-access-code', {
+        body: {
+          email: accessCodeForm.email
+        }
+      });
+
+      if (sendError) {
+        console.error('Error sending access code email:', sendError);
+        // Don't throw error here as the code was created successfully
+        toast({
+          title: "Access Code Created",
+          description: `Access code created for ${accessCodeForm.email}. Email sending may have failed - please share the code manually: ${code}`,
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `Access code created and sent to ${accessCodeForm.email}`
+        });
+      }
+
+      // Reset form
+      setAccessCodeForm({
+        email: '',
+        role: 'EMPLOYEE',
+        expiryDays: 7
+      });
+
+    } catch (error) {
+      console.error('Error creating access code:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create access code",
+        variant: "destructive"
+      });
+    } finally {
+      setCreatingAccessCode(false);
+    }
+  };
+
   const exportData = async () => {
     const csvData = employees.map(emp => ({
       Name: emp.name,
@@ -212,6 +295,82 @@ export const HRPeople = () => {
           Export CSV
         </Button>
       </div>
+
+      {/* Add Employee Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Key className="h-5 w-5" />
+            Add New Employee
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Employee Email</label>
+              <Input
+                type="email"
+                placeholder="employee@company.com"
+                value={accessCodeForm.email}
+                onChange={(e) => setAccessCodeForm({...accessCodeForm, email: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Role</label>
+              <Select 
+                value={accessCodeForm.role} 
+                onValueChange={(value) => setAccessCodeForm({...accessCodeForm, role: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="EMPLOYEE">Employee</SelectItem>
+                  <SelectItem value="HR">HR Manager</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Access Code Expiry</label>
+              <Select 
+                value={accessCodeForm.expiryDays.toString()} 
+                onValueChange={(value) => setAccessCodeForm({...accessCodeForm, expiryDays: parseInt(value)})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 Day</SelectItem>
+                  <SelectItem value="3">3 Days</SelectItem>
+                  <SelectItem value="7">7 Days</SelectItem>
+                  <SelectItem value="14">14 Days</SelectItem>
+                  <SelectItem value="30">30 Days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <Button 
+            onClick={createAccessCode} 
+            disabled={creatingAccessCode || !accessCodeForm.email}
+            className="w-full"
+          >
+            {creatingAccessCode ? (
+              <>
+                <Clock className="h-4 w-4 mr-2 animate-spin" />
+                Creating Access Code...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Generate & Send Access Code
+              </>
+            )}
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            An access code will be generated and sent to the employee's email. They can use this code to register and join your organization.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Employee List */}
       <Card>
