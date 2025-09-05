@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Coins, History, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCredits } from '@/hooks/useCredits';
+import { ExtraCreditPurchase } from '@/components/employee/ExtraCreditPurchase';
 
 export const CreditWallet = () => {
   const { userWallets, userTransactions, loadingUserWallets, loadingTransactions, getBalance } = useCredits();
@@ -19,45 +20,56 @@ export const CreditWallet = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">1-on-1 Sessions</CardTitle>
-            <Coins className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{session1on1Balance}</div>
-            <p className="text-xs text-muted-foreground">Available credits</p>
-            {session1on1Balance <= 5 && (
-              <Badge variant="destructive" className="mt-2">
-                Low Balance
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Webinars</CardTitle>
-            <Coins className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{webinarBalance}</div>
-            <p className="text-xs text-muted-foreground">Available credits</p>
-            {webinarBalance <= 5 && (
-              <Badge variant="destructive" className="mt-2">
-                Low Balance
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="history" className="w-full">
+      <Tabs defaultValue="balance" className="w-full">
         <TabsList>
+          <TabsTrigger value="balance">My Credits</TabsTrigger>
+          <TabsTrigger value="purchase">Buy Extra</TabsTrigger>
           <TabsTrigger value="history">Transaction History</TabsTrigger>
           <TabsTrigger value="expiry">Expiry Information</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="balance" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">1-on-1 Sessions</CardTitle>
+                <Coins className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{session1on1Balance}</div>
+                <p className="text-xs text-muted-foreground">Available credits</p>
+                {session1on1Balance <= 0 && (
+                  <Badge variant="destructive" className="mt-2">
+                    No Credits Left
+                  </Badge>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Webinars</CardTitle>
+                <Coins className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{webinarBalance}</div>
+                <p className="text-xs text-muted-foreground">Available credits</p>
+                {webinarBalance <= 0 && (
+                  <Badge variant="destructive" className="mt-2">
+                    No Credits Left
+                  </Badge>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="purchase" className="space-y-4">
+          <ExtraCreditPurchase 
+            session1on1Balance={session1on1Balance}
+            webinarBalance={webinarBalance}
+          />
+        </TabsContent>
 
         <TabsContent value="history" className="space-y-4">
           <Card>
