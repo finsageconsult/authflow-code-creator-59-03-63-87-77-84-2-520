@@ -8,6 +8,7 @@ import { CoursePreview } from './CoursePreview';
 import { CoachSelection } from './CoachSelection';
 import { TimeSlotSelection } from './TimeSlotSelection';
 import { PreviewConfirm } from './PreviewConfirm';
+import { PaymentStep } from './PaymentStep';
 
 interface EnrollmentWorkflowProps {
   isOpen: boolean;
@@ -58,10 +59,11 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
     { number: 1, title: 'Course Preview', completed: currentStep > 1 },
     { number: 2, title: 'Select Coach', completed: currentStep > 2 },
     { number: 3, title: 'Select Time Slot', completed: currentStep > 3 },
-    { number: 4, title: 'Preview & Confirm', completed: currentStep > 4 }
+    { number: 4, title: 'Review Details', completed: currentStep > 4 },
+    { number: 5, title: 'Payment', completed: currentStep > 5 }
   ];
 
-  const progressValue = ((currentStep - 1) / 3) * 100;
+  const progressValue = ((currentStep - 1) / 4) * 100;
 
   const renderStep = () => {
     switch (currentStep) {
@@ -101,18 +103,48 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
           <PreviewConfirm
             enrollmentData={enrollmentData}
             userType={userType}
-            onConfirm={async () => {
-              const success = await submitEnrollment(userType);
-              if (success) {
-                handleEnrollmentSuccess();
-              }
-              return success;
-            }}
+            onNext={nextStep}
             onPrevious={prevStep}
             onCancel={handleClose}
             isLoading={isLoading}
           />
         );
+      case 5:
+        // Show payment step only for individual users with paid courses
+        if (userType === 'individual' && enrollmentData.course?.price > 0) {
+          return (
+            <PaymentStep
+              enrollmentData={enrollmentData}
+              onNext={async () => {
+                const success = await submitEnrollment(userType);
+                if (success) {
+                  handleEnrollmentSuccess();
+                }
+              }}
+              onPrevious={prevStep}
+              onCancel={handleClose}
+              isLoading={isLoading}
+            />
+          );
+        } else {
+          // For free courses or employees, directly submit enrollment
+          return (
+            <PreviewConfirm
+              enrollmentData={enrollmentData}
+              userType={userType}
+              onConfirm={async () => {
+                const success = await submitEnrollment(userType);
+                if (success) {
+                  handleEnrollmentSuccess();
+                }
+                return success;
+              }}
+              onPrevious={prevStep}
+              onCancel={handleClose}
+              isLoading={isLoading}
+            />
+          );
+        }
       default:
         return null;
     }
