@@ -430,9 +430,11 @@ export default function CoachProfile() {
                     <Badge 
                       key={specialty} 
                       variant="default" 
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                      onClick={() => toggleTagSelection(specialty)}
                     >
                       {specialty}
+                      <X className="h-3 w-3 ml-1" />
                     </Badge>
                   ))}
                   {selectedTags.length === 0 && (
