@@ -117,7 +117,25 @@ export const CoachSelection: React.FC<CoachSelectionProps> = ({
                         </Badge>
                       </div>
 
-                      <div className="text-xs text-muted-foreground">
+                      {/* Display specialties as individual badges */}
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {coach.specialization.split(', ').slice(0, 4).map((specialty, index) => (
+                          <Badge 
+                            key={index} 
+                            variant="secondary" 
+                            className="text-xs px-2 py-1"
+                          >
+                            {specialty.trim()}
+                          </Badge>
+                        ))}
+                        {coach.specialization.split(', ').length > 4 && (
+                          <Badge variant="outline" className="text-xs px-2 py-1">
+                            +{coach.specialization.split(', ').length - 4} more
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="text-xs text-muted-foreground mt-1">
                         Available for 1:1 sessions • Expert in financial planning
                       </div>
                     </div>
