@@ -20,6 +20,7 @@ import { PayoutView } from '@/components/coach/PayoutView';
 import { ContentCatalog } from '@/components/cms/ContentCatalog';
 import { CoachAnalyticsDashboard } from '@/components/analytics/CoachAnalyticsDashboard';
 import { SupportQuery } from '@/components/support/SupportQuery';
+import AssignmentsList from '@/components/assignments/AssignmentsList';
 
 interface CoachStats {
   totalClients: number;
@@ -188,6 +189,8 @@ export const CoachDashboard = () => {
         return <AvailabilitySettings />;
       case 'payouts':
         return <PayoutView />;
+      case 'assignments':
+        return <AssignmentsList />;
       case 'support':
         return <SupportQuery />;
       default:
