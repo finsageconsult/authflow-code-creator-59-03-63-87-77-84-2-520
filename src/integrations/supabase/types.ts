@@ -606,14 +606,13 @@ export type Database = {
       }
       financial_tools: {
         Row: {
-          access_level: string | null
-          category: string | null
           created_at: string
           description: string | null
-          free_limit: number | null
+          employee_access: string | null
+          employee_free_limit: number | null
           id: string
+          individual_access: string | null
           is_active: boolean | null
-          is_premium: boolean | null
           name: string
           one_time_purchase: boolean | null
           price: number | null
@@ -624,14 +623,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          access_level?: string | null
-          category?: string | null
           created_at?: string
           description?: string | null
-          free_limit?: number | null
+          employee_access?: string | null
+          employee_free_limit?: number | null
           id?: string
+          individual_access?: string | null
           is_active?: boolean | null
-          is_premium?: boolean | null
           name: string
           one_time_purchase?: boolean | null
           price?: number | null
@@ -642,14 +640,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          access_level?: string | null
-          category?: string | null
           created_at?: string
           description?: string | null
-          free_limit?: number | null
+          employee_access?: string | null
+          employee_free_limit?: number | null
           id?: string
+          individual_access?: string | null
           is_active?: boolean | null
-          is_premium?: boolean | null
           name?: string
           one_time_purchase?: boolean | null
           price?: number | null
