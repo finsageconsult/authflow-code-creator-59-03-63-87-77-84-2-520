@@ -261,7 +261,7 @@ export const EmployeePrograms = () => {
         </div>
 
       {/* Category Filter */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap pb-4">
         <Button
           variant={selectedCategory === 'all' ? 'default' : 'outline'}
           size="sm"
