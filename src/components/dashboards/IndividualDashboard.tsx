@@ -42,7 +42,6 @@ export const IndividualDashboard = () => {
   const currentTab = searchParams.get('tab') || 'programs';
   const [enrollmentWorkflowOpen, setEnrollmentWorkflowOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
-  const [workflowType, setWorkflowType] = useState<'course' | 'tool'>('course');
 
   // Get purchased programs for "My Learning" section
   const myLearning = purchases
@@ -58,32 +57,6 @@ export const IndividualDashboard = () => {
       category: purchase.individual_programs.category,
       programId: purchase.program_id
     }));
-
-  const handleToolPurchase = (tool: any) => {
-    setSelectedCourse({
-      id: tool.id,
-      title: tool.name,
-      description: tool.description,
-      duration: '30 minutes', // Default for tools
-      price: tool.price * 100, // Convert to paisa
-      category: 'financial-tool'
-    });
-    setWorkflowType('tool');
-    setEnrollmentWorkflowOpen(true);
-  };
-
-  const handleCourseEnrollment = (program: any) => {
-    setSelectedCourse({
-      id: program.id,
-      title: program.title,
-      description: program.description,
-      duration: program.duration,
-      price: program.price,
-      category: program.category
-    });
-    setWorkflowType('course');
-    setEnrollmentWorkflowOpen(true);
-  };
 
   const allContent = getFilteredPrograms(selectedCategory);
 
@@ -136,7 +109,7 @@ export const IndividualDashboard = () => {
             )}
 
             {/* Financial Tools */}
-            <ToolShortcuts onToolPurchase={handleToolPurchase} />
+            <ToolShortcuts />
 
             {/* Learning Catalog */}
             <Card>
@@ -196,9 +169,19 @@ export const IndividualDashboard = () => {
                           <span className="font-semibold text-sm sm:text-base truncate">
                             {formatPrice(program.price)}
                           </span>
-                           {program.category === '1-1-sessions' ? (
+                          {program.category === '1-1-sessions' ? (
                             <Button 
-                              onClick={() => handleCourseEnrollment(program)}
+                              onClick={() => {
+                                setSelectedCourse({
+                                  id: program.id,
+                                  title: program.title,
+                                  description: program.description,
+                                  duration: program.duration,
+                                  price: program.price,
+                                  category: program.category
+                                });
+                                setEnrollmentWorkflowOpen(true);
+                              }}
                               className="w-full"
                               size="sm"
                             >
@@ -295,7 +278,6 @@ export const IndividualDashboard = () => {
           onClose={() => {
             setEnrollmentWorkflowOpen(false);
             setSelectedCourse(null);
-            setWorkflowType('course');
           }}
           initialCourse={selectedCourse}
           userType="individual"
