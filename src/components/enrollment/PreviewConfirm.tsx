@@ -212,7 +212,7 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
             className="px-8"
           >
             {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {showPayment ? 'Pay & Enroll Now' : 'Enroll Now'}
+            {showPayment ? 'Pay Now' : 'Enroll Now'}
           </Button>
         </div>
       </div>
