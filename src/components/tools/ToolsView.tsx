@@ -11,11 +11,15 @@ import {
   BarChart3, 
   Crown, 
   ExternalLink,
-  Wrench
+  Wrench,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ToolPaymentModal } from '@/components/individual/ToolPaymentModal';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useToolUsage } from '@/hooks/useToolUsage';
+import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
 
 import { FinancialTool } from '@/types/financial-tools';
 
@@ -67,16 +71,27 @@ export const ToolsView = () => {
     isOpen: false,
     tool: null
   });
+  
+  // Employee-specific state and hooks
+  const { getUsageCount, canUseFreeTool, incrementUsage } = useToolUsage();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch only paid tools for Individual Dashboard
-        const { data: toolsData, error: toolsError } = await supabase
+        // Fetch tools based on user role
+        let toolsQuery = supabase
           .from('financial_tools')
           .select('*')
-          .eq('is_active', true)
-          .eq('individual_access', 'paid')
+          .eq('is_active', true);
+
+        // For employees, fetch free tools; for individuals, fetch paid tools
+        if (userProfile?.role === 'EMPLOYEE') {
+          toolsQuery = toolsQuery.eq('employee_access', 'free');
+        } else {
+          toolsQuery = toolsQuery.eq('individual_access', 'paid');
+        }
+
+        const { data: toolsData, error: toolsError } = await toolsQuery
           .order('created_at', { ascending: true });
 
         if (toolsError) throw toolsError;
@@ -112,11 +127,49 @@ export const ToolsView = () => {
   }, [toast, userProfile]);
 
   const hasAccess = (tool: FinancialTool) => {
-    // For paid tools, check if user has purchased
+    // For employees, check free usage limit + purchases
+    if (userProfile?.role === 'EMPLOYEE') {
+      return purchasedTools.some(purchase => purchase.tool_id === tool.id) || 
+             canUseFreeTool(tool.id, tool.employee_free_limit || 5);
+    }
+    // For individuals, check if user has purchased
     return purchasedTools.some(purchase => purchase.tool_id === tool.id);
   };
 
-  const handleUseTool = (tool: FinancialTool) => {
+  const handleUseTool = async (tool: FinancialTool) => {
+    if (!userProfile) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to use tools",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // For employees using free tools
+    if (userProfile.role === 'EMPLOYEE' && !purchasedTools.some(p => p.tool_id === tool.id)) {
+      const canUseFree = canUseFreeTool(tool.id, tool.employee_free_limit || 5);
+      if (canUseFree) {
+        const success = await incrementUsage(tool.id);
+        if (success) {
+          toast({
+            title: "Launching Tool",
+            description: `Opening ${tool.name}...`,
+          });
+          // TODO: Implement actual tool navigation
+          console.log('Navigate to free tool:', tool.name);
+        }
+        return;
+      } else {
+        toast({
+          title: "Free Limit Reached",
+          description: `You've reached the free usage limit for ${tool.name}. Purchase for unlimited access.`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     if (!hasAccess(tool)) {
       // Open payment modal for premium tools
       setPaymentModal({ isOpen: true, tool });
@@ -194,9 +247,14 @@ export const ToolsView = () => {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Premium Financial Tools</h1>
+          <h1 className="text-3xl font-bold">
+            {userProfile?.role === 'EMPLOYEE' ? 'Free Financial Tools' : 'Premium Financial Tools'}
+          </h1>
           <p className="text-muted-foreground mt-1">
-            Purchase and use our premium interactive tools to plan, calculate, and track your financial goals
+            {userProfile?.role === 'EMPLOYEE' 
+              ? 'Use our free interactive tools with usage limits, or purchase for unlimited access'
+              : 'Purchase and use our premium interactive tools to plan, calculate, and track your financial goals'
+            }
           </p>
         </div>
         <Badge variant="secondary" className="bg-blue-100 text-blue-800">
@@ -221,7 +279,135 @@ export const ToolsView = () => {
               {typeTools.map((tool) => {
                 const ToolIcon = getToolIcon(tool.tool_type);
                 const toolIconColor = getToolIconColor(tool.tool_type);
+                const isOwned = purchasedTools.some(purchase => purchase.tool_id === tool.id);
                 
+                // Employee-specific logic
+                if (userProfile?.role === 'EMPLOYEE') {
+                  const usageCount = getUsageCount(tool.id);
+                  const canUseFree = canUseFreeTool(tool.id, tool.employee_free_limit || 5);
+                  const remainingUses = Math.max(0, (tool.employee_free_limit || 5) - usageCount);
+                  
+                  return (
+                    <Card key={tool.id} className="flex flex-col">
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-2">
+                          <CardTitle className="text-lg line-clamp-2 flex items-center gap-2">
+                            <ToolIcon className={`h-5 w-5 ${toolIconColor}`} />
+                            {tool.name}
+                          </CardTitle>
+                          <div className="flex flex-col gap-1">
+                            {isOwned ? (
+                              <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Owned
+                              </Badge>
+                            ) : canUseFree ? (
+                              <Badge className="bg-green-100 text-green-800 text-xs">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Free
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="bg-amber-100 text-amber-800 text-xs">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Limit Reached
+                              </Badge>
+                            )}
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {tool.tool_type}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      
+                      <CardContent className="flex-1 flex flex-col gap-4">
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                          {tool.description}
+                        </p>
+
+                        {/* Usage counter for non-owned tools */}
+                        {!isOwned && (
+                          <div className="text-xs text-muted-foreground">
+                            <div className="flex justify-between items-center">
+                              <span>Usage: {usageCount}/{tool.employee_free_limit || 5}</span>
+                              <span className={`font-medium ${remainingUses === 0 ? 'text-red-600' : remainingUses <= 1 ? 'text-amber-600' : 'text-green-600'}`}>
+                                {remainingUses} left
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                  remainingUses === 0 ? 'bg-red-500' : 
+                                  remainingUses <= 1 ? 'bg-amber-500' : 'bg-green-500'
+                                }`}
+                                style={{
+                                  width: `${Math.max(10, (remainingUses / (tool.employee_free_limit || 5)) * 100)}%`
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Show price only when free limit is reached and not owned */}
+                        {!isOwned && !canUseFree && (
+                          <div className="text-center py-2 border-t">
+                            <p className="text-lg font-bold text-primary">
+                              {formatPrice(tool.price)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">One-time purchase for unlimited access</p>
+                          </div>
+                        )}
+                        
+                        {tool.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {tool.tags.slice(0, 3).map((tag) => (
+                              <Badge key={tag} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {tool.tags.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{tool.tags.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="mt-auto pt-4">
+                          {isOwned ? (
+                            <Button 
+                              onClick={() => handleUseTool(tool)}
+                              className="w-full gap-2"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Use Tool
+                            </Button>
+                          ) : canUseFree ? (
+                            <Button 
+                              onClick={() => handleUseTool(tool)}
+                              className="w-full gap-2"
+                              variant="default"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Use Tool ({remainingUses} left)
+                            </Button>
+                          ) : (
+                            <UnifiedPaymentButton
+                              itemType="tool"
+                              itemId={tool.id}
+                              title={tool.name}
+                              description={`${tool.description} - Unlimited access`}
+                              price={tool.price}
+                              isOwned={false}
+                              onSuccess={handlePaymentSuccess}
+                            />
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                
+                // Individual user logic (original)
                 return (
                   <Card key={tool.id} className="flex flex-col">
                     <CardHeader>
