@@ -17,6 +17,7 @@ import { EnrollmentWorkflow } from '@/components/enrollment/EnrollmentWorkflow';
 import { UserChat } from '@/components/user/UserChat';
 import { UserAssignments } from '@/components/user/UserAssignments';
 import { IndividualSidebar } from './IndividualSidebar';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   BookOpen, 
   GraduationCap,
@@ -46,6 +47,8 @@ export const IndividualDashboard = () => {
   const [showEnrollment, setShowEnrollment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [processingPurchases, setProcessingPurchases] = useState<Set<string>>(new Set());
+  const [enrollments, setEnrollments] = useState<any[]>([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
 
   // Get purchased programs for "My Learning" section
   const myLearning = purchases
@@ -137,6 +140,31 @@ export const IndividualDashboard = () => {
   };
 
   const allContentWithStatic = getFilteredCombinedPrograms(selectedCategory);
+
+  // Fetch enrollments for bookings
+  const fetchEnrollments = async () => {
+    if (!userProfile) return;
+    
+    setLoadingEnrollments(true);
+    try {
+      const { data, error } = await supabase
+        .from('enrollments')
+        .select('*')
+        .eq('user_id', userProfile.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setEnrollments(data || []);
+    } catch (error) {
+      console.error('Error fetching enrollments:', error);
+    } finally {
+      setLoadingEnrollments(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEnrollments();
+  }, [userProfile]);
 
   if (loading) {
     return (
@@ -305,7 +333,41 @@ export const IndividualDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-6 pt-0">
-              <p className="text-muted-foreground text-sm sm:text-base">No bookings found.</p>
+              {loadingEnrollments ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                </div>
+              ) : enrollments.length === 0 ? (
+                <p className="text-muted-foreground text-sm sm:text-base">No bookings found.</p>
+              ) : (
+                <div className="space-y-4">
+                  {enrollments.map((enrollment) => {
+                    // Map course_id to program title
+                    const program = staticIndividualPrograms.find(p => p.id === enrollment.course_id);
+                    const programTitle = program?.title || 'Unknown Program';
+                    
+                    return (
+                      <div key={enrollment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-sm sm:text-base truncate">{programTitle}</h4>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
+                            Scheduled: {enrollment.scheduled_at ? new Date(enrollment.scheduled_at).toLocaleString() : 'TBD'}
+                          </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
+                            Enrolled: {new Date(enrollment.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
+                          <span className="font-semibold text-sm sm:text-base">{formatPrice(enrollment.amount_paid || 0)}</span>
+                          <Badge variant={enrollment.status === 'confirmed' ? 'default' : 'secondary'} className="text-xs w-fit">
+                            {enrollment.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         );
@@ -320,22 +382,39 @@ export const IndividualDashboard = () => {
             </CardHeader>
             <CardContent className="p-4 sm:p-6 pt-0">
               <div className="space-y-4">
-                {purchases.map((purchase) => (
-                  <div key={purchase.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow">
-                    <div className="min-w-0 flex-1">
-                      <h4 className="font-medium text-sm sm:text-base truncate">{purchase.individual_programs.title}</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">
-                        {new Date(purchase.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
-                      <span className="font-semibold text-sm sm:text-base">{formatPrice(purchase.amount_paid)}</span>
-                      <Badge variant={purchase.status === 'completed' ? 'default' : 'secondary'} className="text-xs w-fit">
-                        {purchase.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+                {purchases
+                  .filter(purchase => purchase.status === 'completed')
+                  .map((purchase) => {
+                    // Map the purchase to the correct program title based on amount
+                    let displayTitle = purchase.individual_programs?.title || 'Unknown Program';
+                    if (purchase.program_id === 'd3dfd158-b838-49d2-8732-acf11d4a1936') {
+                      // Map based on amount paid to correct program titles
+                      if (purchase.amount_paid === 449900) {
+                        displayTitle = 'Debt-Free Journey';
+                      } else if (purchase.amount_paid === 299900) {
+                        displayTitle = 'Investing in 3 Hours';
+                      } else if (purchase.amount_paid === 499900) {
+                        displayTitle = 'Financial Blueprint Session';
+                      }
+                    }
+                    
+                    return (
+                      <div key={purchase.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-sm sm:text-base truncate">{displayTitle}</h4>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
+                            {new Date(purchase.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
+                          <span className="font-semibold text-sm sm:text-base">{formatPrice(purchase.amount_paid)}</span>
+                          <Badge variant="default" className="text-xs w-fit">
+                            completed
+                          </Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             </CardContent>
           </Card>
