@@ -134,7 +134,7 @@ export const ToolShortcuts = () => {
                     <p className="text-xs text-muted-foreground line-clamp-2">
                       {tool.description}
                     </p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col items-center gap-2">
                       <span className="text-sm font-semibold">
                         {tool.access_level === 'premium' && tool.price > 0 
                           ? `₹${(tool.price / 100).toLocaleString()}`
