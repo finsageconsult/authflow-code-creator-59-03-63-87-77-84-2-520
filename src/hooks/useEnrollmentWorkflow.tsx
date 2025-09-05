@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -11,6 +12,7 @@ export interface EnrollmentData {
     duration: string;
     price: number;
     category: string;
+    tags?: string[];
   } | null;
   coach: {
     id: string;
@@ -55,6 +57,7 @@ export const useEnrollmentWorkflow = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [realCoaches, setRealCoaches] = useState<Coach[]>([]);
+  const [filteredCoaches, setFilteredCoaches] = useState<Coach[]>([]);
 
   // Fetch real coaches from database 
   const fetchCoaches = async () => {
@@ -118,6 +121,7 @@ export const useEnrollmentWorkflow = () => {
 
       console.log('Fetched coaches:', coaches);
       setRealCoaches(coaches);
+      setFilteredCoaches(coaches); // Initially show all coaches
     } catch (error) {
       console.error('Error fetching coaches:', error);
       toast.error('Failed to load coaches. Please try again.');
@@ -126,6 +130,31 @@ export const useEnrollmentWorkflow = () => {
       setIsLoading(false);
     }
   };
+
+  // Filter coaches based on course tags
+  const filterCoachesByCourse = useCallback((course: EnrollmentData['course']) => {
+    if (!course || !course.tags || course.tags.length === 0) {
+      setFilteredCoaches(realCoaches);
+      return;
+    }
+
+    const courseTags = course.tags.map(tag => tag.toLowerCase());
+    const matchingCoaches = realCoaches.filter(coach => {
+      const coachSpecialties = coach.specialization.toLowerCase();
+      return courseTags.some(tag => 
+        coachSpecialties.includes(tag) || 
+        tag.includes('financial') && coachSpecialties.includes('financial') ||
+        tag.includes('investment') && coachSpecialties.includes('investment') ||
+        tag.includes('planning') && coachSpecialties.includes('planning') ||
+        tag.includes('tax') && coachSpecialties.includes('tax') ||
+        tag.includes('insurance') && coachSpecialties.includes('insurance') ||
+        tag.includes('debt') && coachSpecialties.includes('debt')
+      );
+    });
+
+    console.log('Filtering coaches by course tags:', courseTags, 'Found matches:', matchingCoaches.length);
+    setFilteredCoaches(matchingCoaches.length > 0 ? matchingCoaches : realCoaches);
+  }, [realCoaches]);
 
   // Assign specializations based on coach ID for consistency
   const getCoachSpecialization = (coachId: string): string => {
@@ -148,6 +177,13 @@ export const useEnrollmentWorkflow = () => {
   useEffect(() => {
     fetchCoaches();
   }, []);
+
+  // Filter coaches when real coaches or selected course changes
+  useEffect(() => {
+    if (enrollmentData.course) {
+      filterCoachesByCourse(enrollmentData.course);
+    }
+  }, [realCoaches, enrollmentData.course, filterCoachesByCourse]);
 
   const generateTimeSlots = (coachId: string): TimeSlot[] => {
     const slots: TimeSlot[] = [];
@@ -189,7 +225,8 @@ export const useEnrollmentWorkflow = () => {
 
   const setCourse = useCallback((course: EnrollmentData['course']) => {
     setEnrollmentData(prev => ({ ...prev, course }));
-  }, []);
+    filterCoachesByCourse(course);
+  }, [filterCoachesByCourse]);
 
   const setCoach = useCallback((coach: EnrollmentData['coach']) => {
     setEnrollmentData(prev => ({ ...prev, coach }));
@@ -214,7 +251,8 @@ export const useEnrollmentWorkflow = () => {
       coach: null,
       timeSlot: null
     });
-  }, []);
+    setFilteredCoaches(realCoaches); // Reset to show all coaches
+  }, [realCoaches]);
 
   const submitEnrollment = useCallback(async (userType: 'individual' | 'employee') => {
     if (!userProfile || !enrollmentData.course || !enrollmentData.coach || !enrollmentData.timeSlot) {
@@ -258,7 +296,7 @@ export const useEnrollmentWorkflow = () => {
     currentStep,
     enrollmentData,
     isLoading,
-    coaches: realCoaches,
+    coaches: filteredCoaches,
     generateTimeSlots,
     setCourse,
     setCoach,
