@@ -105,7 +105,6 @@ export default function CoachProfile() {
       
       if (coachData) {
         setCoach(coachData);
-        setSpecialties(coachData.specialties || []);
       }
 
       // Fetch coach offerings
@@ -116,6 +115,19 @@ export default function CoachProfile() {
 
       if (offeringsError) throw offeringsError;
       setOfferings(offeringsData || []);
+
+      // Fetch program tags associated with this coach and automatically set as specialties
+      const { data: programsData, error: programsError } = await supabase
+        .from('individual_programs')
+        .select('tags')
+        .eq('is_active', true);
+
+      if (programsError) throw programsError;
+      
+      // Extract unique tags from all programs
+      const allTags = programsData?.flatMap(program => program.tags || []) || [];
+      const uniqueTags = [...new Set(allTags)].filter(tag => tag && tag.trim() !== '');
+      setSpecialties(uniqueTags);
 
       // Fetch coach statistics
       const [sessionsResult, bookingsResult] = await Promise.all([
@@ -389,12 +401,15 @@ export default function CoachProfile() {
         <TabsContent value="specialties">
           <Card>
             <CardHeader>
-              <CardTitle>Manage Specialties</CardTitle>
+              <CardTitle>Program Tags as Specialties</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Specialties are automatically populated from program tags in the system
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Current Specialties */}
+              {/* Current Specialties from Program Tags */}
               <div className="space-y-2">
-                <Label>Current Specialties</Label>
+                <Label>Available Program Tags</Label>
                 <div className="flex flex-wrap gap-2">
                   {specialties.map((specialty) => (
                     <Badge 
@@ -403,44 +418,17 @@ export default function CoachProfile() {
                       className="flex items-center gap-1"
                     >
                       {specialty}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                        onClick={() => removeSpecialty(specialty)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
                     </Badge>
                   ))}
                   {specialties.length === 0 && (
-                    <p className="text-muted-foreground text-sm">No specialties added yet</p>
+                    <p className="text-muted-foreground text-sm">No program tags available yet</p>
                   )}
                 </div>
               </div>
 
-              {/* Add New Specialty */}
-              <div className="space-y-2">
-                <Label>Add New Specialty</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={newSpecialty}
-                    onChange={(e) => setNewSpecialty(e.target.value)}
-                    placeholder="Enter specialty (e.g., Financial Planning, Investment Strategy)"
-                    onKeyPress={(e) => e.key === 'Enter' && addSpecialty()}
-                  />
-                  <Button onClick={addSpecialty} disabled={!newSpecialty.trim()}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <div className="pt-4">
-                <Button onClick={saveSpecialties} disabled={saving}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {saving ? 'Saving...' : 'Save Specialties'}
-                </Button>
+              <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
+                <strong>Note:</strong> Specialties are automatically updated based on the tags from active programs in the system. 
+                To modify specialties, update the tags in the individual programs.
               </div>
             </CardContent>
           </Card>
