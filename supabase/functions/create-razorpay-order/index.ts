@@ -13,6 +13,7 @@ interface CreateOrderRequest {
   quantity?: number;
   userType: 'INDIVIDUAL' | 'EMPLOYEE' | 'ORGANIZATION';
   organizationId?: string;
+  programId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,7 +22,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { amount, currency = 'INR', serviceType, quantity = 1, userType, organizationId }: CreateOrderRequest = await req.json();
+    const { amount, currency = 'INR', serviceType, quantity = 1, userType, organizationId, programId }: CreateOrderRequest = await req.json();
   console.log("Creating Razorpay order:", { amount, currency, serviceType, userType });
   console.log("Amount will be used exactly as received:", { 
     originalAmount: amount, 
@@ -145,7 +146,7 @@ const handler = async (req: Request): Promise<Response> => {
         currency,
         order_number: orderNumber,
         status: 'pending',
-        metadata: { razorpay_order_request: true }
+        metadata: { razorpay_order_request: true, programId: programId }
       })
       .select()
       .single();

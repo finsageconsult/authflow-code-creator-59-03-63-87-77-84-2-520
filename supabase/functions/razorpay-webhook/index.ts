@@ -174,6 +174,9 @@ async function handlePaymentCaptured(supabase: any, payment: any) {
   if (orderData.service_type === 'tool_purchase') {
     // Handle tool purchase
     await handleToolPurchase(supabase, orderData);
+  } else if (orderData.service_type === 'short-program' || orderData.service_type === 'program') {
+    // Handle program purchase
+    await handleProgramPurchase(supabase, orderData);
   } else if (orderData.user_type === 'employee') {
     // Create credits for employee
     await createCreditsForEmployee(supabase, orderData);
@@ -226,6 +229,51 @@ async function handlePaymentFailed(supabase: any, payment: any) {
   await sendPaymentFailureEmail(supabase, orderData, paymentData);
   
   console.log("Payment failure handled");
+}
+
+async function handleProgramPurchase(supabase: any, order: any) {
+  try {
+    console.log("Processing program purchase for order:", order.id);
+    
+    const programId = order.metadata?.programId;
+    if (!programId) {
+      console.error("No programId found in order metadata");
+      return;
+    }
+
+    // Get user profile ID from auth user ID
+    const { data: userProfile, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('auth_id', order.user_id)
+      .single();
+
+    if (userError || !userProfile) {
+      console.error("Error getting user profile:", userError);
+      return;
+    }
+
+    // Create program purchase record
+    const { error: purchaseError } = await supabase
+      .from('individual_purchases')
+      .insert({
+        user_id: userProfile.id, // Use profile ID instead of auth ID  
+        program_id: programId,
+        order_id: order.id,
+        amount_paid: order.final_amount,
+        status: 'completed',
+        access_granted_at: new Date().toISOString()
+      });
+
+    if (purchaseError) {
+      console.error("Error creating program purchase:", purchaseError);
+      return;
+    }
+
+    console.log(`Program purchase completed for user ${userProfile.id}, program ${programId}`);
+  } catch (error) {
+    console.error("Error handling program purchase:", error);
+  }
 }
 
 async function handleToolPurchase(supabase: any, order: any) {
