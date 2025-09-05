@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { CreditCard, Loader2, Check, Lock } from 'lucide-react';
+import { CreditCard, Loader2, Check, Lock, CheckCircle } from 'lucide-react';
 
 interface UnifiedPaymentButtonProps {
   itemType: 'program' | 'tool';
@@ -188,7 +188,7 @@ export const UnifiedPaymentButton: React.FC<UnifiedPaymentButtonProps> = ({
   if (isOwned) {
     return (
       <Button variant="outline" className="w-full" disabled>
-        <Lock className="h-4 w-4 mr-2" />
+        <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
         Owned
       </Button>
     );
