@@ -19,7 +19,6 @@ import {
   Calendar,
   CreditCard,
   Heart,
-  FileText,
   Shield,
   Home
 } from 'lucide-react'
@@ -48,12 +47,6 @@ const menuItems = [
     url: "/individual-dashboard", 
     icon: Heart,
     param: "mood"
-  },
-  { 
-    title: "Assessment", 
-    url: "/individual-dashboard", 
-    icon: FileText,
-    param: "questionnaire"
   },
   { 
     title: "Privacy", 
