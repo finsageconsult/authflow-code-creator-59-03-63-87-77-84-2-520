@@ -351,17 +351,21 @@ export const EmployeePrograms = () => {
           </div>
         </Card>}
       
-      {/* Enrollment Workflow Modal */}
-      <EnrollmentWorkflow
-        isOpen={enrollmentWorkflowOpen}
-        onClose={() => {
-          setEnrollmentWorkflowOpen(false);
-          setSelectedCourse(null);
-          // Refresh data after enrollment
-          fetchData();
-        }}
-        initialCourse={selectedCourse}
-        userType="employee"
-      />
+      {/* Enrollment Workflow */}
+      {showEnrollment && (
+        <EnrollmentWorkflow
+          initialCourse={selectedCourse}
+          userType="employee"
+          onBack={() => {
+            setShowEnrollment(false);
+            setSelectedCourse(null);
+          }}
+          onComplete={() => {
+            setShowEnrollment(false);
+            setSelectedCourse(null);
+            fetchData();
+          }}
+        />
+      )}
     </div>;
 };
