@@ -5,9 +5,9 @@ import { Calculator, TrendingUp, FileText, PieChart, Coins, Target, Lock, CheckC
 import { supabase } from '@/integrations/supabase/client';
 import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
 import { useUserPurchases } from '@/hooks/useUserPurchases';
-import { useToolUsage } from '@/hooks/useToolUsage';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { FinancialTool } from '@/types/financial-tools';
 
 const iconMap = {
   'calculator': Calculator,
@@ -18,26 +18,11 @@ const iconMap = {
   'target': Target
 };
 
-interface FinancialTool {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  tool_type: string;
-  is_active: boolean;
-  is_premium: boolean;
-  one_time_purchase: boolean;
-  access_level: string;
-  category: string;
-  free_limit: number;
-}
-
 export const ToolShortcuts = () => {
   const { userProfile } = useAuth();
   const [tools, setTools] = useState<FinancialTool[]>([]);
   const [loading, setLoading] = useState(true);
   const { isPurchased, refetch: refetchPurchases } = useUserPurchases();
-  const { getUsageCount, canUseFreeTool, incrementUsage } = useToolUsage();
 
   useEffect(() => {
     fetchTools();
@@ -49,6 +34,7 @@ export const ToolShortcuts = () => {
         .from('financial_tools')
         .select('*')
         .eq('is_active', true)
+        .eq('individual_access', 'paid')
         .order('created_at');
 
       if (error) throw error;
@@ -66,27 +52,13 @@ export const ToolShortcuts = () => {
       return;
     }
 
-    // Handle free tools with usage limits
-    if (tool.category === 'free') {
-      const canUse = canUseFreeTool(tool.id, tool.free_limit || 5);
-      if (canUse) {
-        const success = await incrementUsage(tool.id);
-        if (success) {
-          toast.success(`Opening ${tool.name}...`);
-          // TODO: Implement actual tool navigation
-          console.log('Navigate to free tool:', tool.name);
-        }
-      } else {
-        toast.error(`You've reached the free usage limit (${tool.free_limit}) for ${tool.name}. Please purchase to continue.`);
-      }
-      return;
-    }
-
-    // Handle paid tools - check if purchased
-    if (tool.category === 'paid' && isPurchased('tool', tool.id)) {
+    // For individual access, always check if purchased first
+    if (isPurchased('tool', tool.id)) {
       toast.success(`Opening ${tool.name}...`);
       console.log('Navigate to owned paid tool:', tool.name);
       // TODO: Implement actual tool navigation
+    } else {
+      toast.error('Please purchase this tool to access it.');
     }
   };
 
@@ -113,7 +85,7 @@ export const ToolShortcuts = () => {
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Calculator className="h-5 w-5" />
-            Financial Tools
+            Premium Financial Tools
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
@@ -136,7 +108,7 @@ export const ToolShortcuts = () => {
       <CardHeader className="p-4 sm:p-6">
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <Calculator className="h-5 w-5" />
-          Financial Tools
+          Premium Financial Tools
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 sm:p-6 pt-0">
@@ -144,11 +116,6 @@ export const ToolShortcuts = () => {
           {tools.map((tool, index) => {
             const IconComponent = getToolIcon(tool.tool_type);
             const isOwned = isPurchased('tool', tool.id);
-            const isFree = tool.category === 'free';
-            const isPaid = tool.category === 'paid';
-            const usageCount = getUsageCount(tool.id);
-            const canUseFree = canUseFreeTool(tool.id, tool.free_limit || 5);
-            const hasAccess = (isFree && canUseFree) || (isPaid && isOwned);
 
             return (
               <Card key={tool.id} className="relative overflow-hidden hover:shadow-sm transition-shadow">
@@ -156,46 +123,28 @@ export const ToolShortcuts = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium text-sm">{tool.name}</h3>
-                      {isPaid && !isOwned && (
+                      {!isOwned && (
                         <Lock className="h-4 w-4 text-amber-600" />
                       )}
-                      {hasAccess && (
+                      {isOwned && (
                         <CheckCircle className="h-4 w-4 text-green-600" />
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">
                       {tool.description}
                     </p>
-                    {isFree && (
-                      <div className="text-xs text-muted-foreground">
-                        Usage: {usageCount}/{tool.free_limit || 5}
-                      </div>
-                    )}
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-sm font-semibold">
-                        {isPaid && tool.price > 0 
-                          ? `₹${(tool.price / 100).toLocaleString()}`
-                          : 'Free'
-                        }
+                        ₹{tool.price.toLocaleString()}
                       </span>
-                      {isPaid && !isOwned ? (
+                      {!isOwned ? (
                         <UnifiedPaymentButton
                           itemType="tool"
                           itemId={tool.id}
                           title={tool.name}
                           description={tool.description}
-                          price={tool.price}
+                          price={tool.price * 100} // Convert to paisa for payment
                           isOwned={isOwned}
-                          onSuccess={refetchPurchases}
-                        />
-                      ) : isFree && !canUseFree ? (
-                        <UnifiedPaymentButton
-                          itemType="tool"
-                          itemId={tool.id}
-                          title={tool.name}
-                          description={`${tool.description} (Free limit reached)`}
-                          price={tool.price || 499} // Default price if not set
-                          isOwned={false}
                           onSuccess={refetchPurchases}
                         />
                       ) : (
@@ -205,7 +154,7 @@ export const ToolShortcuts = () => {
                           variant="outline"
                           className="text-xs h-7 px-2"
                         >
-                          {hasAccess ? 'Use Tool' : 'Use'}
+                          Open Tool
                         </Button>
                       )}
                     </div>
@@ -215,6 +164,15 @@ export const ToolShortcuts = () => {
             );
           })}
         </div>
+        {tools.length === 0 && (
+          <div className="text-center py-8">
+            <Calculator className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">No premium tools available</h3>
+            <p className="text-muted-foreground">
+              Premium financial tools will appear here when they become available
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

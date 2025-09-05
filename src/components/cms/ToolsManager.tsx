@@ -17,26 +17,11 @@ import {
   Archive,
   Crown,
   Users,
-  Code,
-  Settings
+  Code
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface FinancialTool {
-  id: string;
-  name: string;
-  description: string;
-  tool_type: string;
-  tool_config: any;
-  ui_component: string;
-  is_premium: boolean;
-  is_active: boolean;
-  access_level: string;
-  category: string;
-  price: number;
-  free_limit: number;
-  tags: string[];
-}
+import { FinancialTool } from '@/types/financial-tools';
 
 interface ToolsManagerProps {
   searchTerm: string;
@@ -56,11 +41,10 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
     tool_type: 'calculator',
     ui_component: '',
     tool_config: '{}',
-    is_premium: false,
-    access_level: 'free',
-    category: 'free',
+    employee_access: 'none',
+    employee_free_limit: 5,
+    individual_access: 'none',
     price: 0,
-    free_limit: 5,
     tags: '',
     is_active: true
   });
@@ -104,9 +88,7 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
       const toolData = {
         ...formData,
         tool_config: toolConfig,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        price: Math.round(formData.price * 100), // Convert rupees to paisa
-        access_level: formData.category === 'paid' ? 'premium' : 'free'
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
       };
 
       if (editingTool) {
@@ -140,11 +122,10 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
         tool_type: 'calculator',
         ui_component: '',
         tool_config: '{}',
-        is_premium: false,
-        access_level: 'free',
-        category: 'free',
+        employee_access: 'none',
+        employee_free_limit: 5,
+        individual_access: 'none',
         price: 0,
-        free_limit: 5,
         tags: '',
         is_active: true
       });
@@ -169,11 +150,10 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
       tool_type: tool.tool_type,
       ui_component: tool.ui_component || '',
       tool_config: JSON.stringify(tool.tool_config, null, 2),
-      is_premium: tool.is_premium,
-      access_level: tool.access_level,
-      category: tool.category || 'free',
-      price: (tool.price || 0) / 100, // Convert paisa to rupees
-      free_limit: tool.free_limit || 5,
+      employee_access: tool.employee_access,
+      employee_free_limit: tool.employee_free_limit || 5,
+      individual_access: tool.individual_access,
+      price: tool.price || 0,
       tags: tool.tags.join(', '),
       is_active: tool.is_active
     });
@@ -226,7 +206,7 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
         <div>
           <h2 className="text-xl font-semibold">Financial Tools</h2>
           <p className="text-sm text-muted-foreground">
-            Manage calculators, planners, and tracking tools
+            Manage calculators, planners, and tracking tools with dual access controls
           </p>
         </div>
         {userProfile?.role === 'ADMIN' && (
@@ -281,19 +261,45 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="category">Category</Label>
-                    <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                    <Label htmlFor="employee_access">Employee Access</Label>
+                    <Select value={formData.employee_access} onValueChange={(value) => setFormData({...formData, employee_access: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
                         <SelectItem value="free">Free</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.employee_access === 'free' && (
+                    <div>
+                      <Label htmlFor="employee_free_limit">Free Usage Limit</Label>
+                      <Input
+                        id="employee_free_limit"
+                        type="number"
+                        min="0"
+                        value={formData.employee_free_limit}
+                        onChange={(e) => setFormData({...formData, employee_free_limit: parseInt(e.target.value) || 5})}
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <Label htmlFor="individual_access">Individual Access</Label>
+                    <Select value={formData.individual_access} onValueChange={(value) => setFormData({...formData, individual_access: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
                         <SelectItem value="paid">Paid</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {formData.category === 'paid' && (
+                  {formData.individual_access === 'paid' && (
                     <div>
                       <Label htmlFor="price">Price (₹)</Label>
                       <Input
@@ -303,19 +309,6 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
                         step="0.01"
                         value={formData.price}
                         onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
-                      />
-                    </div>
-                  )}
-
-                  {formData.category === 'free' && (
-                    <div>
-                      <Label htmlFor="free_limit">Free Usage Limit</Label>
-                      <Input
-                        id="free_limit"
-                        type="number"
-                        min="0"
-                        value={formData.free_limit}
-                        onChange={(e) => setFormData({...formData, free_limit: parseInt(e.target.value) || 5})}
                       />
                     </div>
                   )}
@@ -352,23 +345,13 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
                     />
                   </div>
 
-                  <div className="col-span-2 flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="is_premium"
-                        checked={formData.is_premium}
-                        onCheckedChange={(checked) => setFormData({...formData, is_premium: checked})}
-                      />
-                      <Label htmlFor="is_premium">Premium Tool</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="is_active"
-                        checked={formData.is_active}
-                        onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
-                      />
-                      <Label htmlFor="is_active">Active</Label>
-                    </div>
+                  <div className="col-span-2 flex items-center space-x-2">
+                    <Switch
+                      id="is_active"
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
+                    />
+                    <Label htmlFor="is_active">Active</Label>
                   </div>
                 </div>
 
@@ -404,16 +387,23 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
                     <Calculator className="h-5 w-5" />
                     {tool.name}
                   </CardTitle>
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
                     <Badge variant="outline">{tool.tool_type}</Badge>
-                    <Badge 
-                      variant={tool.category === 'free' ? 'secondary' : 'default'}
-                      className={tool.category === 'paid' ? 'bg-yellow-100 text-yellow-800' : ''}
-                    >
-                      {tool.category === 'paid' && <Crown className="h-3 w-3 mr-1" />}
-                      {tool.category}
-                      {tool.category === 'paid' && tool.price && ` - ₹${(tool.price / 100).toFixed(2)}`}
-                    </Badge>
+                    
+                    {tool.employee_access === 'free' && (
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        Employee Free ({tool.employee_free_limit} uses)
+                      </Badge>
+                    )}
+                    
+                    {tool.individual_access === 'paid' && (
+                      <Badge variant="default" className="bg-yellow-100 text-yellow-800 flex items-center gap-1">
+                        <Crown className="h-3 w-3" />
+                        Individual ₹{tool.price.toFixed(2)}
+                      </Badge>
+                    )}
+                    
                     {!tool.is_active && (
                       <Badge variant="destructive">Inactive</Badge>
                     )}

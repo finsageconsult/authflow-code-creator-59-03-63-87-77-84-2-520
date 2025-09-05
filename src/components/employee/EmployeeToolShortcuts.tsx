@@ -17,16 +17,7 @@ const iconMap = {
   'target': Target
 };
 
-interface FinancialTool {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  tool_type: string;
-  is_active: boolean;
-  category: string;
-  free_limit: number;
-}
+import { FinancialTool } from '@/types/financial-tools';
 
 export const EmployeeToolShortcuts = () => {
   const { userProfile } = useAuth();
@@ -44,7 +35,7 @@ export const EmployeeToolShortcuts = () => {
         .from('financial_tools')
         .select('*')
         .eq('is_active', true)
-        .eq('category', 'free')
+        .eq('employee_access', 'free')
         .order('created_at');
 
       if (error) throw error;
@@ -62,7 +53,7 @@ export const EmployeeToolShortcuts = () => {
       return;
     }
 
-    const canUse = canUseFreeTool(tool.id, tool.free_limit || 5);
+    const canUse = canUseFreeTool(tool.id, tool.employee_free_limit || 5);
     if (canUse) {
       const success = await incrementUsage(tool.id);
       if (success) {
@@ -71,7 +62,7 @@ export const EmployeeToolShortcuts = () => {
         console.log('Navigate to free tool:', tool.name);
       }
     } else {
-      toast.error(`You've reached the free usage limit (${tool.free_limit}) for ${tool.name}.`);
+      toast.error(`You've reached the free usage limit (${tool.employee_free_limit}) for ${tool.name}.`);
     }
   };
 
@@ -117,8 +108,8 @@ export const EmployeeToolShortcuts = () => {
           {tools.map((tool, index) => {
             const IconComponent = getToolIcon(tool.tool_type);
             const usageCount = getUsageCount(tool.id);
-            const canUseFree = canUseFreeTool(tool.id, tool.free_limit || 5);
-            const remainingUses = Math.max(0, (tool.free_limit || 5) - usageCount);
+            const canUseFree = canUseFreeTool(tool.id, tool.employee_free_limit || 5);
+            const remainingUses = Math.max(0, (tool.employee_free_limit || 5) - usageCount);
 
             return (
               <Card key={tool.id} className="relative overflow-hidden hover:shadow-sm transition-shadow">
@@ -137,7 +128,7 @@ export const EmployeeToolShortcuts = () => {
                     </p>
                     <div className="text-xs text-muted-foreground">
                       <div className="flex justify-between items-center">
-                        <span>Usage: {usageCount}/{tool.free_limit || 5}</span>
+                        <span>Usage: {usageCount}/{tool.employee_free_limit || 5}</span>
                         <span className={`font-medium ${remainingUses === 0 ? 'text-red-600' : remainingUses <= 1 ? 'text-amber-600' : 'text-green-600'}`}>
                           {remainingUses} left
                         </span>
@@ -149,7 +140,7 @@ export const EmployeeToolShortcuts = () => {
                             remainingUses <= 1 ? 'bg-amber-500' : 'bg-green-500'
                           }`}
                           style={{
-                            width: `${Math.max(10, (remainingUses / (tool.free_limit || 5)) * 100)}%`
+                            width: `${Math.max(10, (remainingUses / (tool.employee_free_limit || 5)) * 100)}%`
                           }}
                         ></div>
                       </div>

@@ -17,22 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ToolPaymentModal } from '@/components/individual/ToolPaymentModal';
 import { EmptyState } from '@/components/ui/empty-state';
 
-interface FinancialTool {
-  id: string;
-  name: string;
-  description: string;
-  tool_type: string;
-  tool_config: any;
-  ui_component: string;
-  is_premium: boolean;
-  is_active: boolean;
-  access_level: string;
-  category: string;
-  price: number;
-  free_limit: number;
-  tags: string[];
-  one_time_purchase: boolean;
-}
+import { FinancialTool } from '@/types/financial-tools';
 
 interface ToolPurchase {
   tool_id: string;
@@ -91,7 +76,7 @@ export const ToolsView = () => {
           .from('financial_tools')
           .select('*')
           .eq('is_active', true)
-          .eq('category', 'paid')
+          .eq('individual_access', 'paid')
           .order('created_at', { ascending: true });
 
         if (toolsError) throw toolsError;
