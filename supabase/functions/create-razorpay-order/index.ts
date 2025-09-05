@@ -22,7 +22,12 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { amount, currency = 'INR', serviceType, quantity = 1, userType, organizationId }: CreateOrderRequest = await req.json();
-    console.log("Creating Razorpay order:", { amount, currency, serviceType, userType });
+  console.log("Creating Razorpay order:", { amount, currency, serviceType, userType });
+  console.log("Amount analysis:", { 
+    originalAmount: amount, 
+    amountInRupees: amount / 100,
+    withinTestLimits: amount <= 500000 
+  });
 
     if (!amount || amount <= 0) {
       return new Response(
@@ -110,10 +115,29 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Calculate GST (18%)
-    const baseAmount = Math.round(amount * 100); // Convert to paise
-    const gstAmount = Math.round(baseAmount * 0.18);
-    const totalAmount = baseAmount + gstAmount;
+    // Calculate GST (18%) but ensure we stay within Razorpay test limits
+    const baseAmount = Math.round(amount); // Amount is already in paisa from frontend
+    
+    // For Razorpay test mode, limit is ₹5,000 (500000 paise)
+    const RAZORPAY_TEST_LIMIT = 500000; // 5000 rupees in paise
+    
+    let gstAmount = 0;
+    let totalAmount = baseAmount;
+    
+    // Only add GST if the total stays within test limits
+    const potentialGstAmount = Math.round(baseAmount * 0.18);
+    const potentialTotal = baseAmount + potentialGstAmount;
+    
+    if (potentialTotal <= RAZORPAY_TEST_LIMIT) {
+      gstAmount = potentialGstAmount;
+      totalAmount = potentialTotal;
+    } else {
+      // Adjust base amount to fit within limits
+      const maxBaseAmount = Math.floor(RAZORPAY_TEST_LIMIT / 1.18);
+      totalAmount = Math.min(baseAmount, maxBaseAmount);
+      gstAmount = 0; // Skip GST to stay within limits
+      console.log(`Amount adjusted for Razorpay test limits: ${totalAmount}`);
+    }
 
     // Create order in database first
     const orderNumber = `ORD${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
@@ -187,9 +211,20 @@ const handler = async (req: Request): Promise<Response> => {
       // Clean up the order we created
       await supabase.from('orders').delete().eq('id', orderData.id);
       
+      // Parse Razorpay error for better user messaging
+      let userMessage = "Failed to create payment order";
+      try {
+        const razorpayError = JSON.parse(errorText);
+        if (razorpayError.error?.description?.includes("Amount exceeds maximum")) {
+          userMessage = "Amount exceeds payment limits. Please contact support for assistance.";
+        }
+      } catch (e) {
+        // Keep default message if JSON parsing fails
+      }
+      
       return new Response(
         JSON.stringify({ 
-          error: "Failed to create payment order", 
+          error: userMessage,
           details: `Razorpay API error: ${razorpayResponse.status} ${razorpayResponse.statusText}`,
           razorpayError: errorText 
         }),

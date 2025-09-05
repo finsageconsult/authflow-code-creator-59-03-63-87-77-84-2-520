@@ -85,10 +85,10 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
     }
 
     try {
-      // Create Razorpay order
+      // Create Razorpay order - amount should be in paise
       const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
         body: {
-          amount: course.price,
+          amount: course.price, // Already in paise from database
           serviceType: 'short-program',
           quantity: 1,
           programId: course.id,
@@ -103,7 +103,7 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
       }
 
       if (!data.success) {
-        toast.error(data.error || 'Failed to create order');
+        toast.error(data.error || 'Payment setup failed. Please try again.');
         return;
       }
 
