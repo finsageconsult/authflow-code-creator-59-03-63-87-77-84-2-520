@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
+import { EnrollmentWorkflow } from '@/components/enrollment/EnrollmentWorkflow';
 import { BookOpen, Clock, Users, Star, Lock, GraduationCap, TrendingUp, Target, ChevronRight, DollarSign, Heart, Shield, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
 interface Program {
@@ -82,6 +83,8 @@ export const EmployeePrograms = () => {
   const [purchases, setPurchases] = useState<UserPurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [enrollmentWorkflowOpen, setEnrollmentWorkflowOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
   useEffect(() => {
     fetchData();
   }, []);
@@ -297,14 +300,16 @@ export const EmployeePrograms = () => {
                 }}>
                         Continue Learning
                       </Button> : <Button className="w-full" onClick={() => {
-                  // Mock enrollment - in real app, this would call an API
-                  toast.success(`Successfully enrolled in ${program.title}!`);
-                  // Add to purchases to simulate enrollment
-                  setPurchases(prev => [...prev, {
-                    program_id: program.id,
-                    status: 'completed',
-                    progress: 0
-                  }]);
+                  setSelectedCourse({
+                    id: program.id,
+                    title: program.title,
+                    description: program.description,
+                    duration: program.duration,
+                    price: 0, // Free for employees
+                    category: program.category,
+                    tags: ['financial-planning', 'budgeting', 'investing'] // Default tags for matching coaches
+                  });
+                  setEnrollmentWorkflowOpen(true);
                 }}>
                         Enroll Now - FREE
                       </Button>}
@@ -324,5 +329,18 @@ export const EmployeePrograms = () => {
             </p>
           </div>
         </Card>}
+      
+      {/* Enrollment Workflow Modal */}
+      <EnrollmentWorkflow
+        isOpen={enrollmentWorkflowOpen}
+        onClose={() => {
+          setEnrollmentWorkflowOpen(false);
+          setSelectedCourse(null);
+          // Refresh data after enrollment
+          fetchData();
+        }}
+        initialCourse={selectedCourse}
+        userType="employee"
+      />
     </div>;
 };
