@@ -16,7 +16,7 @@ import {
   Clock
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ToolPaymentModal } from '@/components/individual/ToolPaymentModal';
+import { ToolPaymentModal } from '@/components/payments/ToolPaymentModal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useToolUsage } from '@/hooks/useToolUsage';
 import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
