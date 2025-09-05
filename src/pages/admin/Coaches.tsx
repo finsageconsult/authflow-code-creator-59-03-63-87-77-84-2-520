@@ -341,7 +341,6 @@ export default function Coaches() {
               <TableRow>
                 <TableHead>Coach Profile</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Specialties</TableHead>
                 <TableHead>Offerings</TableHead>
                 <TableHead>Sessions</TableHead>
                 <TableHead>Availability</TableHead>
@@ -370,19 +369,6 @@ export default function Coaches() {
                   <TableCell>
                     <div className="text-sm">
                       <div>{coach.email}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {coach.specialties && coach.specialties.length > 0 ? (
-                        coach.specialties.map((specialty, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {specialty}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-xs text-muted-foreground">No specialties</span>
-                      )}
                     </div>
                   </TableCell>
                   <TableCell>
