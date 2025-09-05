@@ -25,14 +25,13 @@ import {
 } from 'lucide-react';
 import { ProgramManager } from './ProgramManager';
 import { WebinarManager } from './WebinarManager';
-import { CoachingOfferingsManager } from './CoachingOfferingsManager';
+
 import { ToolsManager } from './ToolsManager';
 import { ContentAssetManager } from './ContentAssetManager';
 
 interface ContentStats {
   programs: number;
   webinars: number;
-  offerings: number;
   tools: number;
   assets: number;
 }
@@ -42,7 +41,6 @@ export const ContentCatalog = () => {
   const [stats, setStats] = useState<ContentStats>({
     programs: 0,
     webinars: 0,
-    offerings: 0,
     tools: 0,
     assets: 0
   });
@@ -56,11 +54,10 @@ export const ContentCatalog = () => {
 
   const fetchContentStats = async () => {
     try {
-      const [programsCount, webinarsCount, offeringsCount, toolsCount, assetsCount] = 
+      const [programsCount, webinarsCount, toolsCount, assetsCount] = 
         await Promise.all([
           supabase.from('individual_programs').select('*', { count: 'exact', head: true }),
           supabase.from('webinars').select('*', { count: 'exact', head: true }),
-          supabase.from('coaching_offerings').select('*', { count: 'exact', head: true }),
           supabase.from('financial_tools').select('*', { count: 'exact', head: true }),
           supabase.from('content_assets').select('*', { count: 'exact', head: true })
         ]);
@@ -68,7 +65,6 @@ export const ContentCatalog = () => {
       setStats({
         programs: programsCount.count || 0,
         webinars: webinarsCount.count || 0,
-        offerings: offeringsCount.count || 0,
         tools: toolsCount.count || 0,
         assets: assetsCount.count || 0
       });
@@ -95,13 +91,6 @@ export const ContentCatalog = () => {
       bgColor: 'bg-green-100'
     },
     {
-      title: 'Coaching Offerings',
-      value: stats.offerings.toString(),
-      icon: Users,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
-    },
-    {
       title: 'Financial Tools',
       value: stats.tools.toString(),
       icon: Calculator,
@@ -121,7 +110,7 @@ export const ContentCatalog = () => {
         <div>
           <h1 className="text-3xl font-bold">Content Catalog & CMS</h1>
           <p className="text-muted-foreground">
-            Manage courses, webinars, coaching offerings, and financial tools
+            Manage courses, webinars, and financial tools
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -132,7 +121,7 @@ export const ContentCatalog = () => {
       </div>
 
       {/* Content Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {contentStats.map((stat, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -194,7 +183,7 @@ export const ContentCatalog = () => {
       {/* Content Management Tabs */}
       <Tabs defaultValue="programs" className="space-y-6">
         <div className="w-full">
-          <TabsList className="flex flex-col sm:grid sm:grid-cols-5 w-full gap-1 sm:gap-0 h-auto sm:h-10">
+          <TabsList className="flex flex-col sm:grid sm:grid-cols-4 w-full gap-1 sm:gap-0 h-auto sm:h-10">
             <TabsTrigger value="programs" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
               <BookOpen className="h-4 w-4" />
               <span className="hidden sm:inline">Programs</span>
@@ -204,11 +193,6 @@ export const ContentCatalog = () => {
               <Video className="h-4 w-4" />
               <span className="hidden sm:inline">Webinars</span>
               <span className="sm:hidden">Webinars</span>
-            </TabsTrigger>
-            <TabsTrigger value="offerings" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Coaching</span>
-              <span className="sm:hidden">Coaching</span>
             </TabsTrigger>
             <TabsTrigger value="tools" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
               <Calculator className="h-4 w-4" />
@@ -231,9 +215,6 @@ export const ContentCatalog = () => {
           <WebinarManager searchTerm={searchTerm} category={selectedCategory} />
         </TabsContent>
 
-        <TabsContent value="offerings">
-          <CoachingOfferingsManager searchTerm={searchTerm} category={selectedCategory} />
-        </TabsContent>
 
         <TabsContent value="tools">
           <ToolsManager searchTerm={searchTerm} category={selectedCategory} />
