@@ -42,7 +42,7 @@ export const IndividualDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const currentTab = searchParams.get('tab') || 'programs';
-  const [enrollmentWorkflowOpen, setEnrollmentWorkflowOpen] = useState(false);
+  const [showEnrollment, setShowEnrollment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
 
   // Get purchased programs for "My Learning" section
@@ -182,7 +182,7 @@ export const IndividualDashboard = () => {
                                 category: program.category,
                                 tags: program.tags || []
                               });
-                              setEnrollmentWorkflowOpen(true);
+                              setShowEnrollment(true);
                             }}
                             className="w-full"
                             size="sm"
@@ -270,16 +270,6 @@ export const IndividualDashboard = () => {
         {/* Single Sidebar instance for proper state management */}
         <IndividualSidebar />
 
-        {/* Enrollment Workflow */}
-        <EnrollmentWorkflow
-          isOpen={enrollmentWorkflowOpen}
-          onClose={() => {
-            setEnrollmentWorkflowOpen(false);
-            setSelectedCourse(null);
-          }}
-          initialCourse={selectedCourse}
-          userType="individual"
-        />
 
         {/* Main Content using SidebarInset for proper responsive layout */}
         <SidebarInset className="flex-1">
@@ -318,7 +308,24 @@ export const IndividualDashboard = () => {
           {/* Main Content */}
           <main className="flex-1 p-3 sm:p-4 md:p-6">
             <div className="max-w-7xl mx-auto">
-              {renderContent()}
+              {showEnrollment ? (
+                <EnrollmentWorkflow
+                  initialCourse={selectedCourse}
+                  userType="individual"
+                  onBack={() => {
+                    setShowEnrollment(false);
+                    setSelectedCourse(null);
+                  }}
+                  onComplete={() => {
+                    setShowEnrollment(false);
+                    setSelectedCourse(null);
+                    refetch();
+                    refetchPurchases();
+                  }}
+                />
+              ) : (
+                renderContent()
+              )}
             </div>
           </main>
         </SidebarInset>

@@ -85,7 +85,7 @@ export const EmployeePrograms = () => {
   const [purchases, setPurchases] = useState<UserPurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [enrollmentWorkflowOpen, setEnrollmentWorkflowOpen] = useState(false);
+  const [showEnrollment, setShowEnrollment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [enrolledPrograms, setEnrolledPrograms] = useState<Set<string>>(new Set());
   useEffect(() => {
@@ -328,7 +328,7 @@ export const EmployeePrograms = () => {
                             category: program.category,
                             tags: ['financial-planning', 'budgeting', 'investing'] // Default tags for matching coaches
                           });
-                          setEnrollmentWorkflowOpen(true);
+                          setShowEnrollment(true);
                         }}
                       >
                         Enroll Now - FREE

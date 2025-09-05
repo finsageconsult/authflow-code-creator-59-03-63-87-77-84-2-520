@@ -1,6 +1,6 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { useEnrollmentWorkflow, EnrollmentData } from '@/hooks/useEnrollmentWorkflow';
@@ -10,17 +10,17 @@ import { TimeSlotSelection } from './TimeSlotSelection';
 import { PreviewConfirm } from './PreviewConfirm';
 
 interface EnrollmentWorkflowProps {
-  isOpen: boolean;
-  onClose: () => void;
   initialCourse?: EnrollmentData['course'];
   userType: 'individual' | 'employee';
+  onBack: () => void;
+  onComplete: () => void;
 }
 
 export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
-  isOpen,
-  onClose,
   initialCourse,
-  userType
+  userType,
+  onBack,
+  onComplete
 }) => {
   const {
     currentStep,
@@ -37,21 +37,21 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
     submitEnrollment
   } = useEnrollmentWorkflow();
 
-  // Set initial course when dialog opens
+  // Set initial course when component mounts
   React.useEffect(() => {
-    if (isOpen && initialCourse && !enrollmentData.course) {
+    if (initialCourse && !enrollmentData.course) {
       setCourse(initialCourse);
     }
-  }, [isOpen, initialCourse, enrollmentData.course, setCourse]);
+  }, [initialCourse, enrollmentData.course, setCourse]);
 
-  const handleClose = () => {
+  const handleBack = () => {
     resetWorkflow();
-    onClose();
+    onBack();
   };
 
   const handleEnrollmentSuccess = () => {
-    // Close dialog after successful enrollment
-    handleClose();
+    // Complete enrollment and notify parent
+    onComplete();
   };
 
   const steps = [
@@ -70,7 +70,7 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
           <CoursePreview
             course={enrollmentData.course}
             onNext={nextStep}
-            onCancel={handleClose}
+            onCancel={handleBack}
           />
         );
       case 2:
@@ -109,7 +109,7 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
               return success;
             }}
             onPrevious={prevStep}
-            onCancel={handleClose}
+            onCancel={handleBack}
             isLoading={isLoading}
           />
         );
@@ -119,64 +119,73 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
+    <div className="space-y-6">
+      {/* Header with Back Button */}
+      <div className="flex items-center gap-4">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleBack}
+          className="flex items-center gap-2"
+        >
+          ← Back to Courses
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold flex items-center gap-3">
             Course Enrollment
             <Badge variant="outline" className="text-xs">
               {userType === 'individual' ? 'Individual' : 'Employee'} Enrollment
             </Badge>
-          </DialogTitle>
-          <DialogDescription>
+          </h1>
+          <p className="text-muted-foreground mt-1">
             Complete the enrollment process to book your coaching session and access course materials.
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
+      </div>
 
-        {/* Progress Indicator */}
-        <div className="space-y-4">
-          <Progress value={progressValue} className="h-2" />
-          
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.number} className="flex items-center">
-                <div className="flex items-center gap-2">
-                  {step.completed ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <Circle 
-                      className={`h-5 w-5 ${
-                        currentStep === step.number 
-                          ? 'text-primary fill-current' 
-                          : 'text-muted-foreground'
-                      }`} 
-                    />
-                  )}
-                  <span 
-                    className={`text-xs font-medium ${
+      {/* Progress Indicator */}
+      <div className="space-y-4">
+        <Progress value={progressValue} className="h-2" />
+        
+        <div className="flex items-center justify-between">
+          {steps.map((step, index) => (
+            <div key={step.number} className="flex items-center">
+              <div className="flex items-center gap-2">
+                {step.completed ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : (
+                  <Circle 
+                    className={`h-5 w-5 ${
                       currentStep === step.number 
-                        ? 'text-primary' 
-                        : step.completed 
-                        ? 'text-green-600' 
+                        ? 'text-primary fill-current' 
                         : 'text-muted-foreground'
-                    }`}
-                  >
-                    {step.title}
-                  </span>
-                </div>
-                {index < steps.length - 1 && (
-                  <div className="w-8 h-px bg-muted mx-4" />
+                    }`} 
+                  />
                 )}
+                <span 
+                  className={`text-xs font-medium ${
+                    currentStep === step.number 
+                      ? 'text-primary' 
+                      : step.completed 
+                      ? 'text-green-600' 
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {step.title}
+                </span>
               </div>
-            ))}
-          </div>
+              {index < steps.length - 1 && (
+                <div className="w-8 h-px bg-muted mx-4" />
+              )}
+            </div>
+          ))}
         </div>
+      </div>
 
-        {/* Step Content */}
-        <div className="mt-6">
-          {renderStep()}
-        </div>
-      </DialogContent>
-    </Dialog>
+      {/* Step Content */}
+      <div className="mt-6">
+        {renderStep()}
+      </div>
+    </div>
   );
 };

@@ -50,7 +50,7 @@ export const EmployeeDashboard = () => {
     experienceLevel: 'beginner'
   });
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
-  const [enrollmentWorkflowOpen, setEnrollmentWorkflowOpen] = useState(false);
+  const [showEnrollment, setShowEnrollment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
 
   // Set active tab based on URL parameter
@@ -444,27 +444,31 @@ export const EmployeeDashboard = () => {
         </div>
       </div>
 
-      {/* Enrollment Workflow */}
-      <EnrollmentWorkflow
-        isOpen={enrollmentWorkflowOpen}
-        onClose={() => {
-          setEnrollmentWorkflowOpen(false);
-          setSelectedCourse(null);
-        }}
-        initialCourse={selectedCourse}
-        userType="employee"
-      />
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList role="tablist" aria-label="Employee dashboard navigation" className="hidden">
-          <TabsTrigger value="dashboard" role="tab" aria-controls="dashboard-panel">Dashboard</TabsTrigger>
-          <TabsTrigger value="programs" role="tab" aria-controls="programs-panel">Programs</TabsTrigger>
-          <TabsTrigger value="analytics" role="tab" aria-controls="analytics-panel">My Progress</TabsTrigger>
-          <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>
-          <TabsTrigger value="chat" role="tab" aria-controls="chat-panel">Chat</TabsTrigger>
-          <TabsTrigger value="assignments" role="tab" aria-controls="assignments-panel">Assignments</TabsTrigger>
-          <TabsTrigger value="support" role="tab" aria-controls="support-panel">Support</TabsTrigger>
-        </TabsList>
+      {/* Enrollment Workflow - Render instead of dashboard content when active */}
+      {showEnrollment ? (
+        <EnrollmentWorkflow
+          initialCourse={selectedCourse}
+          userType="employee"
+          onBack={() => {
+            setShowEnrollment(false);
+            setSelectedCourse(null);
+          }}
+          onComplete={() => {
+            setShowEnrollment(false);
+            setSelectedCourse(null);
+          }}
+        />
+      ) : (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList role="tablist" aria-label="Employee dashboard navigation" className="hidden">
+            <TabsTrigger value="dashboard" role="tab" aria-controls="dashboard-panel">Dashboard</TabsTrigger>
+            <TabsTrigger value="programs" role="tab" aria-controls="programs-panel">Programs</TabsTrigger>
+            <TabsTrigger value="analytics" role="tab" aria-controls="analytics-panel">My Progress</TabsTrigger>
+            <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>
+            <TabsTrigger value="chat" role="tab" aria-controls="chat-panel">Chat</TabsTrigger>
+            <TabsTrigger value="assignments" role="tab" aria-controls="assignments-panel">Assignments</TabsTrigger>
+            <TabsTrigger value="support" role="tab" aria-controls="support-panel">Support</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6" role="tabpanel" id="dashboard-panel" aria-labelledby="dashboard-tab">
 
@@ -513,7 +517,7 @@ export const EmployeeDashboard = () => {
                       category: '1-1-sessions',
                       tags: rec.tags || []
                     });
-                    setEnrollmentWorkflowOpen(true);
+                    setShowEnrollment(true);
                   }
                 }}
                 aria-label={`${rec.type === 'tool' ? 'Use' : 'Book'} ${rec.title} - ${rec.description}`}
@@ -596,6 +600,7 @@ export const EmployeeDashboard = () => {
         <UserAssignments />
       </TabsContent>
       </Tabs>
+      )}
     </div>
   );
 };
