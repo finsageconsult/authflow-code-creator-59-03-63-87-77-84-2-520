@@ -119,6 +119,11 @@ const coachMenuItems = [{
   icon: MessageSquare,
   roles: ['COACH']
 }, {
+  title: 'Chat',
+  url: '/coach-dashboard?tab=chat',
+  icon: MessageSquare,
+  roles: ['COACH']
+}, {
   title: 'Analytics',
   url: '/coach-dashboard?tab=analytics',
   icon: BarChart3,
