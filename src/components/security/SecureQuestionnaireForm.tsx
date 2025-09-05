@@ -18,13 +18,6 @@ export const SecureQuestionnaireForm = () => {
   const [submitting, setSubmitting] = useState(false);
   
   const [responses, setResponses] = useState({
-    // Financial Wellness Questions
-    financialStress: [5],
-    incomeStability: '',
-    savingsGoals: '',
-    debtConcerns: '',
-    investmentKnowledge: [3],
-    
     // Personal Concerns (Sensitive - Encrypted)
     personalChallenges: [] as string[],
     confidentialNotes: '',
@@ -87,11 +80,6 @@ export const SecureQuestionnaireForm = () => {
 
       // Reset form
       setResponses({
-        financialStress: [5],
-        incomeStability: '',
-        savingsGoals: '',
-        debtConcerns: '',
-        investmentKnowledge: [3],
         personalChallenges: [],
         confidentialNotes: '',
         seekingHelp: '',
@@ -163,78 +151,12 @@ export const SecureQuestionnaireForm = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Financial Wellness Assessment</CardTitle>
+          <CardTitle>Personal Assessment</CardTitle>
           <CardDescription>
-            Help us understand your financial wellness needs. Your individual responses are private and encrypted.
+            Help us understand your personal needs. Your individual responses are private and encrypted.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
-          {/* Financial Stress Level */}
-          <div className="space-y-3">
-            <Label>Current Financial Stress Level</Label>
-            <div className="px-4">
-              <Slider
-                value={responses.financialStress}
-                onValueChange={(value) => setResponses(prev => ({ ...prev, financialStress: value }))}
-                max={10}
-                min={1}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>Low (1)</span>
-                <span>Current: {responses.financialStress[0]}</span>
-                <span>High (10)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Income Stability */}
-          <div className="space-y-3">
-            <Label>How stable is your current income?</Label>
-            <RadioGroup 
-              value={responses.incomeStability} 
-              onValueChange={(value) => setResponses(prev => ({ ...prev, incomeStability: value }))}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="very_stable" id="very_stable" />
-                <Label htmlFor="very_stable">Very stable</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="somewhat_stable" id="somewhat_stable" />
-                <Label htmlFor="somewhat_stable">Somewhat stable</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="unstable" id="unstable" />
-                <Label htmlFor="unstable">Unstable</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="very_unstable" id="very_unstable" />
-                <Label htmlFor="very_unstable">Very unstable</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Investment Knowledge */}
-          <div className="space-y-3">
-            <Label>Investment Knowledge Level</Label>
-            <div className="px-4">
-              <Slider
-                value={responses.investmentKnowledge}
-                onValueChange={(value) => setResponses(prev => ({ ...prev, investmentKnowledge: value }))}
-                max={5}
-                min={1}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>Beginner (1)</span>
-                <span>Level: {responses.investmentKnowledge[0]}</span>
-                <span>Expert (5)</span>
-              </div>
-            </div>
-          </div>
-
           {/* Encrypted Section */}
           <div className="border-l-4 border-green-500 pl-4 bg-green-50/50 p-4 rounded-r">
             <div className="flex items-center gap-2 mb-4">
