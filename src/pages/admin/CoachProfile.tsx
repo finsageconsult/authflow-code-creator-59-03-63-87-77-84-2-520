@@ -55,6 +55,18 @@ interface UserEnrollment {
   amount_paid: number;
 }
 
+interface AccessCode {
+  id: string;
+  code: string;
+  email: string;
+  expires_at: string;
+  created_at: string;
+  used_count: number;
+  max_uses: number;
+  role: string;
+  organization_id?: string;
+}
+
 export default function CoachProfile() {
   const { coachId } = useParams();
   const navigate = useNavigate();
@@ -69,6 +81,7 @@ export default function CoachProfile() {
   const [stats, setStats] = useState<CoachStats | null>(null);
   const [offerings, setOfferings] = useState<CoachOffering[]>([]);
   const [enrollments, setEnrollments] = useState<UserEnrollment[]>([]);
+  const [accessCodes, setAccessCodes] = useState<AccessCode[]>([]);
 
   useEffect(() => {
     if (coachId && userProfile?.role === 'ADMIN') {
@@ -161,6 +174,16 @@ export default function CoachProfile() {
       }));
 
       setEnrollments(formattedEnrollments);
+
+      // Fetch access codes for the coach
+      const { data: accessCodesData, error: accessCodesError } = await supabase
+        .from('access_codes')
+        .select('*')
+        .eq('email', coachData.email)
+        .order('created_at', { ascending: false });
+
+      if (accessCodesError) console.error('Access codes error:', accessCodesError);
+      setAccessCodes(accessCodesData || []);
 
     } catch (error) {
       console.error('Error fetching coach data:', error);
@@ -356,8 +379,9 @@ export default function CoachProfile() {
 
       {/* Detailed Information Tabs */}
       <Tabs defaultValue="specialties" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="specialties">Specialties</TabsTrigger>
+          <TabsTrigger value="access-codes">Access Codes</TabsTrigger>
           <TabsTrigger value="enrollments">Students</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
         </TabsList>
@@ -422,6 +446,57 @@ export default function CoachProfile() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="access-codes">
+          <Card>
+            <CardHeader>
+              <CardTitle>Access Codes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {accessCodes.length === 0 ? (
+                <p className="text-muted-foreground">No access codes found for this coach</p>
+              ) : (
+                <div className="space-y-4">
+                  {accessCodes.map((accessCode) => (
+                    <div key={accessCode.id} className="border rounded-lg p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold font-mono text-lg">{accessCode.code}</h3>
+                          <p className="text-sm text-muted-foreground">{accessCode.email}</p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={accessCode.used_count < accessCode.max_uses ? 'default' : 'secondary'}>
+                            {accessCode.used_count}/{accessCode.max_uses} used
+                          </Badge>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Role: {accessCode.role}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-sm space-y-1">
+                        <div className="flex justify-between">
+                          <span>Created:</span>
+                          <span>{new Date(accessCode.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Expires:</span>
+                          <span className={new Date(accessCode.expires_at) < new Date() ? 'text-red-600' : ''}>
+                            {new Date(accessCode.expires_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {accessCode.organization_id && (
+                          <div className="flex justify-between">
+                            <span>Organization:</span>
+                            <span className="text-xs">{accessCode.organization_id}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="enrollments">
           <Card>
