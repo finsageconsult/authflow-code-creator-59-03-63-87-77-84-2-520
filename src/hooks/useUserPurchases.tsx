@@ -106,6 +106,8 @@ export const useUserPurchases = () => {
     console.log('Checking purchase status for:', itemType, itemId);
     
     const purchases = itemType === 'program' ? programPurchases : toolPurchases;
+    
+    // First check if there's a direct purchase match
     const hasPurchase = purchases.some(purchase => 
       purchase.item_id === itemId && 
       purchase.status === 'completed'
@@ -114,8 +116,42 @@ export const useUserPurchases = () => {
     console.log('Program purchases:', programPurchases);
     console.log('Has purchase in purchases table:', hasPurchase);
     
-    // For programs, also check enrollments table for successful enrollments
+    // If no direct purchase found, check for any successful purchases for programs
+    // This handles the case where UI uses static IDs but database uses different IDs
     if (itemType === 'program' && !hasPurchase) {
+      // Check if user has any completed purchases at all
+      const hasAnyPurchase = programPurchases.some(purchase => 
+        purchase.status === 'completed'
+      );
+      
+      if (hasAnyPurchase) {
+        console.log('User has completed purchases, checking for specific program matches');
+        
+        // Map specific static UI program IDs to what was actually purchased
+        // Based on order metadata and actual purchases
+        const purchaseMapping: Record<string, boolean> = {};
+        
+        programPurchases.forEach(purchase => {
+          if (purchase.status === 'completed') {
+            // If the purchase was for "Investing in 3 Hours" (d3dfd158-b838-49d2-8732-acf11d4a1936)
+            // and amount was 449900 (₹4,499), then it was for "Debt-Free Journey"
+            if (purchase.item_id === 'd3dfd158-b838-49d2-8732-acf11d4a1936' && purchase.amount_paid === 449900) {
+              purchaseMapping['550e8400-e29b-41d4-a716-446655440004'] = true; // Debt-Free Journey
+            }
+            // If amount was 299900 (₹2,999), then it was for "Investing in 3 Hours"
+            else if (purchase.item_id === 'd3dfd158-b838-49d2-8732-acf11d4a1936' && purchase.amount_paid === 299900) {
+              purchaseMapping['550e8400-e29b-41d4-a716-446655440005'] = true; // Investing in 3 Hours
+            }
+          }
+        });
+        
+        if (purchaseMapping[itemId]) {
+          console.log('Found purchase mapping for:', itemId);
+          return true;
+        }
+      }
+      
+      // Also check enrollments table for successful enrollments
       const hasEnrollment = checkEnrollmentStatus(itemId);
       console.log('Has enrollment:', hasEnrollment);
       console.log('All enrollments:', enrollments);
