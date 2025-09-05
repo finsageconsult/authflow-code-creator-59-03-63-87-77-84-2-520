@@ -20,7 +20,7 @@ import { ToolPaymentModal } from '@/components/individual/ToolPaymentModal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useToolUsage } from '@/hooks/useToolUsage';
 import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
-import { ToolLauncher } from './ToolLauncher';
+import { useNavigate } from 'react-router-dom';
 
 import { FinancialTool } from '@/types/financial-tools';
 
@@ -62,18 +62,11 @@ const getToolIconColor = (toolType: string) => {
 export const ToolsView = () => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [tools, setTools] = useState<FinancialTool[]>([]);
   const [purchasedTools, setPurchasedTools] = useState<ToolPurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [paymentModal, setPaymentModal] = useState<{
-    isOpen: boolean;
-    tool: FinancialTool | null;
-  }>({
-    isOpen: false,
-    tool: null
-  });
-  
-  const [toolLauncher, setToolLauncher] = useState<{
     isOpen: boolean;
     tool: FinancialTool | null;
   }>({
@@ -161,13 +154,7 @@ export const ToolsView = () => {
       if (canUseFree) {
         const success = await incrementUsage(tool.id);
         if (success) {
-          // Launch the tool
-          setToolLauncher({ isOpen: true, tool });
-          
-          toast({
-            title: "Launching Tool",
-            description: `Opening ${tool.name}...`,
-          });
+          navigate(`/tools/${tool.ui_component}`);
         }
         return;
       } else {
@@ -187,12 +174,7 @@ export const ToolsView = () => {
     }
 
     // Launch the tool
-    setToolLauncher({ isOpen: true, tool });
-    
-    toast({
-      title: "Launching Tool",
-      description: `Opening ${tool.name}...`,
-    });
+    navigate(`/tools/${tool.ui_component}`);
   };
 
   const handlePaymentSuccess = () => {
@@ -213,11 +195,7 @@ export const ToolsView = () => {
   };
 
   const handleLaunchTool = (tool: FinancialTool) => {
-    setToolLauncher({ isOpen: true, tool });
-    toast({
-      title: "Launching Tool",
-      description: `Opening ${tool.name}...`,
-    });
+    navigate(`/tools/${tool.ui_component}`);
   };
 
   const formatPrice = (price: number) => {
@@ -520,14 +498,6 @@ export const ToolsView = () => {
         />
       )}
 
-      {/* Tool Launcher */}
-      {toolLauncher.tool && (
-        <ToolLauncher
-          isOpen={toolLauncher.isOpen}
-          onClose={() => setToolLauncher({ isOpen: false, tool: null })}
-          tool={toolLauncher.tool}
-        />
-      )}
 
       {/* Usage Tips */}
       <Card className="bg-blue-50 border-blue-200">

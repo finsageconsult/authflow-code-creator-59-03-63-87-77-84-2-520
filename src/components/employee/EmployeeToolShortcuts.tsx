@@ -7,7 +7,7 @@ import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton
 import { useToolUsage } from '@/hooks/useToolUsage';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { ToolLauncher } from '../tools/ToolLauncher';
+import { useNavigate } from 'react-router-dom';
 
 const iconMap = {
   'calculator': Calculator,
@@ -22,16 +22,10 @@ import { FinancialTool } from '@/types/financial-tools';
 
 export const EmployeeToolShortcuts = () => {
   const { userProfile } = useAuth();
+  const navigate = useNavigate();
   const [tools, setTools] = useState<FinancialTool[]>([]);
   const [purchasedTools, setPurchasedTools] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [toolLauncher, setToolLauncher] = useState<{
-    isOpen: boolean;
-    tool: FinancialTool | null;
-  }>({
-    isOpen: false,
-    tool: null
-  });
   const { getUsageCount, canUseFreeTool, incrementUsage } = useToolUsage();
 
   useEffect(() => {
@@ -86,9 +80,7 @@ export const EmployeeToolShortcuts = () => {
     if (canUse) {
       const success = await incrementUsage(tool.id);
       if (success) {
-        // Launch the tool
-        setToolLauncher({ isOpen: true, tool });
-        toast.success(`Opening ${tool.name}...`);
+        navigate(`/tools/${tool.ui_component}`);
       }
     } else {
       toast.error(`You've reached the free usage limit (${tool.employee_free_limit}) for ${tool.name}.`);
@@ -96,8 +88,7 @@ export const EmployeeToolShortcuts = () => {
   };
 
   const handleLaunchTool = (tool: FinancialTool) => {
-    setToolLauncher({ isOpen: true, tool });
-    toast.success(`Opening ${tool.name}...`);
+    navigate(`/tools/${tool.ui_component}`);
   };
 
   const getToolIcon = (toolType: string) => {
@@ -258,14 +249,6 @@ export const EmployeeToolShortcuts = () => {
         )}
       </CardContent>
 
-      {/* Tool Launcher */}
-      {toolLauncher.tool && (
-        <ToolLauncher
-          isOpen={toolLauncher.isOpen}
-          onClose={() => setToolLauncher({ isOpen: false, tool: null })}
-          tool={toolLauncher.tool}
-        />
-      )}
     </Card>
   );
 };
