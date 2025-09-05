@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calculator, TrendingUp, FileText, PieChart, Coins, Target, Lock, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
 import { useUserPurchases } from '@/hooks/useUserPurchases';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -18,7 +17,11 @@ const iconMap = {
   'target': Target
 };
 
-export const ToolShortcuts = () => {
+interface ToolShortcutsProps {
+  onToolPurchase?: (tool: FinancialTool) => void;
+}
+
+export const ToolShortcuts: React.FC<ToolShortcutsProps> = ({ onToolPurchase }) => {
   const { userProfile } = useAuth();
   const [tools, setTools] = useState<FinancialTool[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,15 +141,13 @@ export const ToolShortcuts = () => {
                         ₹{tool.price.toLocaleString()}
                       </span>
                       {!isOwned ? (
-                        <UnifiedPaymentButton
-                          itemType="tool"
-                          itemId={tool.id}
-                          title={tool.name}
-                          description={tool.description}
-                          price={tool.price * 100} // Convert to paisa for payment
-                          isOwned={isOwned}
-                          onSuccess={refetchPurchases}
-                        />
+                        <Button 
+                          size="sm" 
+                          onClick={() => onToolPurchase?.(tool)}
+                          className="text-xs h-7 px-2"
+                        >
+                          Buy Now - ₹{tool.price.toLocaleString()}
+                        </Button>
                       ) : (
                         <Button 
                           size="sm" 
