@@ -122,7 +122,21 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Create Razorpay order
+    console.log("Creating Razorpay order with amount:", totalAmount);
     const razorpayAuth = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
+    
+    const razorpayRequestBody = {
+      amount: totalAmount,
+      currency,
+      receipt: orderNumber,
+      notes: {
+        order_id: orderData.id,
+        user_id: user.id,
+        service_type: serviceType,
+        user_type: userType
+      }
+    };
+    console.log("Razorpay request body:", razorpayRequestBody);
     
     const razorpayResponse = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
@@ -130,28 +144,29 @@ const handler = async (req: Request): Promise<Response> => {
         'Authorization': `Basic ${razorpayAuth}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        amount: totalAmount,
-        currency,
-        receipt: orderNumber,
-        notes: {
-          order_id: orderData.id,
-          user_id: user.id,
-          service_type: serviceType,
-          user_type: userType
-        }
-      })
+      body: JSON.stringify(razorpayRequestBody)
     });
 
+    console.log("Razorpay response status:", razorpayResponse.status);
+    
     if (!razorpayResponse.ok) {
       const errorText = await razorpayResponse.text();
-      console.error("Razorpay API error:", errorText);
+      console.error("Razorpay API error details:", {
+        status: razorpayResponse.status,
+        statusText: razorpayResponse.statusText,
+        error: errorText,
+        keyId: razorpayKeyId ? `${razorpayKeyId.substring(0, 8)}...` : 'undefined'
+      });
       
       // Clean up the order we created
       await supabase.from('orders').delete().eq('id', orderData.id);
       
       return new Response(
-        JSON.stringify({ error: "Failed to create payment order" }),
+        JSON.stringify({ 
+          error: "Failed to create payment order", 
+          details: `Razorpay API error: ${razorpayResponse.status} ${razorpayResponse.statusText}`,
+          razorpayError: errorText 
+        }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
