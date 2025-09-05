@@ -40,9 +40,16 @@ export const CoachSelection: React.FC<CoachSelectionProps> = ({
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-lg font-semibold mb-2">Choose Your Coach</h3>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground mb-2">
           Select a coach who matches your learning style and preferences
         </p>
+        {coaches.length < 10 && (
+          <div className="bg-muted/30 p-2 rounded-lg border">
+            <p className="text-sm text-muted-foreground">
+              💡 Showing coaches matched to this course based on specialties
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 max-h-96 overflow-y-auto">
@@ -67,10 +74,16 @@ export const CoachSelection: React.FC<CoachSelectionProps> = ({
           <Card>
             <CardContent className="p-8 text-center">
               <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h4 className="font-semibold text-lg mb-2">No Coaches Available</h4>
-              <p className="text-muted-foreground text-sm">
-                There are currently no active coaches available. Please contact support or try again later.
+              <h4 className="font-semibold text-lg mb-2">No Matching Coaches Available</h4>
+              <p className="text-muted-foreground text-sm mb-4">
+                No coaches found with specialties matching this course. Please contact support or try a different course.
               </p>
+              <div className="bg-muted/30 p-3 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  This happens when no coaches have specialties that match the course tags. 
+                  We're continuously adding more coaches to our platform.
+                </p>
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -135,9 +148,12 @@ export const CoachSelection: React.FC<CoachSelectionProps> = ({
                          )}
                        </div>
 
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Available for 1:1 sessions • Expert in financial planning
-                      </div>
+                       <div className="text-xs text-muted-foreground mt-1">
+                         Available for 1:1 sessions • Expert in financial planning
+                         {coach.specialties.length === 0 && (
+                           <span className="text-yellow-600"> • Specialties not set</span>
+                         )}
+                       </div>
                     </div>
                   </div>
                 </CardContent>

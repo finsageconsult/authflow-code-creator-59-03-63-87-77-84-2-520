@@ -131,31 +131,57 @@ export const useEnrollmentWorkflow = () => {
     }
   };
 
-  // Filter coaches based on course tags
+  // Filter coaches based on course tags with improved matching
   const filterCoachesByCourse = useCallback((course: EnrollmentData['course']) => {
     if (!course || !course.tags || course.tags.length === 0) {
+      console.log('No course tags found, showing all coaches');
       setFilteredCoaches(realCoaches);
       return;
     }
 
-    const courseTags = course.tags.map(tag => tag.toLowerCase());
+    const courseTags = course.tags.map(tag => tag.toLowerCase().trim());
+    console.log('Course tags to match:', courseTags);
+    
     const matchingCoaches = realCoaches.filter(coach => {
-      const coachSpecialties = coach.specialties.map(s => s.toLowerCase());
-      return courseTags.some(tag => 
-        coachSpecialties.some(specialty => 
-          specialty.includes(tag) || tag.includes(specialty) ||
-          (tag.includes('financial') && specialty.includes('financial')) ||
-          (tag.includes('investment') && specialty.includes('investment')) ||
-          (tag.includes('planning') && specialty.includes('planning')) ||
-          (tag.includes('tax') && specialty.includes('tax')) ||
-          (tag.includes('insurance') && specialty.includes('insurance')) ||
-          (tag.includes('debt') && specialty.includes('debt'))
-        )
+      if (!coach.specialties || coach.specialties.length === 0) {
+        return false; // Don't show coaches without specialties
+      }
+      
+      const coachSpecialties = coach.specialties.map(s => s.toLowerCase().trim());
+      console.log(`Checking coach ${coach.name} with specialties:`, coachSpecialties);
+      
+      const hasMatch = courseTags.some(courseTag => 
+        coachSpecialties.some(specialty => {
+          // Exact match or partial match
+          const exactMatch = specialty === courseTag || courseTag === specialty;
+          const partialMatch = specialty.includes(courseTag) || courseTag.includes(specialty);
+          
+          // Specific keyword matching for financial terms
+          const keywordMatch = (
+            (courseTag.includes('financial') && specialty.includes('financial')) ||
+            (courseTag.includes('investment') && specialty.includes('investment')) ||
+            (courseTag.includes('planning') && specialty.includes('planning')) ||
+            (courseTag.includes('tax') && specialty.includes('tax')) ||
+            (courseTag.includes('insurance') && specialty.includes('insurance')) ||
+            (courseTag.includes('debt') && specialty.includes('debt')) ||
+            (courseTag.includes('portfolio') && specialty.includes('portfolio')) ||
+            (courseTag.includes('budget') && specialty.includes('budget')) ||
+            (courseTag.includes('saving') && specialty.includes('saving'))
+          );
+          
+          return exactMatch || partialMatch || keywordMatch;
+        })
       );
+      
+      console.log(`Coach ${coach.name} match result:`, hasMatch);
+      return hasMatch;
     });
 
-    console.log('Filtering coaches by course tags:', courseTags, 'Found matches:', matchingCoaches.length);
-    setFilteredCoaches(matchingCoaches.length > 0 ? matchingCoaches : realCoaches);
+    console.log('Filtering coaches by course tags:', courseTags);
+    console.log('Found matching coaches:', matchingCoaches.length, 'out of', realCoaches.length);
+    
+    // Always show filtered coaches, even if empty (with appropriate message)
+    setFilteredCoaches(matchingCoaches);
   }, [realCoaches]);
 
   // Assign specializations based on coach ID for consistency
