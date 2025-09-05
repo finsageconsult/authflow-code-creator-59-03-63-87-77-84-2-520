@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -54,8 +54,56 @@ export const useEnrollmentWorkflow = () => {
     timeSlot: null
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [realCoaches, setRealCoaches] = useState<Coach[]>([]);
 
-  // Mock data - in real app, fetch from Supabase
+  // Fetch real coaches from database
+  const fetchCoaches = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, email, avatar_url')
+        .eq('role', 'COACH')
+        .eq('status', 'ACTIVE');
+
+      if (error) throw error;
+
+      // Transform to Coach interface with additional data
+      const coaches: Coach[] = (data || []).map((coach, index) => ({
+        id: coach.id,
+        name: coach.name || 'Professional Coach',
+        specialization: getCoachSpecialization(index),
+        rating: 4.5 + (Math.random() * 0.5), // Random rating between 4.5-5.0
+        experience: getCoachExperience(index),
+        avatar: coach.avatar_url
+      }));
+
+      setRealCoaches(coaches);
+    } catch (error) {
+      console.error('Error fetching coaches:', error);
+      // Fallback to mock data if real coaches can't be fetched
+      setRealCoaches(mockCoaches);
+    }
+  };
+
+  // Helper function to assign specializations
+  const getCoachSpecialization = (index: number): string => {
+    const specializations = [
+      'Investment Planning & Portfolio Management',
+      'Tax Planning & Retirement Strategy', 
+      'Insurance & Risk Management',
+      'Financial Planning & Wealth Building',
+      'Debt Management & Credit Planning'
+    ];
+    return specializations[index % specializations.length];
+  };
+
+  // Helper function to assign experience
+  const getCoachExperience = (index: number): string => {
+    const experiences = ['5+ years', '8+ years', '12+ years', '15+ years', '10+ years'];
+    return experiences[index % experiences.length];
+  };
+
+  // Fallback mock data
   const mockCoaches: Coach[] = [
     {
       id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -80,29 +128,42 @@ export const useEnrollmentWorkflow = () => {
     }
   ];
 
+  // Initialize coaches on component mount
+  useEffect(() => {
+    fetchCoaches();
+  }, []);
+
   const generateTimeSlots = (coachId: string): TimeSlot[] => {
     const slots: TimeSlot[] = [];
     const today = new Date();
     
-    for (let i = 1; i <= 7; i++) {
+    // Generate slots for next 14 days (instead of 7)
+    for (let i = 1; i <= 14; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       
-      // Generate 3 slots per day
-      const times = ['10:00', '14:00', '16:00'];
-      times.forEach((time, index) => {
-        const endTime = time === '10:00' ? '11:00' : 
-                       time === '14:00' ? '15:00' : '17:00';
-        
+      // Skip weekends for now
+      if (date.getDay() === 0 || date.getDay() === 6) continue;
+      
+      // Generate time slots based on typical working hours
+      const timeSlots = [
+        { start: '09:00', end: '10:00' },
+        { start: '10:30', end: '11:30' },
+        { start: '14:00', end: '15:00' },
+        { start: '15:30', end: '16:30' },
+        { start: '17:00', end: '18:00' }
+      ];
+      
+      timeSlots.forEach((timeSlot) => {
         // Generate proper UUID for slot
         const slotId = crypto.randomUUID();
         
         slots.push({
           id: slotId,
-          startTime: time,
-          endTime,
+          startTime: timeSlot.start,
+          endTime: timeSlot.end,
           date: date.toISOString().split('T')[0],
-          isAvailable: Math.random() > 0.3 // 70% availability
+          isAvailable: Math.random() > 0.4 // 60% availability
         });
       });
     }
@@ -181,7 +242,7 @@ export const useEnrollmentWorkflow = () => {
     currentStep,
     enrollmentData,
     isLoading,
-    mockCoaches,
+    mockCoaches: realCoaches.length > 0 ? realCoaches : mockCoaches,
     generateTimeSlots,
     setCourse,
     setCoach,
