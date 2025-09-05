@@ -24,6 +24,7 @@ interface Coach {
   avatar_url?: string;
   organization_id?: string;
   updated_at: string;
+  specialties?: string[];
   coaching_offerings?: {
     id: string;
     title: string;
@@ -124,6 +125,7 @@ export default function Coaches() {
               avatar_url: coach.avatar_url,
               organization_id: coach.organization_id,
               updated_at: coach.updated_at,
+              specialties: coach.specialties || [],
               coaching_offerings: offeringsResult.data || [],
               coaching_sessions: sessionsResult.data || [],
               coach_availability: availabilityResult.data || []
@@ -339,6 +341,7 @@ export default function Coaches() {
               <TableRow>
                 <TableHead>Coach Profile</TableHead>
                 <TableHead>Contact</TableHead>
+                <TableHead>Specialties</TableHead>
                 <TableHead>Offerings</TableHead>
                 <TableHead>Sessions</TableHead>
                 <TableHead>Availability</TableHead>
@@ -367,6 +370,19 @@ export default function Coaches() {
                   <TableCell>
                     <div className="text-sm">
                       <div>{coach.email}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {coach.specialties && coach.specialties.length > 0 ? (
+                        coach.specialties.map((specialty, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {specialty}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No specialties</span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>

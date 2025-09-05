@@ -2028,6 +2028,7 @@ export type Database = {
           name: string
           organization_id: string | null
           role: Database["public"]["Enums"]["user_role"]
+          specialties: string[] | null
           status: Database["public"]["Enums"]["user_status"]
           updated_at: string
         }
@@ -2040,6 +2041,7 @@ export type Database = {
           name: string
           organization_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          specialties?: string[] | null
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
         }
@@ -2052,6 +2054,7 @@ export type Database = {
           name?: string
           organization_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          specialties?: string[] | null
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
         }
