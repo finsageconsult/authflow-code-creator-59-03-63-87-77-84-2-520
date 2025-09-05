@@ -7,6 +7,7 @@ import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton
 import { useToolUsage } from '@/hooks/useToolUsage';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { ToolLauncher } from '../tools/ToolLauncher';
 
 const iconMap = {
   'calculator': Calculator,
@@ -24,6 +25,13 @@ export const EmployeeToolShortcuts = () => {
   const [tools, setTools] = useState<FinancialTool[]>([]);
   const [purchasedTools, setPurchasedTools] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [toolLauncher, setToolLauncher] = useState<{
+    isOpen: boolean;
+    tool: FinancialTool | null;
+  }>({
+    isOpen: false,
+    tool: null
+  });
   const { getUsageCount, canUseFreeTool, incrementUsage } = useToolUsage();
 
   useEffect(() => {
@@ -78,13 +86,18 @@ export const EmployeeToolShortcuts = () => {
     if (canUse) {
       const success = await incrementUsage(tool.id);
       if (success) {
+        // Launch the tool
+        setToolLauncher({ isOpen: true, tool });
         toast.success(`Opening ${tool.name}...`);
-        // TODO: Implement actual tool navigation
-        console.log('Navigate to free tool:', tool.name);
       }
     } else {
       toast.error(`You've reached the free usage limit (${tool.employee_free_limit}) for ${tool.name}.`);
     }
+  };
+
+  const handleLaunchTool = (tool: FinancialTool) => {
+    setToolLauncher({ isOpen: true, tool });
+    toast.success(`Opening ${tool.name}...`);
   };
 
   const getToolIcon = (toolType: string) => {
@@ -179,11 +192,7 @@ export const EmployeeToolShortcuts = () => {
                           </span>
                           <Button 
                             size="sm" 
-                            onClick={() => {
-                              toast.success(`Opening ${tool.name}...`);
-                              // TODO: Implement actual tool navigation
-                              console.log('Navigate to owned tool:', tool.name);
-                            }}
+                            onClick={() => handleLaunchTool(tool)}
                             variant="default"
                             className="text-xs h-7 px-2 w-full"
                           >
@@ -248,6 +257,15 @@ export const EmployeeToolShortcuts = () => {
           </div>
         )}
       </CardContent>
+
+      {/* Tool Launcher */}
+      {toolLauncher.tool && (
+        <ToolLauncher
+          isOpen={toolLauncher.isOpen}
+          onClose={() => setToolLauncher({ isOpen: false, tool: null })}
+          tool={toolLauncher.tool}
+        />
+      )}
     </Card>
   );
 };

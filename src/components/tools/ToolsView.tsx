@@ -20,6 +20,7 @@ import { ToolPaymentModal } from '@/components/individual/ToolPaymentModal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useToolUsage } from '@/hooks/useToolUsage';
 import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
+import { ToolLauncher } from './ToolLauncher';
 
 import { FinancialTool } from '@/types/financial-tools';
 
@@ -65,6 +66,14 @@ export const ToolsView = () => {
   const [purchasedTools, setPurchasedTools] = useState<ToolPurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [paymentModal, setPaymentModal] = useState<{
+    isOpen: boolean;
+    tool: FinancialTool | null;
+  }>({
+    isOpen: false,
+    tool: null
+  });
+  
+  const [toolLauncher, setToolLauncher] = useState<{
     isOpen: boolean;
     tool: FinancialTool | null;
   }>({
@@ -152,12 +161,13 @@ export const ToolsView = () => {
       if (canUseFree) {
         const success = await incrementUsage(tool.id);
         if (success) {
+          // Launch the tool
+          setToolLauncher({ isOpen: true, tool });
+          
           toast({
             title: "Launching Tool",
             description: `Opening ${tool.name}...`,
           });
-          // TODO: Implement actual tool navigation
-          console.log('Navigate to free tool:', tool.name);
         }
         return;
       } else {
@@ -176,13 +186,13 @@ export const ToolsView = () => {
       return;
     }
 
+    // Launch the tool
+    setToolLauncher({ isOpen: true, tool });
+    
     toast({
       title: "Launching Tool",
       description: `Opening ${tool.name}...`,
     });
-
-    // TODO: Implement actual tool launching logic
-    // This would typically open a modal or navigate to a tool-specific page
   };
 
   const handlePaymentSuccess = () => {
@@ -200,6 +210,14 @@ export const ToolsView = () => {
         });
     }
     setPaymentModal({ isOpen: false, tool: null });
+  };
+
+  const handleLaunchTool = (tool: FinancialTool) => {
+    setToolLauncher({ isOpen: true, tool });
+    toast({
+      title: "Launching Tool",
+      description: `Opening ${tool.name}...`,
+    });
   };
 
   const formatPrice = (price: number) => {
@@ -375,7 +393,7 @@ export const ToolsView = () => {
                         <div className="mt-auto pt-4">
                           {isOwned ? (
                             <Button 
-                              onClick={() => handleUseTool(tool)}
+                              onClick={() => handleLaunchTool(tool)}
                               className="w-full gap-2"
                             >
                               <ExternalLink className="h-4 w-4" />
@@ -468,7 +486,7 @@ export const ToolsView = () => {
 
                       <div className="mt-auto pt-4">
                         <Button 
-                          onClick={() => handleUseTool(tool)}
+                          onClick={() => hasAccess(tool) ? handleLaunchTool(tool) : handleUseTool(tool)}
                           className="w-full gap-2"
                           variant={hasAccess(tool) ? "default" : "outline"}
                         >
@@ -499,6 +517,15 @@ export const ToolsView = () => {
             description: paymentModal.tool.description
           }}
           onSuccess={handlePaymentSuccess}
+        />
+      )}
+
+      {/* Tool Launcher */}
+      {toolLauncher.tool && (
+        <ToolLauncher
+          isOpen={toolLauncher.isOpen}
+          onClose={() => setToolLauncher({ isOpen: false, tool: null })}
+          tool={toolLauncher.tool}
         />
       )}
 
