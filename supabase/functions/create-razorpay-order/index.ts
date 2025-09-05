@@ -115,29 +115,17 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Calculate GST (18%) but ensure we stay within Razorpay test limits
+    // Use the original amount without any GST calculation
     const baseAmount = Math.round(amount); // Amount is already in paisa from frontend
+    const totalAmount = baseAmount; // No GST added - use simple price
+    const gstAmount = 0; // No GST
     
-    // For Razorpay test mode, limit is ₹5,000 (500000 paise)
-    const RAZORPAY_TEST_LIMIT = 500000; // 5000 rupees in paise
-    
-    let gstAmount = 0;
-    let totalAmount = baseAmount;
-    
-    // Only add GST if the total stays within test limits
-    const potentialGstAmount = Math.round(baseAmount * 0.18);
-    const potentialTotal = baseAmount + potentialGstAmount;
-    
-    if (potentialTotal <= RAZORPAY_TEST_LIMIT) {
-      gstAmount = potentialGstAmount;
-      totalAmount = potentialTotal;
-    } else {
-      // Adjust base amount to fit within limits
-      const maxBaseAmount = Math.floor(RAZORPAY_TEST_LIMIT / 1.18);
-      totalAmount = Math.min(baseAmount, maxBaseAmount);
-      gstAmount = 0; // Skip GST to stay within limits
-      console.log(`Amount adjusted for Razorpay test limits: ${totalAmount}`);
-    }
+    console.log("Price calculation:", {
+      originalAmount: amount,
+      baseAmount: baseAmount,
+      totalAmount: totalAmount,
+      gstAmount: gstAmount
+    });
 
     // Create order in database first
     const orderNumber = `ORD${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
