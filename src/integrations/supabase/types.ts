@@ -797,6 +797,7 @@ export type Database = {
           program_id: string
           progress: number | null
           status: string
+          transaction_id: string | null
           updated_at: string
           user_id: string
         }
@@ -811,6 +812,7 @@ export type Database = {
           program_id: string
           progress?: number | null
           status?: string
+          transaction_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -825,6 +827,7 @@ export type Database = {
           program_id?: string
           progress?: number | null
           status?: string
+          transaction_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1221,6 +1224,8 @@ export type Database = {
           currency: string | null
           failure_reason: string | null
           id: string
+          item_id: string | null
+          item_type: string | null
           metadata: Json | null
           order_id: string
           payment_method: string | null
@@ -1228,6 +1233,7 @@ export type Database = {
           razorpay_payment_id: string | null
           razorpay_signature: string | null
           status: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1237,6 +1243,8 @@ export type Database = {
           currency?: string | null
           failure_reason?: string | null
           id?: string
+          item_id?: string | null
+          item_type?: string | null
           metadata?: Json | null
           order_id: string
           payment_method?: string | null
@@ -1244,6 +1252,7 @@ export type Database = {
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
           status?: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1253,6 +1262,8 @@ export type Database = {
           currency?: string | null
           failure_reason?: string | null
           id?: string
+          item_id?: string | null
+          item_type?: string | null
           metadata?: Json | null
           order_id?: string
           payment_method?: string | null
@@ -1260,6 +1271,7 @@ export type Database = {
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
           status?: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1542,6 +1554,7 @@ export type Database = {
           order_id: string | null
           status: string
           tool_id: string
+          transaction_id: string | null
           updated_at: string
           user_id: string
         }
@@ -1554,6 +1567,7 @@ export type Database = {
           order_id?: string | null
           status?: string
           tool_id: string
+          transaction_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1566,6 +1580,7 @@ export type Database = {
           order_id?: string | null
           status?: string
           tool_id?: string
+          transaction_id?: string | null
           updated_at?: string
           user_id?: string
         }

@@ -7,8 +7,9 @@ import { Progress } from '@/components/ui/progress';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { useIndividualPrograms } from '@/hooks/useIndividualPrograms';
+import { useUserPurchases } from '@/hooks/useUserPurchases';
 import { MoodCheckIn } from '@/components/MoodCheckIn';
-import { PaymentButton } from '@/components/individual/PaymentButton';
+import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
 import { ToolShortcuts } from '@/components/individual/ToolShortcuts';
 import { SecureQuestionnaireForm } from '@/components/security/SecureQuestionnaireForm';
 import { ConsentManager } from '@/components/privacy/ConsentManager';
@@ -32,7 +33,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 export const IndividualDashboard = () => {
   const isMobile = useIsMobile();
   const { userProfile } = useAuth();
-  const { programs, purchases, loading, formatPrice, isPurchased, getPurchaseByProgram, getFilteredPrograms, refetch } = useIndividualPrograms();
+  const { programs, purchases, loading, formatPrice, getPurchaseByProgram, getFilteredPrograms, refetch } = useIndividualPrograms();
+  const { isPurchased: isItemPurchased, refetch: refetchPurchases } = useUserPurchases();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'short-program' | '1-1-sessions'>('all');
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -150,7 +152,7 @@ export const IndividualDashboard = () => {
                           <Badge variant="outline" className="text-xs shrink-0">
                             {program.category}
                           </Badge>
-                          {isPurchased(program.id) && (
+                          {isItemPurchased('program', program.id) && (
                             <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
                           )}
                         </div>
@@ -164,19 +166,18 @@ export const IndividualDashboard = () => {
                           <span className="font-semibold text-sm sm:text-base truncate">
                             {formatPrice(program.price)}
                           </span>
-                          {isPurchased(program.id) ? (
-                            <Button size="sm" variant="outline" className="shrink-0 text-xs sm:text-sm h-8 px-3 w-full sm:w-auto">
-                              Access
-                            </Button>
-                          ) : (
-                            <PaymentButton 
-                              programId={program.id}
-                              title={program.title}
-                              price={program.price}
-                              category={program.category}
-                              onSuccess={refetch}
-                            />
-                          )}
+                          <UnifiedPaymentButton 
+                            itemType="program"
+                            itemId={program.id}
+                            title={program.title}
+                            description={program.description}
+                            price={program.price}
+                            isOwned={isItemPurchased('program', program.id)}
+                            onSuccess={() => {
+                              refetch();
+                              refetchPurchases();
+                            }}
+                          />
                         </div>
                       </CardContent>
                     </Card>
