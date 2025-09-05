@@ -58,21 +58,21 @@ export const useEnrollmentWorkflow = () => {
   // Mock data - in real app, fetch from Supabase
   const mockCoaches: Coach[] = [
     {
-      id: '1',
+      id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
       name: 'Dr. Priya Sharma',
       specialization: 'Investment Planning & Portfolio Management',
       rating: 4.9,
       experience: '8+ years'
     },
     {
-      id: '2', 
+      id: 'f47ac10b-58cc-4372-a567-0e02b2c3d480', 
       name: 'Rajesh Kumar',
       specialization: 'Tax Planning & Retirement Strategy',
       rating: 4.8,
       experience: '12+ years'
     },
     {
-      id: '3',
+      id: 'f47ac10b-58cc-4372-a567-0e02b2c3d481',
       name: 'Anita Desai',
       specialization: 'Insurance & Risk Management',
       rating: 4.7,
@@ -94,8 +94,11 @@ export const useEnrollmentWorkflow = () => {
         const endTime = time === '10:00' ? '11:00' : 
                        time === '14:00' ? '15:00' : '17:00';
         
+        // Generate proper UUID for slot
+        const slotId = crypto.randomUUID();
+        
         slots.push({
-          id: `${coachId}-${i}-${index}`,
+          id: slotId,
           startTime: time,
           endTime,
           date: date.toISOString().split('T')[0],
