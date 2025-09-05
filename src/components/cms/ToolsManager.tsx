@@ -275,14 +275,11 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
 
                   {formData.employee_access === 'free' && (
                     <div>
-                      <Label htmlFor="employee_free_limit">Free Usage Limit</Label>
-                      <Input
-                        id="employee_free_limit"
-                        type="number"
-                        min="0"
-                        value={formData.employee_free_limit}
-                        onChange={(e) => setFormData({...formData, employee_free_limit: parseInt(e.target.value) || 5})}
-                      />
+                      <Label htmlFor="employee_free_limit">Employee Access Type</Label>
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                        <p className="text-sm text-green-700 font-medium">✓ Unlimited Free Access</p>
+                        <p className="text-xs text-green-600 mt-1">Employees get unlimited access to this tool at no cost</p>
+                      </div>
                     </div>
                   )}
 
@@ -391,9 +388,9 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
                     <Badge variant="outline">{tool.tool_type}</Badge>
                     
                     {tool.employee_access === 'free' && (
-                      <Badge variant="secondary" className="flex items-center gap-1">
+                      <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700">
                         <Users className="h-3 w-3" />
-                        Employee Free ({tool.employee_free_limit} uses)
+                        Employee Free (Unlimited)
                       </Badge>
                     )}
                     
