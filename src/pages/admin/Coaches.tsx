@@ -208,30 +208,24 @@ export default function Coaches() {
 
     setDeletingCoach(coachId);
     try {
-      // Delete the coach
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', coachId)
-        .eq('role', 'COACH');
+      // Use edge function to completely delete coach from both users and auth.users tables
+      const { data, error } = await supabase.functions.invoke('delete-coach', {
+        body: {
+          coach_id: coachId,
+          admin_user_id: userProfile.id,
+          coach_name: coachName
+        }
+      });
 
       if (error) throw error;
 
-      // Log the deletion activity
-      await supabase
-        .from('audit_logs')
-        .insert({
-          action: 'DELETE',
-          entity: 'USER',
-          entity_id: coachId,
-          actor_id: userProfile.id,
-          before_data: { name: coachName, role: 'COACH' },
-          after_data: null
-        });
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to delete coach');
+      }
 
       toast({
         title: "Coach Deleted",
-        description: `${coachName} has been permanently removed from the platform`
+        description: data.message || `${coachName} has been permanently removed from the platform`
       });
 
       // Real-time update will handle UI refresh
@@ -239,7 +233,7 @@ export default function Coaches() {
       console.error('Error deleting coach:', error);
       toast({
         title: "Error",
-        description: "Failed to delete coach",
+        description: error instanceof Error ? error.message : "Failed to delete coach",
         variant: "destructive"
       });
     } finally {
