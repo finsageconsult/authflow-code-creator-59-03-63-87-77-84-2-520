@@ -1,179 +1,166 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   BookOpen, 
   Video, 
-  Users, 
-  Wrench, 
-  Search, 
-  Filter,
+  Calendar, 
+  Calculator,
   Plus,
-  FileText,
-  Download,
-  MoreHorizontal,
-  Settings
+  Search,
+  Filter,
+  Tag,
+  Users,
+  Clock,
+  CreditCard,
+  Edit,
+  Eye,
+  Archive
 } from 'lucide-react';
+import { ProgramManager } from './ProgramManager';
+import { WebinarManager } from './WebinarManager';
+import { CoachingOfferingsManager } from './CoachingOfferingsManager';
+import { ToolsManager } from './ToolsManager';
+import { ContentAssetManager } from './ContentAssetManager';
 
-interface ContentItem {
-  id: string;
-  title: string;
-  type: 'program' | 'webinar' | 'coaching' | 'tool' | 'asset';
-  category: string;
-  status: 'active' | 'draft' | 'archived';
-  lastUpdated: string;
-  usage: number;
-  rating?: number;
+interface ContentStats {
+  programs: number;
+  webinars: number;
+  offerings: number;
+  tools: number;
+  assets: number;
 }
 
-export const ContentCatalog: React.FC = () => {
+export const ContentCatalog = () => {
+  const { userProfile } = useAuth();
+  const [stats, setStats] = useState<ContentStats>({
+    programs: 0,
+    webinars: 0,
+    offerings: 0,
+    tools: 0,
+    assets: 0
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [activeTab, setActiveTab] = useState('programs');
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for content items
-  const contentItems: ContentItem[] = [
-    {
-      id: '1',
-      title: 'Emergency Fund Masterclass',
-      type: 'program',
-      category: 'Financial Planning',
-      status: 'active',
-      lastUpdated: '2 days ago',
-      usage: 145,
-      rating: 4.8
-    },
-    {
-      id: '2',
-      title: 'Investment Basics Webinar',
-      type: 'webinar',
-      category: 'Investing',
-      status: 'active',
-      lastUpdated: '1 week ago',
-      usage: 89,
-      rating: 4.6
-    },
-    {
-      id: '3',
-      title: 'Debt Payoff Calculator',
-      type: 'tool',
-      category: 'Debt Management',
-      status: 'active',
-      lastUpdated: '3 days ago',
-      usage: 234
-    },
-    {
-      id: '4',
-      title: '1-on-1 Financial Planning',
-      type: 'coaching',
-      category: 'Personal Finance',
-      status: 'active',
-      lastUpdated: '1 day ago',
-      usage: 67,
-      rating: 4.9
-    },
-    {
-      id: '5',
-      title: 'Budget Template Pack',
-      type: 'asset',
-      category: 'Budgeting',
-      status: 'active',
-      lastUpdated: '5 days ago',
-      usage: 178
-    }
-  ];
+  useEffect(() => {
+    fetchContentStats();
+  }, []);
 
-  const stats = [
-    { title: 'Programs & Courses', count: 6, icon: BookOpen, color: 'text-blue-600' },
-    { title: 'Webinars', count: 0, icon: Video, color: 'text-green-600' },
-    { title: 'Coaching Offerings', count: 5, icon: Users, color: 'text-purple-600' },
-    { title: 'Financial Tools', count: 6, icon: Wrench, color: 'text-orange-600' }
-  ];
+  const fetchContentStats = async () => {
+    try {
+      const [programsCount, webinarsCount, offeringsCount, toolsCount, assetsCount] = 
+        await Promise.all([
+          supabase.from('individual_programs').select('*', { count: 'exact', head: true }),
+          supabase.from('webinars').select('*', { count: 'exact', head: true }),
+          supabase.from('coaching_offerings').select('*', { count: 'exact', head: true }),
+          supabase.from('financial_tools').select('*', { count: 'exact', head: true }),
+          supabase.from('content_assets').select('*', { count: 'exact', head: true })
+        ]);
 
-  const tabs = [
-    { id: 'programs', label: 'Programs', icon: BookOpen },
-    { id: 'webinars', label: 'Webinars', icon: Video },
-    { id: 'coaching', label: 'Coaching', icon: Users },
-    { id: 'tools', label: 'Tools', icon: Wrench },
-    { id: 'assets', label: 'Assets', icon: FileText }
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'draft': return 'bg-yellow-100 text-yellow-800';
-      case 'archived': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      setStats({
+        programs: programsCount.count || 0,
+        webinars: webinarsCount.count || 0,
+        offerings: offeringsCount.count || 0,
+        tools: toolsCount.count || 0,
+        assets: assetsCount.count || 0
+      });
+    } catch (error) {
+      console.error('Error fetching content stats:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'program': return BookOpen;
-      case 'webinar': return Video;
-      case 'coaching': return Users;
-      case 'tool': return Wrench;
-      case 'asset': return FileText;
-      default: return FileText;
+  const contentStats = [
+    {
+      title: 'Programs & Courses',
+      value: stats.programs.toString(),
+      icon: BookOpen,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100'
+    },
+    {
+      title: 'Webinars',
+      value: stats.webinars.toString(),
+      icon: Video,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100'
+    },
+    {
+      title: 'Coaching Offerings',
+      value: stats.offerings.toString(),
+      icon: Users,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100'
+    },
+    {
+      title: 'Financial Tools',
+      value: stats.tools.toString(),
+      icon: Calculator,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100'
     }
-  };
+  ];
 
-  const filteredItems = contentItems.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    const matchesTab = activeTab === 'all' || item.type === activeTab;
-    return matchesSearch && matchesCategory && matchesTab;
-  });
+  if (loading) {
+    return <div className="flex items-center justify-center p-8">Loading content catalog...</div>;
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Content Catalog & CMS</h2>
+          <h1 className="text-3xl font-bold">Content Catalog & CMS</h1>
           <p className="text-muted-foreground">
             Manage courses, webinars, coaching offerings, and financial tools
           </p>
         </div>
-        <Button className="w-fit">
-          <Plus className="w-4 h-4 mr-2" />
-          Content Manager
-        </Button>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            {userProfile?.role === 'ADMIN' ? 'Super Admin' : 'Content Manager'}
+          </Badge>
+        </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
+      {/* Content Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {contentStats.map((stat, index) => (
           <Card key={index}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-muted`}>
-                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold">{stat.count}</div>
-                  <div className="text-sm text-muted-foreground">{stat.title}</div>
-                </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                <stat.icon className={`h-4 w-4 ${stat.color}`} />
               </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Search & Filter */}
+      {/* Search and Filters */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="w-5 h-5" />
+            <Search className="h-5 w-5" />
             Search & Filter Content
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
+          <div className="flex flex-col gap-4">
+            <div className="w-full">
               <Input
                 placeholder="Search content by title, tags, or description..."
                 value={searchTerm}
@@ -181,120 +168,81 @@ export const ContentCatalog: React.FC = () => {
                 className="w-full"
               />
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="Financial Planning">Financial Planning</SelectItem>
-                <SelectItem value="Investing">Investing</SelectItem>
-                <SelectItem value="Debt Management">Debt Management</SelectItem>
-                <SelectItem value="Budgeting">Budgeting</SelectItem>
-                <SelectItem value="Personal Finance">Personal Finance</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" className="w-full sm:w-auto">
-              <Filter className="w-4 h-4 mr-2" />
-              Advanced Filters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Content Tabs */}
-      <div className="flex flex-wrap gap-2 border-b">
-        {tabs.map((tab) => (
-          <Button
-            key={tab.id}
-            variant={activeTab === tab.id ? "default" : "ghost"}
-            onClick={() => setActiveTab(tab.id)}
-            className="flex items-center gap-2"
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Content List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} & Courses
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Manage educational programs and courses
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredItems.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No content found matching your criteria
-              </div>
-            ) : (
-              filteredItems.map((item) => {
-                const TypeIcon = getTypeIcon(item.type);
-                return (
-                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="p-2 rounded-lg bg-muted">
-                        <TypeIcon className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate">{item.title}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className={getStatusColor(item.status)}>
-                            {item.status}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            {item.category}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right hidden sm:block">
-                        <div className="text-sm font-medium">{item.usage} users</div>
-                        <div className="text-xs text-muted-foreground">
-                          Updated {item.lastUpdated}
-                        </div>
-                        {item.rating && (
-                          <div className="text-xs text-yellow-600">
-                            ★ {item.rating}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 ml-4">
-                      <Button size="sm" variant="outline">
-                        <Settings className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-          
-          {filteredItems.length > 0 && (
-            <div className="flex items-center justify-between mt-6 pt-4 border-t">
-              <div className="text-sm text-muted-foreground">
-                Showing {filteredItems.length} of {contentItems.length} items
-              </div>
-              <Button variant="outline" size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Program
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="investing">Investing</SelectItem>
+                  <SelectItem value="tax">Tax Planning</SelectItem>
+                  <SelectItem value="budgeting">Budgeting</SelectItem>
+                  <SelectItem value="debt">Debt Management</SelectItem>
+                  <SelectItem value="retirement">Retirement</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" className="gap-2 w-full sm:w-auto">
+                <Filter className="h-4 w-4" />
+                Advanced Filters
               </Button>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
+
+      {/* Content Management Tabs */}
+      <Tabs defaultValue="programs" className="space-y-6">
+        <div className="w-full">
+          <TabsList className="flex flex-col sm:grid sm:grid-cols-5 w-full gap-1 sm:gap-0 h-auto sm:h-10">
+            <TabsTrigger value="programs" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Programs</span>
+              <span className="sm:hidden">Programs</span>
+            </TabsTrigger>
+            <TabsTrigger value="webinars" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <Video className="h-4 w-4" />
+              <span className="hidden sm:inline">Webinars</span>
+              <span className="sm:hidden">Webinars</span>
+            </TabsTrigger>
+            <TabsTrigger value="offerings" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Coaching</span>
+              <span className="sm:hidden">Coaching</span>
+            </TabsTrigger>
+            <TabsTrigger value="tools" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <Calculator className="h-4 w-4" />
+              <span className="hidden sm:inline">Tools</span>
+              <span className="sm:hidden">Tools</span>
+            </TabsTrigger>
+            <TabsTrigger value="assets" className="gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+              <Tag className="h-4 w-4" />
+              <span className="hidden sm:inline">Assets</span>
+              <span className="sm:hidden">Assets</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="programs">
+          <ProgramManager searchTerm={searchTerm} category={selectedCategory} />
+        </TabsContent>
+
+        <TabsContent value="webinars">
+          <WebinarManager searchTerm={searchTerm} category={selectedCategory} />
+        </TabsContent>
+
+        <TabsContent value="offerings">
+          <CoachingOfferingsManager searchTerm={searchTerm} category={selectedCategory} />
+        </TabsContent>
+
+        <TabsContent value="tools">
+          <ToolsManager searchTerm={searchTerm} category={selectedCategory} />
+        </TabsContent>
+
+        <TabsContent value="assets">
+          <ContentAssetManager searchTerm={searchTerm} category={selectedCategory} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

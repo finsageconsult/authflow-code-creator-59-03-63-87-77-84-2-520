@@ -1,0 +1,483 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { 
+  Calculator,
+  Plus, 
+  Edit, 
+  Archive,
+  Crown,
+  Users,
+  Code
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+import { FinancialTool } from '@/types/financial-tools';
+
+interface ToolsManagerProps {
+  searchTerm: string;
+  category: string;
+}
+
+export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
+  const { userProfile } = useAuth();
+  const { toast } = useToast();
+  const [tools, setTools] = useState<FinancialTool[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingTool, setEditingTool] = useState<FinancialTool | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    tool_type: 'calculator',
+    ui_component: '',
+    tool_config: '{}',
+    employee_access: 'none',
+    employee_free_limit: 5,
+    individual_access: 'none',
+    price: 0,
+    tags: '',
+    is_active: true
+  });
+
+  useEffect(() => {
+    fetchTools();
+  }, []);
+
+  const fetchTools = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('financial_tools')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTools(data || []);
+    } catch (error) {
+      console.error('Error fetching financial tools:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch financial tools',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      let toolConfig;
+      try {
+        toolConfig = JSON.parse(formData.tool_config);
+      } catch {
+        toolConfig = {};
+      }
+
+      const toolData = {
+        ...formData,
+        tool_config: toolConfig,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+      };
+
+      if (editingTool) {
+        const { error } = await supabase
+          .from('financial_tools')
+          .update(toolData)
+          .eq('id', editingTool.id);
+
+        if (error) throw error;
+
+        toast({
+          title: 'Success',
+          description: 'Financial tool updated successfully'
+        });
+      } else {
+        const { error } = await supabase
+          .from('financial_tools')
+          .insert([toolData]);
+
+        if (error) throw error;
+
+        toast({
+          title: 'Success',
+          description: 'Financial tool created successfully'
+        });
+      }
+
+      setFormData({
+        name: '',
+        description: '',
+        tool_type: 'calculator',
+        ui_component: '',
+        tool_config: '{}',
+        employee_access: 'none',
+        employee_free_limit: 5,
+        individual_access: 'none',
+        price: 0,
+        tags: '',
+        is_active: true
+      });
+      setEditingTool(null);
+      setIsCreateDialogOpen(false);
+      fetchTools();
+    } catch (error) {
+      console.error('Error saving financial tool:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save financial tool',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleEdit = (tool: FinancialTool) => {
+    setEditingTool(tool);
+    setFormData({
+      name: tool.name,
+      description: tool.description || '',
+      tool_type: tool.tool_type,
+      ui_component: tool.ui_component || '',
+      tool_config: JSON.stringify(tool.tool_config, null, 2),
+      employee_access: tool.employee_access,
+      employee_free_limit: tool.employee_free_limit || 5,
+      individual_access: tool.individual_access,
+      price: tool.price || 0,
+      tags: tool.tags.join(', '),
+      is_active: tool.is_active
+    });
+    setIsCreateDialogOpen(true);
+  };
+
+  const toggleActive = async (tool: FinancialTool) => {
+    try {
+      const { error } = await supabase
+        .from('financial_tools')
+        .update({ is_active: !tool.is_active })
+        .eq('id', tool.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Tool ${!tool.is_active ? 'activated' : 'deactivated'}`
+      });
+
+      fetchTools();
+    } catch (error) {
+      console.error('Error toggling tool status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update tool status',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const filteredTools = tools.filter(tool => {
+    const matchesSearch = tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tool.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         tool.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesCategory = category === 'all' || tool.tool_type === category;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  if (loading) {
+    return <div className="flex items-center justify-center p-8">Loading financial tools...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Create Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">Financial Tools</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage calculators, planners, and tracking tools with dual access controls
+          </p>
+        </div>
+        {userProfile?.role === 'ADMIN' && (
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create Tool
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingTool ? 'Edit Financial Tool' : 'Create New Financial Tool'}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <Label htmlFor="name">Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="tool_type">Tool Type</Label>
+                    <Select value={formData.tool_type} onValueChange={(value) => setFormData({...formData, tool_type: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="calculator">Calculator</SelectItem>
+                        <SelectItem value="planner">Planner</SelectItem>
+                        <SelectItem value="tracker">Tracker</SelectItem>
+                        <SelectItem value="analyzer">Analyzer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="employee_access">Employee Access</Label>
+                    <Select value={formData.employee_access} onValueChange={(value) => setFormData({...formData, employee_access: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="free">Free</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.employee_access === 'free' && (
+                    <div>
+                      <Label htmlFor="employee_free_limit">Employee Access Type</Label>
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                        <p className="text-sm text-green-700 font-medium">✓ Unlimited Free Access</p>
+                        <p className="text-xs text-green-600 mt-1">Employees get unlimited access to this tool at no cost</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <Label htmlFor="individual_access">Individual Access</Label>
+                    <Select value={formData.individual_access} onValueChange={(value) => setFormData({...formData, individual_access: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.individual_access === 'paid' && (
+                    <div>
+                      <Label htmlFor="price">Price (₹)</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                      />
+                    </div>
+                  )}
+
+                  <div className="col-span-2">
+                    <Label htmlFor="ui_component">UI Component</Label>
+                    <Input
+                      id="ui_component"
+                      value={formData.ui_component}
+                      onChange={(e) => setFormData({...formData, ui_component: e.target.value})}
+                      placeholder="EMICalculator, SIPCalculator, etc."
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label htmlFor="tool_config">Tool Configuration (JSON)</Label>
+                    <Textarea
+                      id="tool_config"
+                      value={formData.tool_config}
+                      onChange={(e) => setFormData({...formData, tool_config: e.target.value})}
+                      rows={4}
+                      className="font-mono text-sm"
+                      placeholder='{"default_rate": 12, "min_amount": 1000}'
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label htmlFor="tags">Tags (comma-separated)</Label>
+                    <Input
+                      id="tags"
+                      value={formData.tags}
+                      onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                      placeholder="emi, calculator, loan"
+                    />
+                  </div>
+
+                  <div className="col-span-2 flex items-center space-x-2">
+                    <Switch
+                      id="is_active"
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
+                    />
+                    <Label htmlFor="is_active">Active</Label>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsCreateDialogOpen(false);
+                      setEditingTool(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    {editingTool ? 'Update' : 'Create'} Tool
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+      {/* Tools Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredTools.map((tool) => (
+          <Card key={tool.id} className={`${!tool.is_active ? 'opacity-60' : ''}`}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-lg leading-tight flex items-center gap-2">
+                    <Calculator className="h-5 w-5" />
+                    {tool.name}
+                  </CardTitle>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <Badge variant="outline">{tool.tool_type}</Badge>
+                    
+                    {tool.employee_access === 'free' && (
+                      <Badge variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-700">
+                        <Users className="h-3 w-3" />
+                        Employee Free (Unlimited)
+                      </Badge>
+                    )}
+                    
+                    {tool.individual_access === 'paid' && (
+                      <Badge variant="default" className="bg-yellow-100 text-yellow-800 flex items-center gap-1">
+                        <Crown className="h-3 w-3" />
+                        Individual ₹{tool.price.toFixed(2)}
+                      </Badge>
+                    )}
+                    
+                    {!tool.is_active && (
+                      <Badge variant="destructive">Inactive</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground line-clamp-2">
+                {tool.description}
+              </p>
+              
+              {tool.ui_component && (
+                <div className="flex items-center gap-1 text-sm">
+                  <Code className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-mono text-xs">{tool.ui_component}</span>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-1">
+                {tool.tags.slice(0, 4).map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+                {tool.tags.length > 4 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{tool.tags.length - 4}
+                  </Badge>
+                )}
+              </div>
+
+              {userProfile?.role === 'ADMIN' && (
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(tool)}
+                    className="flex-1 gap-1"
+                  >
+                    <Edit className="h-3 w-3" />
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={tool.is_active ? "destructive" : "default"}
+                    onClick={() => toggleActive(tool)}
+                    className="flex-1 gap-1"
+                  >
+                    <Archive className="h-3 w-3" />
+                    {tool.is_active ? 'Deactivate' : 'Activate'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredTools.length === 0 && (
+        <div className="text-center py-8">
+          <Calculator className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium mb-2">No financial tools found</h3>
+          <p className="text-muted-foreground mb-4">
+            {searchTerm || category !== 'all' 
+              ? 'Try adjusting your search or filters'
+              : 'Financial tools help users with calculations and planning'
+            }
+          </p>
+          {userProfile?.role === 'ADMIN' && (
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create Tool
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};

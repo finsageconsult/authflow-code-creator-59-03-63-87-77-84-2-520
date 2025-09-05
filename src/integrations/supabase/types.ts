@@ -415,6 +415,45 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_payouts: {
+        Row: {
+          coach_id: string
+          created_at: string
+          id: string
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          status: string
+          total_amount: number
+          total_sessions: number
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          status?: string
+          total_amount?: number
+          total_sessions?: number
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string
+          total_amount?: number
+          total_sessions?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coach_time_slots: {
         Row: {
           coach_id: string

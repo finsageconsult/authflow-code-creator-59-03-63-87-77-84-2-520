@@ -3,7 +3,7 @@ import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroup
 import { useAuth } from '@/hooks/useAuth';
 import { hasRole } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, FileText, ShieldCheck, X, UserCheck, Clock, HelpCircle, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock, HelpCircle, MessageSquare } from 'lucide-react';
 
 const menuItems = [{
   title: 'Dashboard',
@@ -84,7 +84,7 @@ const adminMenuItems = [{
 }, {
   title: 'Credits Engine',
   url: '/admin-dashboard?tab=credits',
-  icon: CreditCard,
+  icon: Coins,
   roles: ['ADMIN']
 }, {
   title: 'Content CMS',
@@ -139,9 +139,19 @@ const coachMenuItems = [{
   icon: UserCheck,
   roles: ['COACH']
 }, {
+  title: 'Content',
+  url: '/coach-dashboard?tab=content',
+  icon: FileText,
+  roles: ['COACH']
+}, {
   title: 'Availability',
   url: '/coach-dashboard?tab=availability',
   icon: Clock,
+  roles: ['COACH']
+}, {
+  title: 'Payouts',
+  url: '/coach-dashboard?tab=payouts',
+  icon: Coins,
   roles: ['COACH']
 }, {
   title: 'Support',

@@ -11,10 +11,13 @@ import {
   TrendingUp,
   FileText,
   Star,
-  CheckCircle
+  CheckCircle,
+  Coins
 } from 'lucide-react';
 import { AvailabilitySettings } from '@/components/coach/AvailabilitySettings';
 import { SessionManager } from '@/components/coach/SessionManager';
+import { PayoutView } from '@/components/coach/PayoutView';
+import { ContentCatalog } from '@/components/cms/ContentCatalog';
 import { CoachAnalyticsDashboard } from '@/components/analytics/CoachAnalyticsDashboard';
 import { SupportQuery } from '@/components/support/SupportQuery';
 import AssignmentsList from '@/components/assignments/AssignmentsList';
@@ -181,8 +184,12 @@ export const CoachDashboard = () => {
             </Card>
           </div>
         );
+      case 'content':
+        return <ContentCatalog />;
       case 'availability':
         return <AvailabilitySettings />;
+      case 'payouts':
+        return <PayoutView />;
       case 'assignments':
         return <AssignmentsList />;
       case 'chat':
@@ -218,7 +225,7 @@ export const CoachDashboard = () => {
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <Button className="h-20 flex-col gap-2">
                     <Calendar className="w-6 h-6" />
                     <span>Schedule Session</span>
@@ -230,6 +237,10 @@ export const CoachDashboard = () => {
                   <Button variant="outline" className="h-20 flex-col gap-2">
                     <FileText className="w-6 h-6" />
                     <span>Session Notes</span>
+                  </Button>
+                  <Button variant="outline" className="h-20 flex-col gap-2">
+                    <Coins className="w-6 h-6" />
+                    <span>View Payouts</span>
                   </Button>
                 </div>
               </CardContent>
