@@ -169,38 +169,29 @@ export const IndividualDashboard = () => {
                           <span className="font-semibold text-sm sm:text-base truncate">
                             {formatPrice(program.price)}
                           </span>
-                          {program.category === '1-1-sessions' ? (
-                            <Button 
-                              onClick={() => {
-                                setSelectedCourse({
-                                  id: program.id,
-                                  title: program.title,
-                                  description: program.description,
-                                  duration: program.duration,
-                                  price: program.price,
-                                  category: program.category
-                                });
-                                setEnrollmentWorkflowOpen(true);
-                              }}
-                              className="w-full"
-                              size="sm"
-                            >
-                              Book Session
-                            </Button>
-                          ) : (
-                            <UnifiedPaymentButton 
-                              itemType="program"
-                              itemId={program.id}
-                              title={program.title}
-                              description={program.description}
-                              price={program.price}
-                              isOwned={isItemPurchased('program', program.id)}
-                              onSuccess={() => {
-                                refetch();
-                                refetchPurchases();
-                              }}
-                            />
-                          )}
+                          <Button 
+                            onClick={() => {
+                              setSelectedCourse({
+                                id: program.id,
+                                title: program.title,
+                                description: program.description,
+                                duration: program.duration,
+                                price: program.price,
+                                category: program.category
+                              });
+                              setEnrollmentWorkflowOpen(true);
+                            }}
+                            className="w-full"
+                            size="sm"
+                            disabled={isItemPurchased('program', program.id)}
+                          >
+                            {isItemPurchased('program', program.id) 
+                              ? 'Already Purchased' 
+                              : program.category === '1-1-sessions' 
+                                ? 'Book Session' 
+                                : 'Buy Now'
+                            }
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
