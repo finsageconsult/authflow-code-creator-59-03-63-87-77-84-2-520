@@ -15,6 +15,7 @@ import { IndividualDashboard } from '@/components/dashboards/IndividualDashboard
 import Organizations from '@/pages/admin/Organizations';
 import OrganizationDetail from '@/pages/admin/OrganizationDetail';
 import Coaches from '@/pages/admin/Coaches';
+import CoachProfile from '@/pages/admin/CoachProfile';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { SimpleLayout } from '@/components/layout/SimpleLayout';
 import { EmployeeLayout } from '@/components/layout/EmployeeLayout';
@@ -79,6 +80,7 @@ export const SubdomainRouter = () => {
       <Route path="/admin/organizations" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Organizations /></AppLayout></ProtectedRoute>} />
       <Route path="/admin/organizations/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><OrganizationDetail /></AppLayout></ProtectedRoute>} />
       <Route path="/admin/coaches" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Coaches /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin-dashboard/coaches/:coachId" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><CoachProfile /></AppLayout></ProtectedRoute>} />
       <Route path="*" element={<Index />} />
     </Routes>
   );
