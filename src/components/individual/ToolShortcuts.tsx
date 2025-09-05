@@ -88,7 +88,7 @@ export const ToolShortcuts = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map(i => (
               <Card key={i} className="animate-pulse">
                 <CardContent className="p-4">
@@ -111,7 +111,7 @@ export const ToolShortcuts = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 sm:p-6 pt-0">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {tools.map((tool, index) => {
             const IconComponent = getToolIcon(tool.tool_type);
             const isOwned = isPurchased('tool', tool.id);
