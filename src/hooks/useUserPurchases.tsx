@@ -20,6 +20,7 @@ export const useUserPurchases = () => {
   const { userProfile } = useAuth();
   const [programPurchases, setProgramPurchases] = useState<UserPurchase[]>([]);
   const [toolPurchases, setToolPurchases] = useState<UserPurchase[]>([]);
+  const [enrollments, setEnrollments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPurchases = async () => {
@@ -47,6 +48,15 @@ export const useUserPurchases = () => {
         .order('created_at', { ascending: false });
 
       if (toolError) throw toolError;
+
+      // Fetch enrollments to check for completed enrollments
+      const { data: enrollmentsData, error: enrollmentError } = await supabase
+        .from('enrollments')
+        .select('*')
+        .eq('user_id', userProfile.id)
+        .order('created_at', { ascending: false });
+
+      if (enrollmentError) throw enrollmentError;
 
       // Transform to unified format
       const programPurchasesList: UserPurchase[] = (programs || []).map(p => ({
@@ -79,6 +89,7 @@ export const useUserPurchases = () => {
 
       setProgramPurchases(programPurchasesList);
       setToolPurchases(toolPurchasesList);
+      setEnrollments(enrollmentsData || []);
 
     } catch (error) {
       console.error('Error fetching purchases:', error);
@@ -93,9 +104,23 @@ export const useUserPurchases = () => {
 
   const isPurchased = (itemType: 'program' | 'tool', itemId: string): boolean => {
     const purchases = itemType === 'program' ? programPurchases : toolPurchases;
-    return purchases.some(purchase => 
+    const hasPurchase = purchases.some(purchase => 
       purchase.item_id === itemId && 
       purchase.status === 'completed'
+    );
+    
+    // For programs, also check enrollments table for successful enrollments
+    if (itemType === 'program' && !hasPurchase) {
+      return checkEnrollmentStatus(itemId);
+    }
+    
+    return hasPurchase;
+  };
+
+  const checkEnrollmentStatus = (programId: string): boolean => {
+    return enrollments.some(enrollment => 
+      enrollment.course_id === programId && 
+      enrollment.status === 'completed'
     );
   };
 
