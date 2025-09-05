@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AdminCreditIssuance } from '@/components/credits/AdminCreditIssuance';
-import { ContentCatalog } from '@/components/cms/ContentCatalog';
 import { AdminAnalyticsDashboard } from '@/components/analytics/AdminAnalyticsDashboard';
 import { SecurityAuditDashboard } from '@/components/security/SecurityAuditDashboard';
 import { AdminSupportManager } from '@/components/support/AdminSupportManager';
@@ -151,10 +150,6 @@ export const AdminDashboard = () => {
 
   if (activeTab === 'credits') {
     return <AdminCreditIssuance />;
-  }
-
-  if (activeTab === 'content') {
-    return <ContentCatalog />;
   }
 
   if (activeTab === 'security') {
