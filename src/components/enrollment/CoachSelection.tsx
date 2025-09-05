@@ -46,58 +46,87 @@ export const CoachSelection: React.FC<CoachSelectionProps> = ({
       </div>
 
       <div className="grid gap-4 max-h-96 overflow-y-auto">
-        {coaches.map((coach) => {
-          const isSelected = selectedCoach?.id === coach.id;
-          
-          return (
-            <Card 
-              key={coach.id} 
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                isSelected ? 'ring-2 ring-primary shadow-md' : ''
-              }`}
-              onClick={() => handleCoachSelect(coach)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-16 w-16 border-2">
-                    <AvatarImage src={coach.avatar} alt={coach.name} />
-                    <AvatarFallback>
-                      <User className="h-8 w-8" />
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-semibold text-lg">{coach.name}</h4>
-                        <p className="text-muted-foreground text-sm">
-                          {coach.specialization}
-                        </p>
-                      </div>
-                      {isSelected && (
-                        <CheckCircle2 className="h-6 w-6 text-primary" />
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-medium">{coach.rating}</span>
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        {coach.experience}
-                      </Badge>
-                    </div>
-
-                    <div className="text-xs text-muted-foreground">
-                      Available for 1:1 sessions • Expert in financial planning
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="h-16 w-16 bg-muted rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-muted rounded w-3/4" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                      <div className="h-3 bg-muted rounded w-1/4" />
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : coaches.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h4 className="font-semibold text-lg mb-2">No Coaches Available</h4>
+              <p className="text-muted-foreground text-sm">
+                There are currently no active coaches available. Please contact support or try again later.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          coaches.map((coach) => {
+            const isSelected = selectedCoach?.id === coach.id;
+            
+            return (
+              <Card 
+                key={coach.id} 
+                className={`cursor-pointer transition-all hover:shadow-md ${
+                  isSelected ? 'ring-2 ring-primary shadow-md' : ''
+                }`}
+                onClick={() => handleCoachSelect(coach)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="h-16 w-16 border-2">
+                      <AvatarImage src={coach.avatar} alt={coach.name} />
+                      <AvatarFallback>
+                        <User className="h-8 w-8" />
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="font-semibold text-lg">{coach.name}</h4>
+                          <p className="text-muted-foreground text-sm">
+                            {coach.specialization}
+                          </p>
+                        </div>
+                        {isSelected && (
+                          <CheckCircle2 className="h-6 w-6 text-primary" />
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                          <span className="text-sm font-medium">{coach.rating}</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {coach.experience}
+                        </Badge>
+                      </div>
+
+                      <div className="text-xs text-muted-foreground">
+                        Available for 1:1 sessions • Expert in financial planning
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
 
       {selectedCoach && (
