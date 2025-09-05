@@ -319,8 +319,11 @@ export const IndividualDashboard = () => {
                   onComplete={() => {
                     setShowEnrollment(false);
                     setSelectedCourse(null);
-                    refetch();
-                    refetchPurchases();
+                    // Add a small delay to ensure enrollment is saved before refreshing
+                    setTimeout(() => {
+                      refetch();
+                      refetchPurchases();
+                    }, 1000);
                   }}
                 />
               ) : (

@@ -103,25 +103,34 @@ export const useUserPurchases = () => {
   }, [userProfile]);
 
   const isPurchased = (itemType: 'program' | 'tool', itemId: string): boolean => {
+    console.log('Checking purchase status for:', itemType, itemId);
+    
     const purchases = itemType === 'program' ? programPurchases : toolPurchases;
     const hasPurchase = purchases.some(purchase => 
       purchase.item_id === itemId && 
       purchase.status === 'completed'
     );
     
+    console.log('Program purchases:', programPurchases);
+    console.log('Has purchase in purchases table:', hasPurchase);
+    
     // For programs, also check enrollments table for successful enrollments
     if (itemType === 'program' && !hasPurchase) {
-      return checkEnrollmentStatus(itemId);
+      const hasEnrollment = checkEnrollmentStatus(itemId);
+      console.log('Has enrollment:', hasEnrollment);
+      console.log('All enrollments:', enrollments);
+      return hasEnrollment;
     }
     
     return hasPurchase;
   };
 
   const checkEnrollmentStatus = (programId: string): boolean => {
-    return enrollments.some(enrollment => 
-      enrollment.course_id === programId && 
-      enrollment.status === 'completed'
-    );
+    return enrollments.some(enrollment => {
+      const match = enrollment.course_id === programId;
+      console.log(`Checking enrollment ${enrollment.id}: course_id=${enrollment.course_id}, status=${enrollment.status}, matches=${match}`);
+      return match && (enrollment.status === 'completed' || enrollment.status === 'active' || enrollment.status === 'enrolled');
+    });
   };
 
   const getPurchase = (itemType: 'program' | 'tool', itemId: string): UserPurchase | undefined => {
