@@ -24,6 +24,7 @@ interface FinancialTool {
   is_active: boolean;
   is_premium: boolean;
   one_time_purchase: boolean;
+  access_level: string;
 }
 
 export const ToolShortcuts = () => {
@@ -53,12 +54,10 @@ export const ToolShortcuts = () => {
   };
 
   const handleToolClick = (tool: FinancialTool) => {
-    if (tool.is_premium && tool.one_time_purchase && !isPurchased('tool', tool.id)) {
-      // Payment will be handled by the UnifiedPaymentButton
-      return;
-    } else if (isPurchased('tool', tool.id) || !tool.is_premium) {
-      // Handle access to owned tools or free tools
+    // Free tools are always accessible
+    if (tool.access_level === 'free' || isPurchased('tool', tool.id)) {
       console.log('Navigate to tool:', tool.name);
+      // TODO: Implement actual tool navigation
     }
   };
 
@@ -116,7 +115,8 @@ export const ToolShortcuts = () => {
           {tools.map((tool, index) => {
             const IconComponent = getToolIcon(tool.tool_type);
             const isOwned = isPurchased('tool', tool.id);
-            const isFree = !tool.is_premium || tool.price === 0;
+            const isFree = tool.access_level === 'free';
+            const hasAccess = isFree || isOwned;
 
             return (
               <Card key={tool.id} className="relative overflow-hidden hover:shadow-sm transition-shadow">
@@ -124,10 +124,10 @@ export const ToolShortcuts = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium text-sm">{tool.name}</h3>
-                      {tool.is_premium && tool.one_time_purchase && !isOwned && (
+                      {tool.access_level === 'premium' && !hasAccess && (
                         <Lock className="h-4 w-4 text-amber-600" />
                       )}
-                      {isOwned && (
+                      {hasAccess && (
                         <CheckCircle className="h-4 w-4 text-green-600" />
                       )}
                     </div>
@@ -136,12 +136,12 @@ export const ToolShortcuts = () => {
                     </p>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold">
-                        {tool.is_premium && tool.price > 0 
+                        {tool.access_level === 'premium' && tool.price > 0 
                           ? `₹${(tool.price / 100).toLocaleString()}`
                           : 'Free'
                         }
                       </span>
-                      {tool.is_premium && tool.one_time_purchase ? (
+                      {tool.access_level === 'premium' && !hasAccess ? (
                         <UnifiedPaymentButton
                           itemType="tool"
                           itemId={tool.id}
@@ -158,7 +158,7 @@ export const ToolShortcuts = () => {
                           variant="outline"
                           className="text-xs h-7 px-2"
                         >
-                          {isOwned ? 'Open' : 'Use'}
+                          {hasAccess ? 'Use Tool' : 'Use'}
                         </Button>
                       )}
                     </div>
