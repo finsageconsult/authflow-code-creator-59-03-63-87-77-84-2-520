@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,9 @@ import {
   Loader2
 } from 'lucide-react';
 import { EnrollmentData } from '@/hooks/useEnrollmentWorkflow';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface PreviewConfirmProps {
   enrollmentData: EnrollmentData;
@@ -21,6 +24,12 @@ interface PreviewConfirmProps {
   onPrevious: () => void;
   onCancel: () => void;
   isLoading: boolean;
+}
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
 }
 
 export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
@@ -32,6 +41,17 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
   isLoading
 }) => {
   const { course, coach, timeSlot } = enrollmentData;
+  const { userProfile } = useAuth();
+
+  useEffect(() => {
+    // Load Razorpay script for individual users
+    if (userType === 'individual' && course?.price > 0 && !window.Razorpay) {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, [userType, course?.price]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -56,6 +76,74 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
       minute: '2-digit',
       hour12: true
     });
+  };
+
+  const handlePayment = async () => {
+    if (!userProfile || !course) {
+      toast.error('Missing user or course data');
+      return;
+    }
+
+    try {
+      // Create Razorpay order
+      const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
+        body: {
+          amount: course.price,
+          serviceType: 'short-program',
+          quantity: 1,
+          programId: course.id,
+          userType: 'INDIVIDUAL'
+        }
+      });
+
+      if (error) {
+        console.error('Order creation error:', error);
+        toast.error('Failed to create order. Please try again.');
+        return;
+      }
+
+      if (!data.success) {
+        toast.error(data.error || 'Failed to create order');
+        return;
+      }
+
+      const { order } = data;
+
+      // Initialize Razorpay
+      const options = {
+        key: order.key,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Finsage',
+        description: `${course.title} - Course Enrollment`,
+        order_id: order.razorpay_order_id,
+        handler: function (response: any) {
+          toast.success('Payment successful!');
+          // After successful payment, create the enrollment
+          handleConfirm();
+        },
+        prefill: {
+          name: userProfile.name,
+          email: userProfile.email,
+        },
+        theme: {
+          color: '#3B82F6'
+        },
+        modal: {
+          ondismiss: function() {
+            // Payment was dismissed/cancelled
+            console.log('Payment dismissed');
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast.error('Payment failed. Please try again.');
+    }
   };
 
   const handleConfirm = async () => {
@@ -207,7 +295,7 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
             Previous
           </Button>
           <Button 
-            onClick={handleConfirm} 
+            onClick={showPayment ? handlePayment : handleConfirm} 
             disabled={isLoading}
             className="px-8"
           >
