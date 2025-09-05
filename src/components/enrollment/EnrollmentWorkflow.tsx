@@ -26,7 +26,7 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
     currentStep,
     enrollmentData,
     isLoading,
-    mockCoaches,
+    coaches,
     generateTimeSlots,
     setCourse,
     setCoach,
@@ -71,7 +71,7 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
       case 2:
         return (
           <CoachSelection
-            coaches={mockCoaches}
+            coaches={coaches}
             selectedCoach={enrollmentData.coach}
             onSelectCoach={setCoach}
             onNext={nextStep}

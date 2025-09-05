@@ -56,10 +56,10 @@ export const useEnrollmentWorkflow = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [realCoaches, setRealCoaches] = useState<Coach[]>([]);
 
-  // Fetch real coaches from database
+  // Fetch real coaches from database 
   const fetchCoaches = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: coachData, error } = await supabase
         .from('users')
         .select('id, name, email, avatar_url')
         .eq('role', 'COACH')
@@ -67,26 +67,45 @@ export const useEnrollmentWorkflow = () => {
 
       if (error) throw error;
 
-      // Transform to Coach interface with additional data
-      const coaches: Coach[] = (data || []).map((coach, index) => ({
-        id: coach.id,
-        name: coach.name || 'Professional Coach',
-        specialization: getCoachSpecialization(index),
-        rating: 4.5 + (Math.random() * 0.5), // Random rating between 4.5-5.0
-        experience: getCoachExperience(index),
-        avatar: coach.avatar_url
-      }));
+      if (!coachData || coachData.length === 0) {
+        console.warn('No active coaches found in database');
+        setRealCoaches([]);
+        return;
+      }
+
+      // Get additional coach stats from coaching_sessions
+      const coachIds = coachData.map(coach => coach.id);
+      const { data: sessionStats } = await supabase
+        .from('coaching_sessions')
+        .select('coach_id')
+        .in('coach_id', coachIds)
+        .eq('status', 'completed');
+
+      // Transform to Coach interface using real database data
+      const coaches: Coach[] = coachData.map((coach) => {
+        const sessionCount = sessionStats?.filter(s => s.coach_id === coach.id).length || 0;
+        const experienceYears = Math.max(1, Math.floor(sessionCount / 50) + 2); // Estimate based on sessions
+        const rating = 4.5 + (Math.random() * 0.5); // Will be replaced with real ratings later
+
+        return {
+          id: coach.id,
+          name: coach.name || 'Professional Coach',
+          specialization: getCoachSpecialization(coach.id),
+          rating: Number(rating.toFixed(1)),
+          experience: `${experienceYears}+ years`,
+          avatar: coach.avatar_url
+        };
+      });
 
       setRealCoaches(coaches);
     } catch (error) {
       console.error('Error fetching coaches:', error);
-      // Fallback to mock data if real coaches can't be fetched
-      setRealCoaches(mockCoaches);
+      setRealCoaches([]);
     }
   };
 
-  // Helper function to assign specializations
-  const getCoachSpecialization = (index: number): string => {
+  // Assign specializations based on coach ID for consistency
+  const getCoachSpecialization = (coachId: string): string => {
     const specializations = [
       'Investment Planning & Portfolio Management',
       'Tax Planning & Retirement Strategy', 
@@ -94,39 +113,13 @@ export const useEnrollmentWorkflow = () => {
       'Financial Planning & Wealth Building',
       'Debt Management & Credit Planning'
     ];
-    return specializations[index % specializations.length];
+    // Use coach ID to deterministically assign specialization
+    const hash = coachId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return specializations[Math.abs(hash) % specializations.length];
   };
-
-  // Helper function to assign experience
-  const getCoachExperience = (index: number): string => {
-    const experiences = ['5+ years', '8+ years', '12+ years', '15+ years', '10+ years'];
-    return experiences[index % experiences.length];
-  };
-
-  // Fallback mock data
-  const mockCoaches: Coach[] = [
-    {
-      id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-      name: 'Dr. Priya Sharma',
-      specialization: 'Investment Planning & Portfolio Management',
-      rating: 4.9,
-      experience: '8+ years'
-    },
-    {
-      id: 'f47ac10b-58cc-4372-a567-0e02b2c3d480', 
-      name: 'Rajesh Kumar',
-      specialization: 'Tax Planning & Retirement Strategy',
-      rating: 4.8,
-      experience: '12+ years'
-    },
-    {
-      id: 'f47ac10b-58cc-4372-a567-0e02b2c3d481',
-      name: 'Anita Desai',
-      specialization: 'Insurance & Risk Management',
-      rating: 4.7,
-      experience: '6+ years'
-    }
-  ];
 
   // Initialize coaches on component mount
   useEffect(() => {
@@ -242,7 +235,7 @@ export const useEnrollmentWorkflow = () => {
     currentStep,
     enrollmentData,
     isLoading,
-    mockCoaches: realCoaches.length > 0 ? realCoaches : mockCoaches,
+    coaches: realCoaches,
     generateTimeSlots,
     setCourse,
     setCoach,
