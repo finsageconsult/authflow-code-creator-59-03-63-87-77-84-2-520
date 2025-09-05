@@ -129,10 +129,9 @@ export const ToolsView = () => {
   }, [toast, userProfile]);
 
   const hasAccess = (tool: FinancialTool) => {
-    // For employees, check free usage limit + purchases
+    // For employees, all tools are free with organization plan
     if (userProfile?.role === 'EMPLOYEE') {
-      return purchasedTools.some(purchase => purchase.tool_id === tool.id) || 
-             canUseFreeTool(tool.id, tool.employee_free_limit || 5);
+      return true;
     }
     // For individuals, check if user has purchased
     return purchasedTools.some(purchase => purchase.tool_id === tool.id);
@@ -148,23 +147,10 @@ export const ToolsView = () => {
       return;
     }
 
-    // For employees using free tools
-    if (userProfile.role === 'EMPLOYEE' && !purchasedTools.some(p => p.tool_id === tool.id)) {
-      const canUseFree = canUseFreeTool(tool.id, tool.employee_free_limit || 5);
-      if (canUseFree) {
-        const success = await incrementUsage(tool.id);
-        if (success) {
-          navigate(`/tools/${tool.ui_component}`);
-        }
-        return;
-      } else {
-        toast({
-          title: "Free Limit Reached",
-          description: `You've reached the free usage limit for ${tool.name}. Purchase for unlimited access.`,
-          variant: "destructive"
-        });
-        return;
-      }
+    // For employees, all tools are free
+    if (userProfile.role === 'EMPLOYEE') {
+      navigate(`/tools/${tool.ui_component}`);
+      return;
     }
 
     if (!hasAccess(tool)) {
@@ -248,7 +234,7 @@ export const ToolsView = () => {
           </h1>
           <p className="text-muted-foreground mt-1">
             {userProfile?.role === 'EMPLOYEE' 
-              ? 'Use our free interactive tools with usage limits, or purchase for unlimited access'
+              ? 'Use our free interactive tools included in your organization plan'
               : 'Purchase and use our premium interactive tools to plan, calculate, and track your financial goals'
             }
           </p>
@@ -280,8 +266,6 @@ export const ToolsView = () => {
                 // Employee-specific logic
                 if (userProfile?.role === 'EMPLOYEE') {
                   const usageCount = getUsageCount(tool.id);
-                  const canUseFree = canUseFreeTool(tool.id, tool.employee_free_limit || 5);
-                  const remainingUses = Math.max(0, (tool.employee_free_limit || 5) - usageCount);
                   
                   return (
                     <Card key={tool.id} className="flex flex-col">
@@ -297,15 +281,10 @@ export const ToolsView = () => {
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Owned
                               </Badge>
-                            ) : canUseFree ? (
+                            ) : (
                               <Badge className="bg-green-100 text-green-800 text-xs">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Free
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="bg-amber-100 text-amber-800 text-xs">
-                                <Clock className="h-3 w-3 mr-1" />
-                                Limit Reached
                               </Badge>
                             )}
                             <Badge variant="outline" className="text-xs capitalize">
@@ -320,39 +299,14 @@ export const ToolsView = () => {
                           {tool.description}
                         </p>
 
-                        {/* Usage counter for non-owned tools */}
+                        {/* Show unlimited access message for employees */}
                         {!isOwned && (
-                          <div className="text-xs text-muted-foreground">
-                            <div className="flex justify-between items-center">
-                              <span>Usage: {usageCount}/{tool.employee_free_limit || 5}</span>
-                              <span className={`font-medium ${remainingUses === 0 ? 'text-red-600' : remainingUses <= 1 ? 'text-amber-600' : 'text-green-600'}`}>
-                                {remainingUses} left
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                              <div 
-                                className={`h-2 rounded-full transition-all duration-300 ${
-                                  remainingUses === 0 ? 'bg-red-500' : 
-                                  remainingUses <= 1 ? 'bg-amber-500' : 'bg-green-500'
-                                }`}
-                                style={{
-                                  width: `${Math.max(10, (remainingUses / (tool.employee_free_limit || 5)) * 100)}%`
-                                }}
-                              ></div>
-                            </div>
+                          <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                            <p className="text-sm text-green-700 font-medium">✓ Unlimited Free Access</p>
+                            <p className="text-xs text-green-600 mt-1">Part of your organization plan</p>
                           </div>
                         )}
 
-                        {/* Show price only when free limit is reached and not owned */}
-                        {!isOwned && !canUseFree && (
-                          <div className="text-center py-2 border-t">
-                            <p className="text-lg font-bold text-primary">
-                              {formatPrice(tool.price)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">One-time purchase for unlimited access</p>
-                          </div>
-                        )}
-                        
                         {tool.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {tool.tags.slice(0, 3).map((tag) => (
@@ -369,34 +323,13 @@ export const ToolsView = () => {
                         )}
 
                         <div className="mt-auto pt-4">
-                          {isOwned ? (
-                            <Button 
-                              onClick={() => handleLaunchTool(tool)}
-                              className="w-full gap-2"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              Use Tool
-                            </Button>
-                          ) : canUseFree ? (
-                            <Button 
-                              onClick={() => handleUseTool(tool)}
-                              className="w-full gap-2"
-                              variant="default"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              Use Tool ({remainingUses} left)
-                            </Button>
-                          ) : (
-                            <UnifiedPaymentButton
-                              itemType="tool"
-                              itemId={tool.id}
-                              title={tool.name}
-                              description={`${tool.description} - Unlimited access`}
-                              price={Math.round(tool.price * 100)}
-                              isOwned={false}
-                              onSuccess={handlePaymentSuccess}
-                            />
-                          )}
+                          <Button 
+                            onClick={() => handleLaunchTool(tool)}
+                            className="w-full gap-2"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Use Tool
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
