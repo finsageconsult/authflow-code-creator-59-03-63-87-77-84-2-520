@@ -115,14 +115,12 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Use the original amount without any GST calculation
-    const baseAmount = Math.round(amount); // Amount is already in paisa from frontend
-    const totalAmount = baseAmount; // No GST added - use simple price
-    const gstAmount = 0; // No GST
+    // Use the exact amount from frontend - no calculations
+    const totalAmount = Math.round(amount); // Amount is already in paisa from frontend
+    const gstAmount = 0; // No GST - simple pricing
     
     console.log("Price calculation:", {
       originalAmount: amount,
-      baseAmount: baseAmount,
       totalAmount: totalAmount,
       gstAmount: gstAmount
     });
@@ -139,9 +137,9 @@ const handler = async (req: Request): Promise<Response> => {
         user_type: userType.toLowerCase() as any,
         service_type: serviceType,
         quantity,
-        unit_price: baseAmount,
+        unit_price: totalAmount,
         gst_amount: gstAmount,
-        total_amount: baseAmount,
+        total_amount: totalAmount,
         final_amount: totalAmount,
         currency,
         order_number: orderNumber,
