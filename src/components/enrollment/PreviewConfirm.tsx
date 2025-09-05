@@ -297,10 +297,11 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
           <Button 
             onClick={showPayment ? handlePayment : handleConfirm} 
             disabled={isLoading}
-            className="px-8"
+            className="px-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+            size="lg"
           >
             {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {showPayment ? 'Pay Now' : 'Enroll Now'}
+            {showPayment ? 'Buy Now' : 'Enroll Now'}
           </Button>
         </div>
       </div>

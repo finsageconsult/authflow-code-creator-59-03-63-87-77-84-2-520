@@ -110,12 +110,12 @@ export const UnifiedPaymentButton: React.FC<UnifiedPaymentButtonProps> = ({
               .update({ status: 'completed' })
               .eq('id', order.id);
 
-            // Create purchase record based on item type
-            if (itemType === 'program') {
-              await supabase
-                .from('individual_purchases')
-                .insert({
-                  user_id: userProfile.id,
+                // Create purchase record based on item type
+                if (itemType === 'program') {
+                  await supabase
+                    .from('individual_purchases')
+                    .insert({
+                      user_id: userProfile.id, // Use internal user ID for purchase records
                   program_id: itemId,
                   order_id: order.id,
                   amount_paid: price,
@@ -123,11 +123,11 @@ export const UnifiedPaymentButton: React.FC<UnifiedPaymentButtonProps> = ({
                   transaction_id: response.razorpay_payment_id,
                   access_granted_at: new Date().toISOString()
                 });
-            } else if (itemType === 'tool') {
-              await supabase
-                .from('tool_purchases')
-                .insert({
-                  user_id: userProfile.id,
+                } else if (itemType === 'tool') {
+                  await supabase
+                    .from('tool_purchases')
+                    .insert({
+                      user_id: userProfile.id, // Use internal user ID for purchase records
                   tool_id: itemId,
                   order_id: order.id,
                   amount_paid: price,
