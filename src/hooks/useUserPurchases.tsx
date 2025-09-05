@@ -33,6 +33,7 @@ export const useUserPurchases = () => {
         .from('individual_purchases')
         .select('*')
         .eq('user_id', userProfile.id)
+        .eq('status', 'completed')
         .order('created_at', { ascending: false });
 
       if (programError) throw programError;
@@ -42,6 +43,7 @@ export const useUserPurchases = () => {
         .from('tool_purchases')
         .select('*')
         .eq('user_id', userProfile.id)
+        .eq('status', 'completed')
         .order('created_at', { ascending: false });
 
       if (toolError) throw toolError;

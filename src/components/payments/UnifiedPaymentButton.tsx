@@ -187,9 +187,14 @@ export const UnifiedPaymentButton: React.FC<UnifiedPaymentButtonProps> = ({
 
   if (isOwned) {
     return (
-      <Button variant="outline" className="w-full" disabled>
-        <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-        Owned
+      <Button variant="default" className="w-full" onClick={() => {
+        // Navigate to owned content
+        console.log('Accessing owned content:', title);
+        // TODO: Implement content access logic
+        toast.success(`Opening ${title}...`);
+      }}>
+        <CheckCircle className="h-4 w-4 mr-2 text-white" />
+        Access Now
       </Button>
     );
   }
