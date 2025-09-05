@@ -255,8 +255,8 @@ export const EmployeePrograms = () => {
               Intensive programs with personalized coaching and certification
             </p>
           </div>
-          <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
-            Paid Programs
+          <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">
+            Free Programs - One-time Enrollment
           </Badge>
         </div>
 
@@ -290,57 +290,86 @@ export const EmployeePrograms = () => {
       </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {shortPrograms.map((program) => (
-            <Card key={program.id} className="group hover:shadow-lg transition-all">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base line-clamp-2">
-                    {program.title}
-                  </CardTitle>
-                  <DollarSign className="h-4 w-4 text-amber-600" />
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {program.description}
-                </p>
-
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {program.duration}
+          {shortPrograms.map((program) => {
+            // Check if user has already enrolled in this program (mock data for now)
+            const isEnrolled = purchases.some(p => p.program_id === program.id);
+            
+            return (
+              <Card key={program.id} className="group hover:shadow-lg transition-all bg-white/70">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base line-clamp-2">
+                      {program.title}
+                    </CardTitle>
+                    {isEnrolled ? (
+                      <Badge className="bg-green-100 text-green-700">
+                        ✓ Enrolled
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-blue-100 text-blue-700">
+                        FREE
+                      </Badge>
+                    )}
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    {program.level}
-                  </Badge>
-                </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {program.description}
+                  </p>
 
-                <div className="pt-2 border-t">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-primary">
-                        ₹{(program.price / 100).toLocaleString()}
-                      </div>
-                      <div className="text-xs text-muted-foreground">per employee</div>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {program.duration}
                     </div>
+                    <Badge variant="outline" className="text-xs">
+                      {program.level}
+                    </Badge>
                   </div>
-                  
-                  <UnifiedPaymentButton
-                    itemType="program"
-                    itemId={program.id}
-                    title={program.title}
-                    description={program.description}
-                    price={program.price}
-                    isOwned={false}
-                    onSuccess={() => {
-                      toast.success('Program enrollment successful!');
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+
+                  <div className="pt-2 border-t">
+                    <div className="text-center mb-3">
+                      <div className="text-lg font-bold text-green-600">
+                        ✓ FREE with Organization Plan
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        One-time enrollment per employee
+                      </div>
+                    </div>
+                    
+                    {isEnrolled ? (
+                      <Button 
+                        className="w-full" 
+                        onClick={() => {
+                          toast.success(`Opening ${program.title}...`);
+                          // Navigate to program content
+                        }}
+                      >
+                        Continue Learning
+                      </Button>
+                    ) : (
+                      <Button 
+                        className="w-full"
+                        onClick={() => {
+                          // Mock enrollment - in real app, this would call an API
+                          toast.success(`Successfully enrolled in ${program.title}!`);
+                          // Add to purchases to simulate enrollment
+                          setPurchases(prev => [...prev, {
+                            program_id: program.id,
+                            status: 'completed',
+                            progress: 0
+                          }]);
+                        }}
+                      >
+                        Enroll Now - FREE
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
