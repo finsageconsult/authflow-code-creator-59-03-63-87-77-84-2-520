@@ -29,7 +29,8 @@ import {
   FileText,
   Award,
   CreditCard,
-  Menu
+  Menu,
+  RefreshCw
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -44,6 +45,7 @@ export const IndividualDashboard = () => {
   const currentTab = searchParams.get('tab') || 'programs';
   const [showEnrollment, setShowEnrollment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [processingPurchases, setProcessingPurchases] = useState<Set<string>>(new Set());
 
   // Get purchased programs for "My Learning" section
   const myLearning = purchases
@@ -190,10 +192,23 @@ export const IndividualDashboard = () => {
             {/* Learning Catalog */}
             <Card>
               <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <BookOpen className="h-5 w-5" />
-                  Learning Catalog
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <BookOpen className="h-5 w-5" />
+                    Learning Catalog
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      refetch();
+                      refetchPurchases();
+                    }}
+                    className="h-8 w-8 p-0"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 pt-0">
                 <div className="flex flex-wrap gap-2 mb-6">
@@ -245,7 +260,7 @@ export const IndividualDashboard = () => {
                           <span className="font-semibold text-sm sm:text-base truncate">
                             {formatPrice(program.price)}
                           </span>
-                          <Button 
+                          <Button
                             onClick={() => {
                               setSelectedCourse({
                                 id: program.id,
@@ -260,13 +275,15 @@ export const IndividualDashboard = () => {
                             }}
                             className="w-full"
                             size="sm"
-                            disabled={isItemPurchased('program', program.id)}
+                            disabled={isItemPurchased('program', program.id) || processingPurchases.has(program.id)}
                           >
-                            {isItemPurchased('program', program.id) 
-                              ? 'Already Purchased' 
-                              : program.category === '1-1-sessions' 
-                                ? 'Book Session' 
-                                : 'Buy Now'
+                            {processingPurchases.has(program.id)
+                              ? 'Processing...'
+                              : isItemPurchased('program', program.id) 
+                                ? '✓ Purchased' 
+                                : program.category === '1-1-sessions' 
+                                  ? 'Book Session' 
+                                  : 'Buy Now'
                             }
                           </Button>
                         </div>
@@ -393,11 +410,25 @@ export const IndividualDashboard = () => {
                   onComplete={() => {
                     setShowEnrollment(false);
                     setSelectedCourse(null);
-                    // Add a small delay to ensure enrollment is saved before refreshing
+                    
+                    // Mark this program as processing
+                    if (selectedCourse) {
+                      setProcessingPurchases(prev => new Set([...prev, selectedCourse.id]));
+                    }
+                    
+                    // Add a longer delay to ensure webhook processing completes
                     setTimeout(() => {
                       refetch();
                       refetchPurchases();
-                    }, 1000);
+                      // Clear processing state after refresh
+                      if (selectedCourse) {
+                        setProcessingPurchases(prev => {
+                          const newSet = new Set(prev);
+                          newSet.delete(selectedCourse.id);
+                          return newSet;
+                        });
+                      }
+                    }, 3000); // Increased to 3 seconds for webhook processing
                   }}
                 />
               ) : (
