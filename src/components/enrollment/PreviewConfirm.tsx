@@ -20,8 +20,7 @@ import { toast } from 'sonner';
 interface PreviewConfirmProps {
   enrollmentData: EnrollmentData;
   userType: 'individual' | 'employee';
-  onConfirm?: () => Promise<boolean>;
-  onNext?: () => void;
+  onConfirm: () => Promise<boolean>;
   onPrevious: () => void;
   onCancel: () => void;
   isLoading: boolean;
@@ -37,7 +36,6 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
   enrollmentData,
   userType,
   onConfirm,
-  onNext,
   onPrevious,
   onCancel,
   isLoading
@@ -174,20 +172,8 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
   };
 
   const handleConfirm = async () => {
-    if (onConfirm) {
-      const success = await onConfirm();
-      // Component will handle success/failure via the hook
-    } else if (onNext) {
-      onNext();
-    }
-  };
-
-  const handleContinue = () => {
-    if (onNext) {
-      onNext();
-    } else if (onConfirm) {
-      handleConfirm();
-    }
+    const success = await onConfirm();
+    // Component will handle success/failure via the hook
   };
 
   if (!course || !coach || !timeSlot) {
@@ -334,13 +320,13 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
             Previous
           </Button>
           <Button 
-            onClick={handleContinue} 
+            onClick={showPayment ? handlePayment : handleConfirm} 
             disabled={isLoading}
             className="px-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
             size="lg"
           >
             {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {onNext ? 'Continue to Payment' : (showPayment ? 'Buy Now' : 'Enroll Now')}
+            {showPayment ? 'Buy Now' : 'Enroll Now'}
           </Button>
         </div>
       </div>

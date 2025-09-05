@@ -265,7 +265,7 @@ export const useEnrollmentWorkflow = () => {
   }, []);
 
   const nextStep = useCallback(() => {
-    setCurrentStep(prev => Math.min(prev + 1, 5));
+    setCurrentStep(prev => Math.min(prev + 1, 4));
   }, []);
 
   const prevStep = useCallback(() => {
