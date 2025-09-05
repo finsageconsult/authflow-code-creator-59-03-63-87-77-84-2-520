@@ -149,9 +149,9 @@ export const EmployeePrograms = () => {
       </div>;
   }
 
-  // Static short programs for employees
+  // Static short programs for employees with proper UUID format
   const shortPrograms = [{
-    id: 'financial-fitness-bootcamp',
+    id: '550e8400-e29b-41d4-a716-446655440000', // UUID for financial-fitness-bootcamp
     title: 'Financial Fitness Bootcamp (Flagship)',
     description: '7-day program covering budgeting, saving, investing, and debt control.',
     price: 700000,
@@ -160,7 +160,7 @@ export const EmployeePrograms = () => {
     level: 'Beginner to Advanced',
     category: 'short-program'
   }, {
-    id: 'investment-mastery-series',
+    id: '550e8400-e29b-41d4-a716-446655440001', // UUID for investment-mastery-series
     title: 'Investment Mastery Series',
     description: '14-day deep dive into equity, mutual funds, and alternative assets.',
     price: 1000000,
@@ -169,7 +169,7 @@ export const EmployeePrograms = () => {
     level: 'Intermediate to Advanced',
     category: 'short-program'
   }, {
-    id: 'tax-compliance-essentials',
+    id: '550e8400-e29b-41d4-a716-446655440002', // UUID for tax-compliance-essentials
     title: 'Tax & Compliance Essentials',
     description: '3-day crash course to optimize tax-saving while staying compliant.',
     price: 400000,
