@@ -268,6 +268,117 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          chat_id: string
+          content: string | null
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          is_deleted: boolean | null
+          message_type: string
+          mime_type: string | null
+          reply_to_id: string | null
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          chat_id: string
+          content?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          message_type?: string
+          mime_type?: string | null
+          reply_to_id?: string | null
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          message_type?: string
+          mime_type?: string | null
+          reply_to_id?: string | null
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      chat_participants: {
+        Row: {
+          chat_id: string
+          id: string
+          is_active: boolean | null
+          joined_at: string
+          last_read_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chats: {
+        Row: {
+          chat_type: string
+          created_at: string
+          created_by: string
+          id: string
+          last_message_at: string | null
+          name: string | null
+          organization_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          chat_type?: string
+          created_at?: string
+          created_by: string
+          id?: string
+          last_message_at?: string | null
+          name?: string | null
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          chat_type?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          last_message_at?: string | null
+          name?: string | null
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coach_availability: {
         Row: {
           buffer_minutes: number
@@ -1793,6 +1904,33 @@ export type Database = {
           updated_at?: string
           user_id?: string
           webinar_reminders?: boolean
+        }
+        Relationships: []
+      }
+      user_presence: {
+        Row: {
+          id: string
+          last_seen: string | null
+          status: string
+          typing_in_chat: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          last_seen?: string | null
+          status?: string
+          typing_in_chat?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          last_seen?: string | null
+          status?: string
+          typing_in_chat?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
