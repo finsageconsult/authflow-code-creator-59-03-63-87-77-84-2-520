@@ -10,7 +10,6 @@ interface CreateAccessCodeRequest {
   code: string;
   organization_id: string;
   role: string;
-  expires_at: string;
   max_uses: number;
   email: string;
 }
@@ -21,7 +20,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { code, organization_id, role, expires_at, max_uses, email }: CreateAccessCodeRequest = await req.json();
+    const { code, organization_id, role, max_uses, email }: CreateAccessCodeRequest = await req.json();
 
     // Create admin client with service role key to bypass RLS
     const supabaseAdmin = createClient(
@@ -40,10 +39,9 @@ const handler = async (req: Request): Promise<Response> => {
       // For coaches, check globally across all records with this email
       const { data, error } = await supabaseAdmin
         .from('access_codes')
-        .select('id, code, expires_at, email')
+        .select('id, code, email')
         .eq('email', email)
         .eq('role', 'COACH')
-        .gt('expires_at', new Date().toISOString())
         .gt('max_uses', 0);
       
       existingCodes = data;
@@ -52,10 +50,9 @@ const handler = async (req: Request): Promise<Response> => {
       // For other roles, check within organization
       const { data, error } = await supabaseAdmin
         .from('access_codes')
-        .select('id, code, expires_at, email')
+        .select('id, code, email')
         .eq('organization_id', actualOrgId)
         .eq('email', email)
-        .gt('expires_at', new Date().toISOString())
         .gt('max_uses', 0);
       
       existingCodes = data;
@@ -66,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // If there are existing active codes for this email, prevent creation
     if (existingCodes && existingCodes.length > 0) {
-      throw new Error(`An active access code already exists for email ${email}. Please use the existing code or wait for it to expire.`);
+      throw new Error(`An active access code already exists for email ${email}. Please use the existing code.`);
     }
 
     // Insert access code with admin privileges (bypasses RLS)
@@ -76,7 +73,6 @@ const handler = async (req: Request): Promise<Response> => {
         code,
         organization_id: actualOrgId,
         role,
-        expires_at,
         max_uses,
         used_count: 0,
         email

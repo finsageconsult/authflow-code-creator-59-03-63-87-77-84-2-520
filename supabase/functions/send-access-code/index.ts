@@ -57,7 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
         )
       `)
       .eq('email', email.trim())
-      .gt('expires_at', new Date().toISOString())
+      .gt('max_uses', 0)
       .order('created_at', { ascending: false });
 
     if (fetchError) {
@@ -114,7 +114,7 @@ const handler = async (req: Request): Promise<Response> => {
           </p>
           
           <p style="color: #999; font-size: 14px; text-align: center; margin: 16px 0 0 0;">
-            This code expires on ${new Date(accessCode.expires_at).toLocaleDateString()}.
+            This code does not expire and can be used multiple times.
           </p>
         </div>
         
