@@ -49,6 +49,13 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.async = true;
+      script.onload = () => {
+        console.log('Razorpay script loaded successfully');
+      };
+      script.onerror = () => {
+        console.error('Failed to load Razorpay script');
+        toast.error('Failed to load payment gateway. Please refresh and try again.');
+      };
       document.body.appendChild(script);
     }
   }, [userType, course?.price]);
@@ -84,6 +91,12 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
       return;
     }
 
+    // Check if Razorpay script is loaded
+    if (!window.Razorpay) {
+      toast.error('Payment gateway not loaded. Please refresh and try again.');
+      return;
+    }
+
     try {
       // Create Razorpay order - amount should be in paise
       const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
@@ -108,6 +121,7 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
       }
 
       const { order } = data;
+      console.log('Opening Razorpay with order:', order);
 
       // Initialize Razorpay
       const options = {
@@ -118,6 +132,7 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
         description: `${course.title} - Course Enrollment`,
         order_id: order.razorpay_order_id,
         handler: function (response: any) {
+          console.log('Payment successful:', response);
           toast.success('Payment successful!');
           // After successful payment, create the enrollment
           handleConfirm();
@@ -133,11 +148,21 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
           ondismiss: function() {
             // Payment was dismissed/cancelled
             console.log('Payment dismissed');
+            toast.info('Payment was cancelled');
           }
         }
       };
 
+      console.log('Razorpay options:', options);
       const razorpay = new window.Razorpay(options);
+      
+      // Add error handler for Razorpay
+      razorpay.on('payment.failed', function (response: any) {
+        console.error('Payment failed:', response.error);
+        toast.error(`Payment failed: ${response.error.description || 'Unknown error'}`);
+      });
+
+      console.log('Opening Razorpay popup...');
       razorpay.open();
 
     } catch (error: any) {
