@@ -3,7 +3,7 @@ import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroup
 import { useAuth } from '@/hooks/useAuth';
 import { hasRole } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock, HelpCircle, MessageSquare } from 'lucide-react';
 
 const menuItems = [{
   title: 'Dashboard',
@@ -39,6 +39,11 @@ const menuItems = [{
   url: '/webinars',
   icon: Calendar,
   roles: ['ADMIN', 'HR', 'COACH', 'INDIVIDUAL']
+}, {
+  title: 'Assignments',
+  url: '/assignments',
+  icon: MessageSquare,
+  roles: ['ADMIN', 'HR', 'COACH', 'EMPLOYEE', 'INDIVIDUAL']
 }, {
   title: 'Tools',
   url: '/tools',
@@ -107,6 +112,11 @@ const coachMenuItems = [{
   title: 'Dashboard',
   url: '/coach-dashboard',
   icon: LayoutDashboard,
+  roles: ['COACH']
+}, {
+  title: 'Assignments',
+  url: '/assignments',
+  icon: MessageSquare,
   roles: ['COACH']
 }, {
   title: 'Analytics',

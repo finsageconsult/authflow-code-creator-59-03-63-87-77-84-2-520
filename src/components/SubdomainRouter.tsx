@@ -23,6 +23,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { WebinarsView } from '@/components/webinars/WebinarsView';
 import { ToolsView } from '@/components/tools/ToolsView';
 import { ToolPage } from '@/components/tools/ToolPage';
+import AssignmentsList from '@/components/assignments/AssignmentsList';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
@@ -69,6 +70,7 @@ export const SubdomainRouter = () => {
       <Route path="/individual-dashboard" element={<ProtectedRoute allowedRoles={['INDIVIDUAL']}><SimpleLayout><IndividualDashboard /></SimpleLayout></ProtectedRoute>} />
       <Route path="/catalog" element={<ProtectedRoute><RoleBasedLayout><div>Catalog Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/coaching" element={<ProtectedRoute><RoleBasedLayout><div>Coaching Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
+      <Route path="/assignments" element={<ProtectedRoute><RoleBasedLayout><AssignmentsList /></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/webinars" element={<ProtectedRoute><RoleBasedLayout><WebinarsView /></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/tools" element={<ProtectedRoute><RoleBasedLayout><ToolsView /></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/tools/:toolId" element={<ProtectedRoute><RoleBasedLayout><ToolPage /></RoleBasedLayout></ProtectedRoute>} />
