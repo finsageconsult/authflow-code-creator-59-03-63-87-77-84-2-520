@@ -62,6 +62,80 @@ export const IndividualDashboard = () => {
 
   const allContent = getFilteredPrograms(selectedCategory);
 
+  // Static programs for individual users (same as employee programs but with pricing)
+  const staticIndividualPrograms = [
+    {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Financial Fitness Bootcamp (Flagship)',
+      description: '7-day program covering budgeting, saving, investing, and debt control.',
+      price: 449900, // ₹4,499 in paisa
+      duration: '7 days',
+      level: 'Beginner to Advanced',
+      category: 'short-program',
+      tags: ['financial-planning', 'budgeting', 'investing']
+    },
+    {
+      id: '550e8400-e29b-41d4-a716-446655440001',
+      title: 'Investment Mastery Series',
+      description: '14-day deep dive into equity, mutual funds, and alternative assets.',
+      price: 299900, // ₹2,999 in paisa
+      duration: '14 days',
+      level: 'Intermediate to Advanced',
+      category: 'short-program',
+      tags: ['investing', 'stocks', 'portfolio']
+    },
+    {
+      id: '550e8400-e29b-41d4-a716-446655440002',
+      title: 'Smart Tax Planning',
+      description: '1:1 session for tax optimization strategies tailored to your situation',
+      price: 399900, // ₹3,999 in paisa
+      duration: '3 days',
+      level: 'Beginner to Intermediate',
+      category: 'short-program',
+      tags: ['tax', 'planning', 'optimization']
+    },
+    {
+      id: '550e8400-e29b-41d4-a716-446655440003',
+      title: 'Financial Blueprint Session',
+      description: 'Personalized financial roadmap with expert coach - one-on-one session',
+      price: 499900, // ₹4,999 in paisa
+      duration: '90 minutes',
+      level: 'All Levels',
+      category: '1-1-sessions',
+      tags: ['1on1', 'financial', 'roadmap', 'personal']
+    },
+    {
+      id: '550e8400-e29b-41d4-a716-446655440004',
+      title: 'Debt-Free Journey',
+      description: 'Personal debt elimination strategy session with actionable plan',
+      price: 449900, // ₹4,499 in paisa
+      duration: '60 minutes',
+      level: 'All Levels',
+      category: '1-1-sessions',
+      tags: ['1on1', 'debt', 'elimination', 'strategy']
+    },
+    {
+      id: '550e8400-e29b-41d4-a716-446655440005',
+      title: 'Investing in 3 Hours',
+      description: 'Complete beginner guide to smart investing - learn fundamentals, risk management, and portfolio building',
+      price: 299900, // ₹2,999 in paisa
+      duration: '3 hours',
+      level: 'Beginner',
+      category: '1-1-sessions',
+      tags: ['investing', 'beginner', 'portfolio']
+    }
+  ];
+
+  // Combine database programs with static programs, prioritizing static ones
+  const combinedPrograms = [...staticIndividualPrograms];
+  
+  const getFilteredCombinedPrograms = (category: 'all' | 'short-program' | '1-1-sessions') => {
+    if (category === 'all') return combinedPrograms;
+    return combinedPrograms.filter(program => program.category === category);
+  };
+
+  const allContentWithStatic = getFilteredCombinedPrograms(selectedCategory);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -150,7 +224,7 @@ export const IndividualDashboard = () => {
                 </div>
 
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
-                  {allContent.map((program) => (
+                  {allContentWithStatic.map((program) => (
                     <Card key={program.id} className="relative hover:shadow-md transition-shadow h-full">
                       <CardContent className="p-4 h-full flex flex-col">
                         <div className="flex items-start justify-between mb-3">
