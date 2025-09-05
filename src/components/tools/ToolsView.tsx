@@ -392,7 +392,7 @@ export const ToolsView = () => {
                               itemId={tool.id}
                               title={tool.name}
                               description={`${tool.description} - Unlimited access`}
-                              price={tool.price}
+                              price={Math.round(tool.price * 100)}
                               isOwned={false}
                               onSuccess={handlePaymentSuccess}
                             />
