@@ -43,10 +43,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Get the coach's auth_id before deletion
+    // Get the coach's auth_id and email before deletion
     const { data: coachData, error: coachError } = await supabaseAdmin
       .from('users')
-      .select('auth_id, name')
+      .select('auth_id, name, email')
       .eq('id', coach_id)
       .eq('role', 'COACH')
       .single();
@@ -61,7 +61,17 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Delete from users table first (this will cascade delete related records due to foreign keys)
+    // Delete access codes associated with this coach's email
+    const { error: accessCodeDeleteError } = await supabaseAdmin
+      .from('access_codes')
+      .delete()
+      .eq('email', coachData.email || '');
+
+    if (accessCodeDeleteError) {
+      console.error('Error deleting access codes:', accessCodeDeleteError);
+    }
+
+    // Delete from users table (this will cascade delete related records due to foreign keys)
     const { error: userDeleteError } = await supabaseAdmin
       .from('users')
       .delete()
