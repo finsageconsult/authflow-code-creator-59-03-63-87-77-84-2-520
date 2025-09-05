@@ -87,6 +87,11 @@ const adminMenuItems = [{
   icon: CreditCard,
   roles: ['ADMIN']
 }, {
+  title: 'Content CMS',
+  url: '/admin-dashboard?tab=content',
+  icon: FileText,
+  roles: ['ADMIN']
+}, {
   title: 'Analytics',
   url: '/admin-dashboard?tab=analytics',
   icon: BarChart3,
