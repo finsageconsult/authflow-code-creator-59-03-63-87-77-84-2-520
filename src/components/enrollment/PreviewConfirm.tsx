@@ -121,9 +121,9 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
             <User className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div className="flex-1">
               <h4 className="font-medium">{coach.name}</h4>
-              <p className="text-sm text-muted-foreground">
-                {coach.specialization}
-              </p>
+               <p className="text-sm text-muted-foreground">
+                 {coach.specialties?.join(', ') || 'General Coach'}
+               </p>
               <div className="flex items-center gap-2 mt-2">
                 <Badge variant="outline">⭐ {coach.rating}</Badge>
                 <Badge variant="secondary">{coach.experience}</Badge>

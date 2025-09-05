@@ -17,7 +17,7 @@ export interface EnrollmentData {
   coach: {
     id: string;
     name: string;
-    specialization: string;
+    specialties: string[];
     rating: number;
     experience: string;
     avatar?: string;
@@ -33,7 +33,7 @@ export interface EnrollmentData {
 interface Coach {
   id: string;
   name: string;
-  specialization: string;
+  specialties: string[];
   rating: number;
   experience: string;
   avatar?: string;
@@ -105,14 +105,14 @@ export const useEnrollmentWorkflow = () => {
         const rating = 4.3 + (Math.random() * 0.7); // Generate rating between 4.3-5.0
         
         // Use specialties from database or fallback to generated ones
-        const specialization = coach.specialties && coach.specialties.length > 0 
-          ? coach.specialties.join(', ')
-          : getCoachSpecialization(coach.id);
+        const specialties = coach.specialties && coach.specialties.length > 0 
+          ? coach.specialties
+          : [getCoachSpecialization(coach.id)];
 
         return {
           id: coach.id,
           name: coach.name || 'Professional Coach',
-          specialization: specialization,
+          specialties: specialties,
           rating: Number(rating.toFixed(1)),
           experience: `${experienceYears}+ years`,
           avatar: coach.avatar_url
@@ -140,15 +140,17 @@ export const useEnrollmentWorkflow = () => {
 
     const courseTags = course.tags.map(tag => tag.toLowerCase());
     const matchingCoaches = realCoaches.filter(coach => {
-      const coachSpecialties = coach.specialization.toLowerCase();
+      const coachSpecialties = coach.specialties.map(s => s.toLowerCase());
       return courseTags.some(tag => 
-        coachSpecialties.includes(tag) || 
-        tag.includes('financial') && coachSpecialties.includes('financial') ||
-        tag.includes('investment') && coachSpecialties.includes('investment') ||
-        tag.includes('planning') && coachSpecialties.includes('planning') ||
-        tag.includes('tax') && coachSpecialties.includes('tax') ||
-        tag.includes('insurance') && coachSpecialties.includes('insurance') ||
-        tag.includes('debt') && coachSpecialties.includes('debt')
+        coachSpecialties.some(specialty => 
+          specialty.includes(tag) || tag.includes(specialty) ||
+          (tag.includes('financial') && specialty.includes('financial')) ||
+          (tag.includes('investment') && specialty.includes('investment')) ||
+          (tag.includes('planning') && specialty.includes('planning')) ||
+          (tag.includes('tax') && specialty.includes('tax')) ||
+          (tag.includes('insurance') && specialty.includes('insurance')) ||
+          (tag.includes('debt') && specialty.includes('debt'))
+        )
       );
     });
 

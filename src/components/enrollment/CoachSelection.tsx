@@ -10,7 +10,7 @@ interface CoachSelectionProps {
   coaches: Array<{
     id: string;
     name: string;
-    specialization: string;
+    specialties: string[];
     rating: number;
     experience: string;
     avatar?: string;
@@ -96,12 +96,12 @@ export const CoachSelection: React.FC<CoachSelectionProps> = ({
                     
                     <div className="flex-1 space-y-2">
                       <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-semibold text-lg">{coach.name}</h4>
-                          <p className="text-muted-foreground text-sm">
-                            {coach.specialization}
-                          </p>
-                        </div>
+                         <div>
+                           <h4 className="font-semibold text-lg">{coach.name}</h4>
+                           <p className="text-muted-foreground text-sm">
+                             {coach.specialties.join(', ')}
+                           </p>
+                         </div>
                         {isSelected && (
                           <CheckCircle2 className="h-6 w-6 text-primary" />
                         )}
@@ -117,23 +117,23 @@ export const CoachSelection: React.FC<CoachSelectionProps> = ({
                         </Badge>
                       </div>
 
-                      {/* Display specialties as individual badges */}
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {coach.specialization.split(', ').slice(0, 4).map((specialty, index) => (
-                          <Badge 
-                            key={index} 
-                            variant="secondary" 
-                            className="text-xs px-2 py-1"
-                          >
-                            {specialty.trim()}
-                          </Badge>
-                        ))}
-                        {coach.specialization.split(', ').length > 4 && (
-                          <Badge variant="outline" className="text-xs px-2 py-1">
-                            +{coach.specialization.split(', ').length - 4} more
-                          </Badge>
-                        )}
-                      </div>
+                       {/* Display specialties as individual badges */}
+                       <div className="flex flex-wrap gap-1 mt-2">
+                         {coach.specialties.slice(0, 4).map((specialty, index) => (
+                           <Badge 
+                             key={index} 
+                             variant="secondary" 
+                             className="text-xs px-2 py-1"
+                           >
+                             {specialty.trim()}
+                           </Badge>
+                         ))}
+                         {coach.specialties.length > 4 && (
+                           <Badge variant="outline" className="text-xs px-2 py-1">
+                             +{coach.specialties.length - 4} more
+                           </Badge>
+                         )}
+                       </div>
 
                       <div className="text-xs text-muted-foreground mt-1">
                         Available for 1:1 sessions • Expert in financial planning
@@ -154,9 +154,9 @@ export const CoachSelection: React.FC<CoachSelectionProps> = ({
               <CheckCircle2 className="h-4 w-4 text-green-600" />
               <span className="font-medium text-sm">Selected Coach</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              <strong>{selectedCoach.name}</strong> - {selectedCoach.specialization}
-            </p>
+             <p className="text-sm text-muted-foreground">
+               <strong>{selectedCoach.name}</strong> - {selectedCoach.specialties?.join(', ') || 'General Coach'}
+             </p>
           </CardContent>
         </Card>
       )}
