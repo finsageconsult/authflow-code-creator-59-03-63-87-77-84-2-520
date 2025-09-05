@@ -8,6 +8,7 @@ import { CoursePreview } from './CoursePreview';
 import { CoachSelection } from './CoachSelection';
 import { TimeSlotSelection } from './TimeSlotSelection';
 import { PreviewConfirm } from './PreviewConfirm';
+import { PaymentStep } from './PaymentStep';
 
 interface EnrollmentWorkflowProps {
   isOpen: boolean;
@@ -58,10 +59,14 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
     { number: 1, title: 'Course Preview', completed: currentStep > 1 },
     { number: 2, title: 'Select Coach', completed: currentStep > 2 },
     { number: 3, title: 'Select Time Slot', completed: currentStep > 3 },
-    { number: 4, title: 'Preview & Confirm', completed: currentStep > 4 }
+    { number: 4, title: 'Review Details', completed: currentStep > 4 },
+    ...(userType === 'individual' && enrollmentData.course?.price > 0 
+      ? [{ number: 5, title: 'Payment', completed: currentStep > 5 }] 
+      : [])
   ];
 
-  const progressValue = ((currentStep - 1) / 3) * 100;
+  const totalSteps = steps.length;
+  const progressValue = ((currentStep - 1) / (totalSteps - 1)) * 100;
 
   const renderStep = () => {
     switch (currentStep) {
@@ -97,19 +102,43 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
           />
         );
       case 4:
+        const requiresPayment = userType === 'individual' && enrollmentData.course?.price > 0;
+        
         return (
           <PreviewConfirm
             enrollmentData={enrollmentData}
             userType={userType}
             onConfirm={async () => {
+              if (requiresPayment) {
+                // For paid courses, advance to payment step
+                nextStep();
+                return true;
+              } else {
+                // For free courses, complete enrollment
+                const success = await submitEnrollment(userType);
+                if (success) {
+                  handleEnrollmentSuccess();
+                }
+                return success;
+              }
+            }}
+            onPrevious={prevStep}
+            onCancel={handleClose}
+            isLoading={isLoading}
+          />
+        );
+      case 5:
+        return (
+          <PaymentStep
+            enrollmentData={enrollmentData}
+            onBack={prevStep}
+            onComplete={async () => {
               const success = await submitEnrollment(userType);
               if (success) {
                 handleEnrollmentSuccess();
               }
               return success;
             }}
-            onPrevious={prevStep}
-            onCancel={handleClose}
             isLoading={isLoading}
           />
         );
