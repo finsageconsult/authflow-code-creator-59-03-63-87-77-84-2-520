@@ -1,7 +1,7 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, TrendingUp, CreditCard, HelpCircle, Wrench, Calendar, BookOpen } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, CreditCard, HelpCircle, Wrench, Calendar, BookOpen, MessageSquare, ClipboardList } from 'lucide-react';
 
 const employeeMenuItems = [
   {
@@ -23,6 +23,16 @@ const employeeMenuItems = [
     title: 'My Credits',
     url: '/employee-dashboard?tab=credits',
     icon: CreditCard,
+  },
+  {
+    title: 'Chat',
+    url: '/employee-dashboard?tab=chat',
+    icon: MessageSquare,
+  },
+  {
+    title: 'Assignments',
+    url: '/employee-dashboard?tab=assignments',
+    icon: ClipboardList,
   },
   {
     title: 'Webinars',

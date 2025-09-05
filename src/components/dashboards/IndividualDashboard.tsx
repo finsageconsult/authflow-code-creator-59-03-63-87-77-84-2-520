@@ -14,6 +14,8 @@ import { ToolShortcuts } from '@/components/individual/ToolShortcuts';
 import { SecureQuestionnaireForm } from '@/components/security/SecureQuestionnaireForm';
 import { ConsentManager } from '@/components/privacy/ConsentManager';
 import { EnrollmentWorkflow } from '@/components/enrollment/EnrollmentWorkflow';
+import { UserChat } from '@/components/user/UserChat';
+import { UserAssignments } from '@/components/user/UserAssignments';
 import { IndividualSidebar } from './IndividualSidebar';
 import { 
   BookOpen, 
@@ -251,8 +253,12 @@ export const IndividualDashboard = () => {
         return <MoodCheckIn />;
       case 'questionnaire':
         return <SecureQuestionnaireForm />;
-      case 'privacy':
-        return <ConsentManager />;
+        case 'privacy':
+          return <ConsentManager />;
+        case 'chat':
+          return <UserChat />;
+        case 'assignments':
+          return <UserAssignments />;
       default:
         return <div>Content not found</div>;
     }

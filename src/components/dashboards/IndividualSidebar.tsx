@@ -20,7 +20,9 @@ import {
   CreditCard,
   Heart,
   Shield,
-  Home
+  Home,
+  MessageSquare,
+  ClipboardList
 } from 'lucide-react'
 
 const menuItems = [
@@ -47,6 +49,18 @@ const menuItems = [
     url: "/individual-dashboard", 
     icon: Heart,
     param: "mood"
+  },
+  { 
+    title: "Chat", 
+    url: "/individual-dashboard", 
+    icon: MessageSquare,
+    param: "chat"
+  },
+  { 
+    title: "Assignments", 
+    url: "/individual-dashboard", 
+    icon: ClipboardList,
+    param: "assignments"
   },
   { 
     title: "Privacy", 
