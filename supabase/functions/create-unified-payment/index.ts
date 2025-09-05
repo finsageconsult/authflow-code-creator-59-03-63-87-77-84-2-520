@@ -79,10 +79,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Calculate GST (18%)
-    const baseAmount = Math.round(amount);
-    const gstAmount = Math.round(baseAmount * 0.18);
-    const totalAmount = baseAmount + gstAmount;
+    // No GST calculation
+    const totalAmount = Math.round(amount);
 
     // Create order in database
     const orderNumber = `${itemType.toUpperCase()}${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
@@ -95,9 +93,9 @@ const handler = async (req: Request): Promise<Response> => {
         user_type: 'individual',
         service_type: itemType,
         quantity: 1,
-        unit_price: baseAmount,
-        gst_amount: gstAmount,
-        total_amount: baseAmount,
+        unit_price: totalAmount,
+        gst_amount: 0,
+        total_amount: totalAmount,
         final_amount: totalAmount,
         currency: 'INR',
         order_number: orderNumber,

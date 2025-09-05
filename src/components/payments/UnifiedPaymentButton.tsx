@@ -181,9 +181,7 @@ export const UnifiedPaymentButton: React.FC<UnifiedPaymentButtonProps> = ({
     }).format(priceInPaisa / 100);
   };
 
-  const baseAmount = price;
-  const gstAmount = Math.round(baseAmount * 0.18);
-  const totalAmount = baseAmount + gstAmount;
+  const totalAmount = price; // No GST
 
   if (isOwned) {
     return (
@@ -232,17 +230,9 @@ export const UnifiedPaymentButton: React.FC<UnifiedPaymentButtonProps> = ({
                   </p>
                 </div>
                 
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                  <div className="flex justify-between">
-                    <span>Amount:</span>
-                    <span className="font-medium">{formatPrice(baseAmount)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>GST (18%):</span>
-                    <span>{formatPrice(gstAmount)}</span>
-                  </div>
-                  <div className="flex justify-between text-lg font-bold border-t pt-2">
-                    <span>Total:</span>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total Amount:</span>
                     <span className="text-primary">{formatPrice(totalAmount)}</span>
                   </div>
                 </div>

@@ -78,10 +78,7 @@ serve(async (req) => {
 
     // Create order record
     const orderNumber = `TOOL-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const gstRate = 0.18; // 18% GST
-    const baseAmount = Math.round(amount * 100); // Convert to paise
-    const gstAmount = Math.round(baseAmount * gstRate);
-    const totalAmount = baseAmount + gstAmount;
+    const totalAmount = Math.round(amount * 100); // Convert to paise, no GST
 
     const { data: order, error: orderError } = await supabaseService
       .from("orders")
@@ -91,10 +88,10 @@ serve(async (req) => {
         order_number: orderNumber,
         service_type: "tool_purchase",
         user_type: userProfile.role,
-        unit_price: baseAmount,
+        unit_price: totalAmount,
         quantity: 1,
-        total_amount: baseAmount,
-        gst_amount: gstAmount,
+        total_amount: totalAmount,
+        gst_amount: 0,
         final_amount: totalAmount,
         currency: currency,
         status: "pending",

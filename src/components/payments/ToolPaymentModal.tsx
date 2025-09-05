@@ -33,10 +33,7 @@ export const ToolPaymentModal: React.FC<ToolPaymentModalProps> = ({
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const gstRate = 0.18; // 18% GST
-  const baseAmount = tool.price;
-  const gstAmount = Math.round(baseAmount * gstRate * 100) / 100;
-  const totalAmount = baseAmount + gstAmount;
+  const totalAmount = tool.price;
 
   const handlePayment = async () => {
     if (!user) {
@@ -51,7 +48,7 @@ export const ToolPaymentModal: React.FC<ToolPaymentModalProps> = ({
       const { data, error } = await supabase.functions.invoke('create-tool-payment', {
         body: {
           toolId: tool.id,
-          amount: baseAmount,
+          amount: tool.price,
           currency: 'INR'
         }
       });
@@ -138,18 +135,10 @@ export const ToolPaymentModal: React.FC<ToolPaymentModalProps> = ({
             <div className="text-sm text-blue-600 font-medium">Financial Tool</div>
           </div>
 
-          {/* Pricing Breakdown */}
-          <div className="space-y-3 border-t pt-4">
-            <div className="flex justify-between items-center">
+          {/* Pricing */}
+          <div className="border-t pt-4">
+            <div className="flex justify-between items-center text-lg font-semibold">
               <span>Amount:</span>
-              <span className="font-medium">₹{baseAmount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm text-muted-foreground">
-              <span>GST (18%):</span>
-              <span>₹{gstAmount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between items-center text-lg font-semibold border-t pt-2">
-              <span>Total:</span>
               <span className="text-green-600">₹{totalAmount.toFixed(2)}</span>
             </div>
           </div>
