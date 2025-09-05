@@ -356,9 +356,8 @@ export default function CoachProfile() {
 
       {/* Detailed Information Tabs */}
       <Tabs defaultValue="specialties" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="specialties">Specialties</TabsTrigger>
-          <TabsTrigger value="offerings">Programs</TabsTrigger>
           <TabsTrigger value="enrollments">Students</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
         </TabsList>
@@ -423,47 +422,6 @@ export default function CoachProfile() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="offerings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Coach Programs & Offerings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {offerings.length === 0 ? (
-                <p className="text-muted-foreground">No programs created yet</p>
-              ) : (
-                <div className="space-y-4">
-                  {offerings.map((offering) => (
-                    <div key={offering.id} className="border rounded-lg p-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">{offering.title}</h3>
-                        <Badge variant={offering.is_active ? 'default' : 'secondary'}>
-                          {offering.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{offering.description}</p>
-                      <div className="flex gap-4 text-sm">
-                        <span><strong>Category:</strong> {offering.category}</span>
-                        <span><strong>Duration:</strong> {offering.duration_minutes} mins</span>
-                        <span><strong>Credits:</strong> {offering.credits_needed}</span>
-                        <span><strong>Max Participants:</strong> {offering.max_participants}</span>
-                      </div>
-                      {offering.tags.length > 0 && (
-                        <div className="flex gap-1 flex-wrap">
-                          {offering.tags.map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="enrollments">
           <Card>
