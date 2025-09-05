@@ -150,10 +150,7 @@ export const ToolsView = () => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR'
-    }).format(price / 100);
+    return `₹${price}`;
   };
 
   const groupedTools = tools.reduce((acc, tool) => {
