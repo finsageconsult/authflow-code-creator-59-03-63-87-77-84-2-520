@@ -5,23 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
-import { 
-  BookOpen, 
-  Clock, 
-  Users, 
-  Star,
-  Lock,
-  GraduationCap,
-  TrendingUp,
-  Target,
-  ChevronRight,
-  DollarSign,
-  Heart,
-  Shield,
-  Calculator
-} from 'lucide-react';
+import { BookOpen, Clock, Users, Star, Lock, GraduationCap, TrendingUp, Target, ChevronRight, DollarSign, Heart, Shield, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
-
 interface Program {
   id: string;
   title: string;
@@ -36,95 +21,92 @@ interface Program {
   is_active: boolean;
   tags: string[];
 }
-
 interface UserPurchase {
   program_id: string;
   status: string;
   progress: number;
 }
-
 const categoryDetails = {
-  'course': { 
-    icon: GraduationCap, 
-    color: 'text-blue-600', 
+  'course': {
+    icon: GraduationCap,
+    color: 'text-blue-600',
     bgColor: 'bg-blue-50',
-    label: 'Courses' 
+    label: 'Courses'
   },
-  'webinar': { 
-    icon: Users, 
-    color: 'text-purple-600', 
+  'webinar': {
+    icon: Users,
+    color: 'text-purple-600',
     bgColor: 'bg-purple-50',
-    label: 'Webinars' 
+    label: 'Webinars'
   },
-  'coaching': { 
-    icon: Target, 
-    color: 'text-green-600', 
+  'coaching': {
+    icon: Target,
+    color: 'text-green-600',
     bgColor: 'bg-green-50',
-    label: 'Coaching' 
+    label: 'Coaching'
   },
-  'finance': { 
-    icon: DollarSign, 
-    color: 'text-orange-600', 
+  'finance': {
+    icon: DollarSign,
+    color: 'text-orange-600',
     bgColor: 'bg-orange-50',
-    label: 'Finance Planning' 
+    label: 'Finance Planning'
   },
-  'tax': { 
-    icon: Calculator, 
-    color: 'text-red-600', 
+  'tax': {
+    icon: Calculator,
+    color: 'text-red-600',
     bgColor: 'bg-red-50',
-    label: 'Tax Planning' 
+    label: 'Tax Planning'
   },
-  'investment': { 
-    icon: TrendingUp, 
-    color: 'text-indigo-600', 
+  'investment': {
+    icon: TrendingUp,
+    color: 'text-indigo-600',
     bgColor: 'bg-indigo-50',
-    label: 'Investments' 
+    label: 'Investments'
   },
-  'insurance': { 
-    icon: Shield, 
-    color: 'text-cyan-600', 
+  'insurance': {
+    icon: Shield,
+    color: 'text-cyan-600',
     bgColor: 'bg-cyan-50',
-    label: 'Insurance' 
+    label: 'Insurance'
   },
-  'wellness': { 
-    icon: Heart, 
-    color: 'text-pink-600', 
+  'wellness': {
+    icon: Heart,
+    color: 'text-pink-600',
     bgColor: 'bg-pink-50',
-    label: 'Financial Wellness' 
+    label: 'Financial Wellness'
   }
 };
-
 export const EmployeePrograms = () => {
   const navigate = useNavigate();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [purchases, setPurchases] = useState<UserPurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
   useEffect(() => {
     fetchData();
   }, []);
-
   const fetchData = async () => {
     try {
       // Fetch all active programs
-      const { data: programsData, error: programsError } = await supabase
-        .from('individual_programs')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
+      const {
+        data: programsData,
+        error: programsError
+      } = await supabase.from('individual_programs').select('*').eq('is_active', true).order('created_at', {
+        ascending: false
+      });
       if (programsError) throw programsError;
       setPrograms(programsData || []);
 
       // Fetch user purchases to check access
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (user) {
-        const { data: purchasesData } = await supabase
-          .from('individual_purchases')
-          .select('program_id, status, progress')
-          .eq('user_id', user.id);
-        
+        const {
+          data: purchasesData
+        } = await supabase.from('individual_purchases').select('program_id, status, progress').eq('user_id', user.id);
         setPurchases(purchasesData || []);
       }
     } catch (error) {
@@ -134,23 +116,19 @@ export const EmployeePrograms = () => {
       setLoading(false);
     }
   };
-
   const groupedPrograms = programs.reduce((acc, program) => {
     const category = program.category || 'course';
     if (!acc[category]) acc[category] = [];
     acc[category].push(program);
     return acc;
   }, {} as Record<string, Program[]>);
-
   const isPurchased = (programId: string) => {
     return purchases.some(p => p.program_id === programId && p.status === 'completed');
   };
-
   const getProgress = (programId: string) => {
     const purchase = purchases.find(p => p.program_id === programId);
     return purchase?.progress || 0;
   };
-
   const handleProgramClick = (program: Program) => {
     if (isPurchased(program.id)) {
       navigate(`/program/${program.id}`);
@@ -159,51 +137,45 @@ export const EmployeePrograms = () => {
       navigate(`/programs/${program.id}`);
     }
   };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
+    return <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-2">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
           <p className="text-muted-foreground">Loading programs...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Static short programs for employees
-  const shortPrograms = [
-    {
-      id: 'financial-fitness-bootcamp',
-      title: 'Financial Fitness Bootcamp (Flagship)',
-      description: '7-day program covering budgeting, saving, investing, and debt control.',
-      price: 700000, // ₹7,000 in paisa
-      duration: '7 days',
-      level: 'Beginner to Advanced',
-      category: 'short-program'
-    },
-    {
-      id: 'investment-mastery-series',
-      title: 'Investment Mastery Series',
-      description: '14-day deep dive into equity, mutual funds, and alternative assets.',
-      price: 1000000, // ₹10,000 in paisa
-      duration: '14 days',
-      level: 'Intermediate to Advanced',
-      category: 'short-program'
-    },
-    {
-      id: 'tax-compliance-essentials',
-      title: 'Tax & Compliance Essentials',
-      description: '3-day crash course to optimize tax-saving while staying compliant.',
-      price: 400000, // ₹4,000 in paisa
-      duration: '3 days',
-      level: 'Beginner to Intermediate',
-      category: 'short-program'
-    }
-  ];
-
-  return (
-    <div className="space-y-6">
+  const shortPrograms = [{
+    id: 'financial-fitness-bootcamp',
+    title: 'Financial Fitness Bootcamp (Flagship)',
+    description: '7-day program covering budgeting, saving, investing, and debt control.',
+    price: 700000,
+    // ₹7,000 in paisa
+    duration: '7 days',
+    level: 'Beginner to Advanced',
+    category: 'short-program'
+  }, {
+    id: 'investment-mastery-series',
+    title: 'Investment Mastery Series',
+    description: '14-day deep dive into equity, mutual funds, and alternative assets.',
+    price: 1000000,
+    // ₹10,000 in paisa
+    duration: '14 days',
+    level: 'Intermediate to Advanced',
+    category: 'short-program'
+  }, {
+    id: 'tax-compliance-essentials',
+    title: 'Tax & Compliance Essentials',
+    description: '3-day crash course to optimize tax-saving while staying compliant.',
+    price: 400000,
+    // ₹4,000 in paisa
+    duration: '3 days',
+    level: 'Beginner to Intermediate',
+    category: 'short-program'
+  }];
+  return <div className="space-y-6">
       {/* Free Courses & Tools Section */}
       <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border">
         <div className="flex items-center gap-3 mb-4">
@@ -261,55 +233,36 @@ export const EmployeePrograms = () => {
         </div>
 
       {/* Category Filter */}
-      <div className="flex gap-2 flex-wrap pb-4">
-        <Button
-          variant={selectedCategory === 'all' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setSelectedCategory('all')}
-        >
+      <div className="flex gap-2 flex-wrap pb-4 px-0 my-[29px]">
+        <Button variant={selectedCategory === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedCategory('all')}>
           All Programs
         </Button>
         {Object.entries(categoryDetails).map(([key, details]) => {
           const CategoryIcon = details.icon;
           const count = groupedPrograms[key]?.length || 0;
           if (count === 0) return null;
-          
-          return (
-            <Button
-              key={key}
-              variant={selectedCategory === key ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory(key)}
-              className="gap-2"
-            >
+          return <Button key={key} variant={selectedCategory === key ? 'default' : 'outline'} size="sm" onClick={() => setSelectedCategory(key)} className="gap-2">
               <CategoryIcon className="h-4 w-4" />
               {details.label} ({count})
-            </Button>
-          );
+            </Button>;
         })}
       </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {shortPrograms.map((program) => {
-            // Check if user has already enrolled in this program (mock data for now)
-            const isEnrolled = purchases.some(p => p.program_id === program.id);
-            
-            return (
-              <Card key={program.id} className="group hover:shadow-lg transition-all bg-white/70">
+          {shortPrograms.map(program => {
+          // Check if user has already enrolled in this program (mock data for now)
+          const isEnrolled = purchases.some(p => p.program_id === program.id);
+          return <Card key={program.id} className="group hover:shadow-lg transition-all bg-white/70">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="text-base line-clamp-2">
                       {program.title}
                     </CardTitle>
-                    {isEnrolled ? (
-                      <Badge className="bg-green-100 text-green-700">
+                    {isEnrolled ? <Badge className="bg-green-100 text-green-700">
                         ✓ Enrolled
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-blue-100 text-blue-700">
+                      </Badge> : <Badge className="bg-blue-100 text-blue-700">
                         FREE
-                      </Badge>
-                    )}
+                      </Badge>}
                   </div>
                 </CardHeader>
                 
@@ -338,43 +291,31 @@ export const EmployeePrograms = () => {
                       </div>
                     </div>
                     
-                    {isEnrolled ? (
-                      <Button 
-                        className="w-full" 
-                        onClick={() => {
-                          toast.success(`Opening ${program.title}...`);
-                          // Navigate to program content
-                        }}
-                      >
+                    {isEnrolled ? <Button className="w-full" onClick={() => {
+                  toast.success(`Opening ${program.title}...`);
+                  // Navigate to program content
+                }}>
                         Continue Learning
-                      </Button>
-                    ) : (
-                      <Button 
-                        className="w-full"
-                        onClick={() => {
-                          // Mock enrollment - in real app, this would call an API
-                          toast.success(`Successfully enrolled in ${program.title}!`);
-                          // Add to purchases to simulate enrollment
-                          setPurchases(prev => [...prev, {
-                            program_id: program.id,
-                            status: 'completed',
-                            progress: 0
-                          }]);
-                        }}
-                      >
+                      </Button> : <Button className="w-full" onClick={() => {
+                  // Mock enrollment - in real app, this would call an API
+                  toast.success(`Successfully enrolled in ${program.title}!`);
+                  // Add to purchases to simulate enrollment
+                  setPurchases(prev => [...prev, {
+                    program_id: program.id,
+                    status: 'completed',
+                    progress: 0
+                  }]);
+                }}>
                         Enroll Now - FREE
-                      </Button>
-                    )}
+                      </Button>}
                   </div>
                 </CardContent>
-              </Card>
-            );
-          })}
+              </Card>;
+        })}
         </div>
       </div>
 
-      {programs.length === 0 && (
-        <Card className="p-8 text-center">
+      {programs.length === 0 && <Card className="p-8 text-center">
           <div className="flex flex-col items-center gap-3">
             <BookOpen className="h-12 w-12 text-muted-foreground" />
             <h3 className="font-semibold">No Programs Available</h3>
@@ -382,8 +323,6 @@ export const EmployeePrograms = () => {
               Programs will be available soon. Check back later for new learning opportunities.
             </p>
           </div>
-        </Card>
-      )}
-    </div>
-  );
+        </Card>}
+    </div>;
 };
