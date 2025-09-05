@@ -290,11 +290,17 @@ export const useEnrollmentWorkflow = () => {
 
     setIsLoading(true);
     try {
-      // Create enrollment record
+      // Get the current user's auth ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Create enrollment record using auth user ID
       const { data, error } = await supabase
         .from('enrollments')
         .insert({
-          user_id: userProfile.id,
+          user_id: userProfile.id, // Use the internal user ID from userProfile
           course_id: enrollmentData.course.id,
           coach_id: enrollmentData.coach.id,
           slot_id: enrollmentData.timeSlot.id,

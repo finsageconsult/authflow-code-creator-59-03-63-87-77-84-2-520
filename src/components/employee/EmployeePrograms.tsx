@@ -8,6 +8,7 @@ import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton
 import { EnrollmentWorkflow } from '@/components/enrollment/EnrollmentWorkflow';
 import { BookOpen, Clock, Users, Star, Lock, GraduationCap, TrendingUp, Target, ChevronRight, DollarSign, Heart, Shield, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 interface Program {
   id: string;
   title: string;
@@ -79,6 +80,7 @@ const categoryDetails = {
 };
 export const EmployeePrograms = () => {
   const navigate = useNavigate();
+  const { userProfile } = useAuth();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [purchases, setPurchases] = useState<UserPurchase[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,8 +89,10 @@ export const EmployeePrograms = () => {
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [enrolledPrograms, setEnrolledPrograms] = useState<Set<string>>(new Set());
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (userProfile) {
+      fetchData();
+    }
+  }, [userProfile]);
   const fetchData = async () => {
     try {
       // Fetch all active programs
@@ -102,21 +106,16 @@ export const EmployeePrograms = () => {
       setPrograms(programsData || []);
 
       // Fetch user purchases to check access
-      const {
-        data: {
-          user
-        }
-      } = await supabase.auth.getUser();
-      if (user) {
+      if (userProfile) {
         const {
           data: purchasesData
-        } = await supabase.from('individual_purchases').select('program_id, status, progress').eq('user_id', user.id);
+        } = await supabase.from('individual_purchases').select('program_id, status, progress').eq('user_id', userProfile.id);
         setPurchases(purchasesData || []);
 
-        // Fetch enrollments to track enrolled programs
+        // Fetch enrollments to track enrolled programs using the internal user ID
         const {
           data: enrollmentsData
-        } = await supabase.from('enrollments').select('course_id').eq('user_id', user.id);
+        } = await supabase.from('enrollments').select('course_id').eq('user_id', userProfile.id);
         
         if (enrollmentsData) {
           const enrolled = new Set(enrollmentsData.map(e => e.course_id));
