@@ -88,7 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
-        user_id: userProfile.auth_id, // Use auth user ID to match foreign key constraint
+        user_id: user.id, // Use auth user ID directly - this matches the foreign key constraint
         organization_id: userProfile.organization_id,
         user_type: 'individual',
         service_type: itemType,
