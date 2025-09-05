@@ -118,11 +118,11 @@ const handler = async (req: Request): Promise<Response> => {
     // Create order in database first
     const orderNumber = `ORD${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
     
-    console.log("Creating order with user_id:", user.id);
+    console.log("Creating order with user_id:", userProfile.id);
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
-        user_id: user.id, // Use auth user ID directly (auth.users.id)
+        user_id: userProfile.id, // Use internal user ID from users table
         organization_id: organizationId || userProfile.organization_id,
         user_type: userType.toLowerCase() as any,
         service_type: serviceType,
