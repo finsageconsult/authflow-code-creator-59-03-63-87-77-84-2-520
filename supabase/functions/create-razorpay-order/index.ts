@@ -35,10 +35,16 @@ const handler = async (req: Request): Promise<Response> => {
     const razorpayKeyId = Deno.env.get("RAZORPAY_KEY_ID");
     const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
 
+    console.log("Razorpay keys check:", {
+      keyIdExists: !!razorpayKeyId,
+      keySecretExists: !!razorpayKeySecret,
+      keyIdLength: razorpayKeyId?.length || 0
+    });
+
     if (!razorpayKeyId || !razorpayKeySecret) {
-      console.error("Razorpay credentials not found");
+      console.error("Razorpay credentials missing:", { keyIdExists: !!razorpayKeyId, keySecretExists: !!razorpayKeySecret });
       return new Response(
-        JSON.stringify({ error: "Payment service not configured" }),
+        JSON.stringify({ error: "Payment service not configured", details: "Missing Razorpay credentials" }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -76,10 +82,30 @@ const handler = async (req: Request): Promise<Response> => {
       .maybeSingle();
 
     console.log("User profile result:", { userProfile, profileError });
-    if (profileError || !userProfile) {
-      console.error("User profile error:", profileError);
+    if (profileError) {
+      console.error("User profile query error:", profileError);
       return new Response(
-        JSON.stringify({ error: "User profile not found", details: profileError?.message }),
+        JSON.stringify({ error: "Database error", details: profileError.message }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
+    if (!userProfile) {
+      console.error("User profile not found for auth_id:", user.id);
+      
+      // Try to find the user with different query to debug
+      const { data: debugUsers } = await supabase
+        .from('users')
+        .select('id, auth_id, name, email')
+        .limit(5);
+      console.log("Debug: Sample users in database:", debugUsers);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: "User profile not found", 
+          details: `No user profile found for auth_id: ${user.id}`,
+          debugInfo: { authUserId: user.id, userEmail: user.email }
+        }),
         { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
