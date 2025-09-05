@@ -78,6 +78,74 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
     });
   };
 
+  const handlePayment = async () => {
+    if (!userProfile || !course) {
+      toast.error('Missing user or course data');
+      return;
+    }
+
+    try {
+      // Create Razorpay order - amount should be in paise
+      const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
+        body: {
+          amount: course.price, // Already in paise from database
+          serviceType: 'short-program',
+          quantity: 1,
+          programId: course.id,
+          userType: 'INDIVIDUAL'
+        }
+      });
+
+      if (error) {
+        console.error('Order creation error:', error);
+        toast.error('Failed to create order. Please try again.');
+        return;
+      }
+
+      if (!data.success) {
+        toast.error(data.error || 'Payment setup failed. Please try again.');
+        return;
+      }
+
+      const { order } = data;
+
+      // Initialize Razorpay
+      const options = {
+        key: order.key,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Finsage',
+        description: `${course.title} - Course Enrollment`,
+        order_id: order.razorpay_order_id,
+        handler: function (response: any) {
+          toast.success('Payment successful!');
+          // After successful payment, create the enrollment
+          handleConfirm();
+        },
+        prefill: {
+          name: userProfile.name,
+          email: userProfile.email,
+        },
+        theme: {
+          color: '#3B82F6'
+        },
+        modal: {
+          ondismiss: function() {
+            // Payment was dismissed/cancelled
+            console.log('Payment dismissed');
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast.error('Payment failed. Please try again.');
+    }
+  };
+
   const handleConfirm = async () => {
     const success = await onConfirm();
     // Component will handle success/failure via the hook
@@ -227,13 +295,13 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
             Previous
           </Button>
           <Button 
-            onClick={handleConfirm} 
+            onClick={showPayment ? handlePayment : handleConfirm} 
             disabled={isLoading}
             className="px-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
             size="lg"
           >
             {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {showPayment ? 'Continue to Payment' : 'Enroll Now'}
+            {showPayment ? 'Buy Now' : 'Enroll Now'}
           </Button>
         </div>
       </div>
