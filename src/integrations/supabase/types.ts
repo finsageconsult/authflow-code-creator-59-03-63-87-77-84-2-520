@@ -454,6 +454,53 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_time_slots: {
+        Row: {
+          coach_id: string
+          created_at: string
+          current_bookings: number | null
+          end_time: string
+          id: string
+          is_available: boolean
+          max_bookings: number | null
+          slot_type: string | null
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          current_bookings?: number | null
+          end_time: string
+          id?: string
+          is_available?: boolean
+          max_bookings?: number | null
+          slot_type?: string | null
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          current_bookings?: number | null
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          max_bookings?: number | null
+          slot_type?: string | null
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_time_slots_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coaching_offerings: {
         Row: {
           category: string
@@ -819,6 +866,82 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      enrollments: {
+        Row: {
+          amount_paid: number | null
+          coach_id: string | null
+          course_id: string
+          created_at: string
+          enrollment_date: string | null
+          id: string
+          metadata: Json | null
+          notes: string | null
+          order_id: string | null
+          payment_status: string
+          scheduled_at: string | null
+          slot_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number | null
+          coach_id?: string | null
+          course_id: string
+          created_at?: string
+          enrollment_date?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          order_id?: string | null
+          payment_status?: string
+          scheduled_at?: string | null
+          slot_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number | null
+          coach_id?: string | null
+          course_id?: string
+          created_at?: string
+          enrollment_date?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          order_id?: string | null
+          payment_status?: string
+          scheduled_at?: string | null
+          slot_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_tools: {
         Row: {

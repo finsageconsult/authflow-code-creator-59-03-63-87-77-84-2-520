@@ -13,6 +13,7 @@ import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton
 import { ToolShortcuts } from '@/components/individual/ToolShortcuts';
 import { SecureQuestionnaireForm } from '@/components/security/SecureQuestionnaireForm';
 import { ConsentManager } from '@/components/privacy/ConsentManager';
+import { EnrollmentWorkflow } from '@/components/enrollment/EnrollmentWorkflow';
 import { IndividualSidebar } from './IndividualSidebar';
 import { 
   BookOpen, 
@@ -39,6 +40,8 @@ export const IndividualDashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const currentTab = searchParams.get('tab') || 'programs';
+  const [enrollmentWorkflowOpen, setEnrollmentWorkflowOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
 
   // Get purchased programs for "My Learning" section
   const myLearning = purchases
@@ -166,18 +169,38 @@ export const IndividualDashboard = () => {
                           <span className="font-semibold text-sm sm:text-base truncate">
                             {formatPrice(program.price)}
                           </span>
-                          <UnifiedPaymentButton 
-                            itemType="program"
-                            itemId={program.id}
-                            title={program.title}
-                            description={program.description}
-                            price={program.price}
-                            isOwned={isItemPurchased('program', program.id)}
-                            onSuccess={() => {
-                              refetch();
-                              refetchPurchases();
-                            }}
-                          />
+                          {program.category === '1-1-sessions' ? (
+                            <Button 
+                              onClick={() => {
+                                setSelectedCourse({
+                                  id: program.id,
+                                  title: program.title,
+                                  description: program.description,
+                                  duration: program.duration,
+                                  price: program.price,
+                                  category: program.category
+                                });
+                                setEnrollmentWorkflowOpen(true);
+                              }}
+                              className="w-full"
+                              size="sm"
+                            >
+                              Book Session
+                            </Button>
+                          ) : (
+                            <UnifiedPaymentButton 
+                              itemType="program"
+                              itemId={program.id}
+                              title={program.title}
+                              description={program.description}
+                              price={program.price}
+                              isOwned={isItemPurchased('program', program.id)}
+                              onSuccess={() => {
+                                refetch();
+                                refetchPurchases();
+                              }}
+                            />
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -248,6 +271,17 @@ export const IndividualDashboard = () => {
       <div className="min-h-screen flex w-full">
         {/* Single Sidebar instance for proper state management */}
         <IndividualSidebar />
+
+        {/* Enrollment Workflow */}
+        <EnrollmentWorkflow
+          isOpen={enrollmentWorkflowOpen}
+          onClose={() => {
+            setEnrollmentWorkflowOpen(false);
+            setSelectedCourse(null);
+          }}
+          initialCourse={selectedCourse}
+          userType="individual"
+        />
 
         {/* Main Content using SidebarInset for proper responsive layout */}
         <SidebarInset className="flex-1">

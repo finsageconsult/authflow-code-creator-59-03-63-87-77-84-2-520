@@ -23,6 +23,7 @@ import { EmployeeAnalyticsDashboard } from '@/components/analytics/EmployeeAnaly
 import { SupportQuery } from '@/components/support/SupportQuery';
 import { EmployeeToolShortcuts } from '@/components/employee/EmployeeToolShortcuts';
 import { EmployeePrograms } from '@/components/employee/EmployeePrograms';
+import { EnrollmentWorkflow } from '@/components/enrollment/EnrollmentWorkflow';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MoodCheckIn {
@@ -47,6 +48,8 @@ export const EmployeeDashboard = () => {
     experienceLevel: 'beginner'
   });
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
+  const [enrollmentWorkflowOpen, setEnrollmentWorkflowOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
 
   // Set active tab based on URL parameter
   useEffect(() => {
@@ -439,6 +442,17 @@ export const EmployeeDashboard = () => {
         </div>
       </div>
 
+      {/* Enrollment Workflow */}
+      <EnrollmentWorkflow
+        isOpen={enrollmentWorkflowOpen}
+        onClose={() => {
+          setEnrollmentWorkflowOpen(false);
+          setSelectedCourse(null);
+        }}
+        initialCourse={selectedCourse}
+        userType="employee"
+      />
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList role="tablist" aria-label="Employee dashboard navigation" className="hidden">
           <TabsTrigger value="dashboard" role="tab" aria-controls="dashboard-panel">Dashboard</TabsTrigger>
@@ -484,6 +498,19 @@ export const EmployeeDashboard = () => {
                 </div>
               </div>
               <Button 
+                onClick={() => {
+                  if (rec.type === 'coaching') {
+                    setSelectedCourse({
+                      id: `rec-${index}`,
+                      title: rec.title,
+                      description: rec.description,
+                      duration: '60 minutes',
+                      price: rec.credits * 100, // Mock price calculation
+                      category: '1-1-sessions'
+                    });
+                    setEnrollmentWorkflowOpen(true);
+                  }
+                }}
                 aria-label={`${rec.type === 'tool' ? 'Use' : 'Book'} ${rec.title} - ${rec.description}`}
               >
                 {rec.type === 'tool' ? 'Use Tool' : 'Book Now'}
