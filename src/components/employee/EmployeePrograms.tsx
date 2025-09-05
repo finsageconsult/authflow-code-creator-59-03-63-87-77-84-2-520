@@ -85,6 +85,7 @@ export const EmployeePrograms = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [enrollmentWorkflowOpen, setEnrollmentWorkflowOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [enrolledPrograms, setEnrolledPrograms] = useState<Set<string>>(new Set());
   useEffect(() => {
     fetchData();
   }, []);
@@ -111,6 +112,16 @@ export const EmployeePrograms = () => {
           data: purchasesData
         } = await supabase.from('individual_purchases').select('program_id, status, progress').eq('user_id', user.id);
         setPurchases(purchasesData || []);
+
+        // Fetch enrollments to track enrolled programs
+        const {
+          data: enrollmentsData
+        } = await supabase.from('enrollments').select('course_id').eq('user_id', user.id);
+        
+        if (enrollmentsData) {
+          const enrolled = new Set(enrollmentsData.map(e => e.course_id));
+          setEnrolledPrograms(enrolled);
+        }
       }
     } catch (error) {
       console.error('Error fetching programs:', error);
@@ -253,8 +264,8 @@ export const EmployeePrograms = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {shortPrograms.map(program => {
-          // Check if user has already enrolled in this program (mock data for now)
-          const isEnrolled = purchases.some(p => p.program_id === program.id);
+          // Check if user has already enrolled in this program
+          const isEnrolled = enrolledPrograms.has(program.id);
           return <Card key={program.id} className="group hover:shadow-lg transition-all bg-white/70">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
@@ -294,25 +305,36 @@ export const EmployeePrograms = () => {
                       </div>
                     </div>
                     
-                    {isEnrolled ? <Button className="w-full" onClick={() => {
-                  toast.success(`Opening ${program.title}...`);
-                  // Navigate to program content
-                }}>
-                        Continue Learning
-                      </Button> : <Button className="w-full" onClick={() => {
-                  setSelectedCourse({
-                    id: program.id,
-                    title: program.title,
-                    description: program.description,
-                    duration: program.duration,
-                    price: 0, // Free for employees
-                    category: program.category,
-                    tags: ['financial-planning', 'budgeting', 'investing'] // Default tags for matching coaches
-                  });
-                  setEnrollmentWorkflowOpen(true);
-                }}>
+                    {isEnrolled ? (
+                      <Button 
+                        className="w-full" 
+                        variant="secondary"
+                        onClick={() => {
+                          toast.success(`Opening ${program.title}...`);
+                          // Navigate to program content
+                        }}
+                      >
+                        ✓ Enrolled - Continue Learning
+                      </Button>
+                    ) : (
+                      <Button 
+                        className="w-full" 
+                        onClick={() => {
+                          setSelectedCourse({
+                            id: program.id,
+                            title: program.title,
+                            description: program.description,
+                            duration: program.duration,
+                            price: 0, // Free for employees
+                            category: program.category,
+                            tags: ['financial-planning', 'budgeting', 'investing'] // Default tags for matching coaches
+                          });
+                          setEnrollmentWorkflowOpen(true);
+                        }}
+                      >
                         Enroll Now - FREE
-                      </Button>}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>;

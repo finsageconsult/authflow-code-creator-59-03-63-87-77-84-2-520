@@ -49,6 +49,11 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
     onClose();
   };
 
+  const handleEnrollmentSuccess = () => {
+    // Close dialog after successful enrollment
+    handleClose();
+  };
+
   const steps = [
     { number: 1, title: 'Course Preview', completed: currentStep > 1 },
     { number: 2, title: 'Select Coach', completed: currentStep > 2 },
@@ -96,7 +101,13 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
           <PreviewConfirm
             enrollmentData={enrollmentData}
             userType={userType}
-            onConfirm={() => submitEnrollment(userType)}
+            onConfirm={async () => {
+              const success = await submitEnrollment(userType);
+              if (success) {
+                handleEnrollmentSuccess();
+              }
+              return success;
+            }}
             onPrevious={prevStep}
             onCancel={handleClose}
             isLoading={isLoading}
