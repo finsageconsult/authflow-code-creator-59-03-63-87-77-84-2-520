@@ -21,6 +21,7 @@ import {
 import { CreditWallet } from '@/components/credits/CreditWallet';
 import { EmployeeAnalyticsDashboard } from '@/components/analytics/EmployeeAnalyticsDashboard';
 import { SupportQuery } from '@/components/support/SupportQuery';
+import { EmployeeToolShortcuts } from '@/components/employee/EmployeeToolShortcuts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MoodCheckIn {
@@ -530,52 +531,10 @@ export const EmployeeDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Tools */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5" />
-              Financial Tools
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full h-auto p-4 justify-start">
-              <div className="flex items-center gap-3">
-                <CreditCard className="h-5 w-5 text-blue-600" />
-                <div className="text-left">
-                  <h4 className="font-medium">Budget Tracker</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Track your monthly spending
-                  </p>
-                </div>
-              </div>
-            </Button>
-
-            <Button variant="outline" className="w-full h-auto p-4 justify-start">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                <div className="text-left">
-                  <h4 className="font-medium">Investment Simulator</h4>
-                  <p className="text-sm text-muted-foreground">
-                    See how your investments grow
-                  </p>
-                </div>
-              </div>
-            </Button>
-
-            <Button variant="outline" className="w-full h-auto p-4 justify-start">
-              <div className="flex items-center gap-3">
-                <BookOpen className="h-5 w-5 text-purple-600" />
-                <div className="text-left">
-                  <h4 className="font-medium">Debt Calculator</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Plan your debt payoff strategy
-                  </p>
-                </div>
-              </div>
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Employee Free Tools */}
+        <div className="lg:col-span-2">
+          <EmployeeToolShortcuts />
+        </div>
       </div>
       </TabsContent>
 
