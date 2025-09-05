@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Calculator, TrendingUp, FileText, PieChart, Coins, Target, CheckCircle, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
@@ -8,6 +9,7 @@ import { useToolUsage } from '@/hooks/useToolUsage';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { FinancialTool } from '@/types/financial-tools';
 
 const iconMap = {
   'calculator': Calculator,
@@ -17,8 +19,6 @@ const iconMap = {
   'coins': Coins,
   'target': Target
 };
-
-import { FinancialTool } from '@/types/financial-tools';
 
 export const EmployeeToolShortcuts = () => {
   const { userProfile } = useAuth();
@@ -41,7 +41,6 @@ export const EmployeeToolShortcuts = () => {
         .from('financial_tools')
         .select('*')
         .eq('is_active', true)
-        .eq('employee_access', 'free')
         .order('created_at');
 
       if (error) throw error;
@@ -70,21 +69,15 @@ export const EmployeeToolShortcuts = () => {
     }
   };
 
-  const handleFreeToolClick = async (tool: FinancialTool) => {
+  const handleToolClick = async (tool: FinancialTool) => {
     if (!userProfile) {
       toast.error('Please sign in to use tools');
       return;
     }
 
-    const canUse = canUseFreeTool(tool.id, tool.employee_free_limit || 5);
-    if (canUse) {
-      const success = await incrementUsage(tool.id);
-      if (success) {
-        navigate(`/tools/${tool.ui_component}`);
-      }
-    } else {
-      toast.error(`You've reached the free usage limit (${tool.employee_free_limit}) for ${tool.name}.`);
-    }
+    // All tools are free for employees as part of organization package
+    toast.success(`Opening ${tool.name}...`);
+    navigate(`/tools/${tool.ui_component}`);
   };
 
   const handleLaunchTool = (tool: FinancialTool) => {
@@ -122,118 +115,49 @@ export const EmployeeToolShortcuts = () => {
 
   return (
     <Card>
-      <CardHeader className="p-4 sm:p-6">
-        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-          <Calculator className="h-5 w-5" />
-          Free Financial Tools
-        </CardTitle>
+      <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-green-50 to-blue-50">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Calculator className="h-5 w-5" />
+            Financial Tools
+          </CardTitle>
+          <Badge className="bg-green-100 text-green-700 border-green-200">
+            ✓ FREE with Organization Plan
+          </Badge>
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          All financial tools included in your organization package
+        </p>
       </CardHeader>
       <CardContent className="p-4 sm:p-6 pt-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {tools.map((tool, index) => {
             const IconComponent = getToolIcon(tool.tool_type);
-            const usageCount = getUsageCount(tool.id);
-            const canUseFree = canUseFreeTool(tool.id, tool.employee_free_limit || 5);
-            const remainingUses = Math.max(0, (tool.employee_free_limit || 5) - usageCount);
-            const isOwned = purchasedTools.includes(tool.id);
 
             return (
-              <Card key={tool.id} className="relative overflow-hidden hover:shadow-sm transition-shadow">
+              <Card key={tool.id} className="relative overflow-hidden hover:shadow-sm transition-shadow bg-white/70">
                 <CardContent className="p-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium text-sm">{tool.name}</h3>
-                      {isOwned ? (
-                        <CheckCircle className="h-4 w-4 text-blue-600" />
-                      ) : canUseFree ? (
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <Clock className="h-4 w-4 text-amber-600" />
-                      )}
+                      <CheckCircle className="h-4 w-4 text-green-600" />
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">
                       {tool.description}
                     </p>
-                    {!isOwned && (
-                      <div className="text-xs text-muted-foreground">
-                        <div className="flex justify-between items-center">
-                          <span>Usage: {usageCount}/{tool.employee_free_limit || 5}</span>
-                          <span className={`font-medium ${remainingUses === 0 ? 'text-red-600' : remainingUses <= 1 ? 'text-amber-600' : 'text-green-600'}`}>
-                            {remainingUses} left
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                          <div 
-                            className={`h-2 rounded-full transition-all duration-300 ${
-                              remainingUses === 0 ? 'bg-red-500' : 
-                              remainingUses <= 1 ? 'bg-amber-500' : 'bg-green-500'
-                            }`}
-                            style={{
-                              width: `${Math.max(10, (remainingUses / (tool.employee_free_limit || 5)) * 100)}%`
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    )}
+                    
                     <div className="flex flex-col items-center gap-2">
-                      {isOwned ? (
-                        <>
-                          <span className="text-sm font-semibold text-blue-600">
-                            Owned - Unlimited Access
-                          </span>
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleLaunchTool(tool)}
-                            variant="default"
-                            className="text-xs h-7 px-2 w-full"
-                          >
-                            Use Tool
-                          </Button>
-                        </>
-                      ) : canUseFree ? (
-                        <>
-                          <span className="text-sm font-semibold text-green-600">
-                            Free Access
-                          </span>
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleFreeToolClick(tool)}
-                            variant="default"
-                            className="text-xs h-7 px-2 w-full"
-                          >
-                            Use Tool ({remainingUses} left)
-                          </Button>
-                        </>
-                      ) : (
-                        <div className="w-full space-y-2">
-                          <div className="text-center">
-                            <span className="text-sm font-semibold text-red-600">
-                              Free Limit Reached
-                            </span>
-                            <p className="text-xs text-muted-foreground">
-                              Purchase for unlimited access
-                            </p>
-                          </div>
-                          <div className="text-center py-2 border-t">
-                            <p className="text-lg font-bold text-primary">
-                              ₹{tool.price}
-                            </p>
-                            <p className="text-xs text-muted-foreground">One-time purchase</p>
-                          </div>
-                          <UnifiedPaymentButton
-                            itemType="tool"
-                            itemId={tool.id}
-                            title={tool.name}
-                            description={`${tool.description} - Unlimited access`}
-                            price={tool.price}
-                            isOwned={false}
-                            onSuccess={() => {
-                              // Refresh data after purchase
-                              fetchPurchasedTools();
-                            }}
-                          />
-                        </div>
-                      )}
+                      <span className="text-sm font-semibold text-green-600">
+                        ✓ FREE - Organization Plan
+                      </span>
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleToolClick(tool)}
+                        variant="default"
+                        className="text-xs h-7 px-2 w-full"
+                      >
+                        Use Tool
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -244,7 +168,7 @@ export const EmployeeToolShortcuts = () => {
         {tools.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             <Calculator className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No free financial tools available</p>
+            <p>No financial tools available</p>
           </div>
         )}
       </CardContent>

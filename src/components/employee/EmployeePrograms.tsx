@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
 import { 
   BookOpen, 
   Clock, 
@@ -170,19 +171,94 @@ export const EmployeePrograms = () => {
     );
   }
 
+  // Static short programs for employees
+  const shortPrograms = [
+    {
+      id: 'financial-fitness-bootcamp',
+      title: 'Financial Fitness Bootcamp (Flagship)',
+      description: '7-day program covering budgeting, saving, investing, and debt control.',
+      price: 700000, // ₹7,000 in paisa
+      duration: '7 days',
+      level: 'Beginner to Advanced',
+      category: 'short-program'
+    },
+    {
+      id: 'investment-mastery-series',
+      title: 'Investment Mastery Series',
+      description: '14-day deep dive into equity, mutual funds, and alternative assets.',
+      price: 1000000, // ₹10,000 in paisa
+      duration: '14 days',
+      level: 'Intermediate to Advanced',
+      category: 'short-program'
+    },
+    {
+      id: 'tax-compliance-essentials',
+      title: 'Tax & Compliance Essentials',
+      description: '3-day crash course to optimize tax-saving while staying compliant.',
+      price: 400000, // ₹4,000 in paisa
+      duration: '3 days',
+      level: 'Beginner to Intermediate',
+      category: 'short-program'
+    }
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Learning Programs</h2>
-          <p className="text-muted-foreground">
-            Explore our comprehensive financial education programs
-          </p>
+      {/* Free Courses & Tools Section */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-green-100">
+            <GraduationCap className="h-6 w-6 text-green-600" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Free Learning Resources</h2>
+            <p className="text-muted-foreground">
+              All courses and tools are FREE as part of your organization package
+            </p>
+          </div>
+          <Badge variant="secondary" className="bg-green-100 text-green-800 ml-auto">
+            ✓ Included in Organization Plan
+          </Badge>
         </div>
-        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-          {programs.length} Programs Available
-        </Badge>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-white/50">
+            <CardContent className="p-4 text-center">
+              <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+              <h3 className="font-semibold">All Courses</h3>
+              <p className="text-sm text-muted-foreground">Complete access to learning materials</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/50">
+            <CardContent className="p-4 text-center">
+              <Calculator className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+              <h3 className="font-semibold">Financial Tools</h3>
+              <p className="text-sm text-muted-foreground">Unlimited access to all tools</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/50">
+            <CardContent className="p-4 text-center">
+              <Target className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+              <h3 className="font-semibold">Resources</h3>
+              <p className="text-sm text-muted-foreground">Templates, guides & calculators</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
+      {/* Premium Short Programs Section */}
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold">Premium Short Programs</h2>
+            <p className="text-muted-foreground">
+              Intensive programs with personalized coaching and certification
+            </p>
+          </div>
+          <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
+            Paid Programs
+          </Badge>
+        </div>
 
       {/* Category Filter */}
       <div className="flex gap-2 flex-wrap">
@@ -213,111 +289,60 @@ export const EmployeePrograms = () => {
         })}
       </div>
 
-      {/* Programs by Category */}
-      {Object.entries(groupedPrograms).map(([category, categoryPrograms]) => {
-        if (selectedCategory !== 'all' && selectedCategory !== category) return null;
-        
-        const details = categoryDetails[category as keyof typeof categoryDetails] || 
-                       categoryDetails.course;
-        const CategoryIcon = details.icon;
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {shortPrograms.map((program) => (
+            <Card key={program.id} className="group hover:shadow-lg transition-all">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-base line-clamp-2">
+                    {program.title}
+                  </CardTitle>
+                  <DollarSign className="h-4 w-4 text-amber-600" />
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {program.description}
+                </p>
 
-        return (
-          <div key={category} className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${details.bgColor}`}>
-                <CategoryIcon className={`h-5 w-5 ${details.color}`} />
-              </div>
-              <h3 className="text-lg font-semibold">
-                {details.label}
-              </h3>
-              <Badge variant="outline" className="ml-auto">
-                {categoryPrograms.length} programs
-              </Badge>
-            </div>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {program.duration}
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {program.level}
+                  </Badge>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {categoryPrograms.map((program) => {
-                const purchased = isPurchased(program.id);
-                const progress = getProgress(program.id);
-
-                return (
-                  <Card 
-                    key={program.id} 
-                    className="group hover:shadow-lg transition-all cursor-pointer"
-                    onClick={() => handleProgramClick(program)}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <CardTitle className="text-base line-clamp-2">
-                          {program.title}
-                        </CardTitle>
-                        {purchased ? (
-                          <Badge className="bg-green-100 text-green-800">
-                            Enrolled
-                          </Badge>
-                        ) : (
-                          <Lock className="h-4 w-4 text-muted-foreground" />
-                        )}
+                <div className="pt-2 border-t">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-primary">
+                        ₹{(program.price / 100).toLocaleString()}
                       </div>
-                    </CardHeader>
-                    
-                    <CardContent className="space-y-3">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {program.description}
-                      </p>
-
-                      {/* Progress Bar for Purchased Programs */}
-                      {purchased && progress > 0 && (
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs">
-                            <span>Progress</span>
-                            <span>{progress}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-primary rounded-full h-2 transition-all"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {program.duration}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 text-yellow-500" />
-                          {program.rating}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {program.students}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2">
-                        <Badge variant="outline" className="text-xs">
-                          {program.level}
-                        </Badge>
-                        <Button 
-                          size="sm" 
-                          variant={purchased ? "default" : "outline"}
-                          className="gap-1"
-                        >
-                          {purchased ? 'Continue' : 'View'}
-                          <ChevronRight className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+                      <div className="text-xs text-muted-foreground">per employee</div>
+                    </div>
+                  </div>
+                  
+                  <UnifiedPaymentButton
+                    itemType="program"
+                    itemId={program.id}
+                    title={program.title}
+                    description={program.description}
+                    price={program.price}
+                    isOwned={false}
+                    onSuccess={() => {
+                      toast.success('Program enrollment successful!');
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
 
       {programs.length === 0 && (
         <Card className="p-8 text-center">
