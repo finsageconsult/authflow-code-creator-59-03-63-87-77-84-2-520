@@ -76,6 +76,8 @@ export default function CoachProfile() {
   const [coach, setCoach] = useState<Coach | null>(null);
   const [loading, setLoading] = useState(true);
   const [specialties, setSpecialties] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [newSpecialty, setNewSpecialty] = useState('');
   const [saving, setSaving] = useState(false);
   const [stats, setStats] = useState<CoachStats | null>(null);
@@ -105,6 +107,8 @@ export default function CoachProfile() {
       
       if (coachData) {
         setCoach(coachData);
+        setSpecialties(coachData.specialties || []);
+        setSelectedTags(coachData.specialties || []);
       }
 
       // Fetch coach offerings
@@ -127,7 +131,7 @@ export default function CoachProfile() {
       // Extract unique tags from all programs
       const allTags = programsData?.flatMap(program => program.tags || []) || [];
       const uniqueTags = [...new Set(allTags)].filter(tag => tag && tag.trim() !== '');
-      setSpecialties(uniqueTags);
+      setAvailableTags(uniqueTags);
 
       // Fetch coach statistics
       const [sessionsResult, bookingsResult] = await Promise.all([
@@ -220,17 +224,28 @@ export default function CoachProfile() {
     setSpecialties(specialties.filter(s => s !== specialty));
   };
 
-  const saveSpecialties = async () => {
+  const toggleTagSelection = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
+  const saveSelectedTags = async () => {
     if (!coach) return;
     
     setSaving(true);
     try {
       const { error } = await supabase
         .from('users')
-        .update({ specialties })
+        .update({ specialties: selectedTags })
         .eq('id', coach.id);
 
       if (error) throw error;
+
+      setSpecialties(selectedTags);
+      setCoach({ ...coach, specialties: selectedTags });
 
       toast({
         title: 'Success',
@@ -401,34 +416,65 @@ export default function CoachProfile() {
         <TabsContent value="specialties">
           <Card>
             <CardHeader>
-              <CardTitle>Program Tags as Specialties</CardTitle>
+              <CardTitle>Select Coach Specialties</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Specialties are automatically populated from program tags in the system
+                Choose from available program tags to set as this coach's specialties
               </p>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Current Specialties from Program Tags */}
+            <CardContent className="space-y-6">
+              {/* Current Selected Specialties */}
               <div className="space-y-2">
-                <Label>Available Program Tags</Label>
-                <div className="flex flex-wrap gap-2">
-                  {specialties.map((specialty) => (
+                <Label>Current Specialties ({selectedTags.length})</Label>
+                <div className="flex flex-wrap gap-2 min-h-[40px] p-3 border rounded-lg bg-muted/20">
+                  {selectedTags.map((specialty) => (
                     <Badge 
                       key={specialty} 
-                      variant="secondary" 
+                      variant="default" 
                       className="flex items-center gap-1"
                     >
                       {specialty}
                     </Badge>
                   ))}
-                  {specialties.length === 0 && (
+                  {selectedTags.length === 0 && (
+                    <p className="text-muted-foreground text-sm">No specialties selected yet</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Available Program Tags Selection */}
+              <div className="space-y-2">
+                <Label>Available Program Tags (Click to select/deselect)</Label>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.map((tag) => (
+                    <Badge 
+                      key={tag} 
+                      variant={selectedTags.includes(tag) ? "default" : "outline"}
+                      className={`cursor-pointer transition-all hover:scale-105 ${
+                        selectedTags.includes(tag) 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'hover:bg-primary/10'
+                      }`}
+                      onClick={() => toggleTagSelection(tag)}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                  {availableTags.length === 0 && (
                     <p className="text-muted-foreground text-sm">No program tags available yet</p>
                   )}
                 </div>
               </div>
 
-              <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
-                <strong>Note:</strong> Specialties are automatically updated based on the tags from active programs in the system. 
-                To modify specialties, update the tags in the individual programs.
+              {/* Save Button */}
+              <div className="pt-4 border-t">
+                <Button 
+                  onClick={saveSelectedTags} 
+                  disabled={saving}
+                  className="w-full sm:w-auto"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? 'Saving...' : 'Save Selected Specialties'}
+                </Button>
               </div>
             </CardContent>
           </Card>
