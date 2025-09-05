@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, Circle } from 'lucide-react';
@@ -128,6 +128,9 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
               {userType === 'individual' ? 'Individual' : 'Employee'} Enrollment
             </Badge>
           </DialogTitle>
+          <DialogDescription>
+            Complete the enrollment process to book your coaching session and access course materials.
+          </DialogDescription>
         </DialogHeader>
 
         {/* Progress Indicator */}
