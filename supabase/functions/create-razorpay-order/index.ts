@@ -23,10 +23,10 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { amount, currency = 'INR', serviceType, quantity = 1, userType, organizationId }: CreateOrderRequest = await req.json();
   console.log("Creating Razorpay order:", { amount, currency, serviceType, userType });
-  console.log("Amount analysis:", { 
+  console.log("Amount will be used exactly as received:", { 
     originalAmount: amount, 
     amountInRupees: amount / 100,
-    withinTestLimits: amount <= 500000 
+    noCalculations: true
   });
 
     if (!amount || amount <= 0) {
@@ -119,12 +119,13 @@ const handler = async (req: Request): Promise<Response> => {
     const totalAmount = Math.round(amount); // Amount is already in paisa from frontend
     const gstAmount = 0; // No GST - simple pricing
     
-    console.log("Price calculation:", {
-      originalAmount: amount,
-      totalAmount: totalAmount,
-      gstAmount: gstAmount
+    console.log("FINAL PRICE CALCULATION - Using exact amount:", {
+      receivedAmount: amount,
+      finalAmount: totalAmount,
+      noGST: true,
+      noAdjustments: true
     });
-
+    
     // Create order in database first
     const orderNumber = `ORD${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
     
