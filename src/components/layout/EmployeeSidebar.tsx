@@ -1,13 +1,18 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, TrendingUp, CreditCard, HelpCircle, Wrench, Calendar } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, CreditCard, HelpCircle, Wrench, Calendar, BookOpen } from 'lucide-react';
 
 const employeeMenuItems = [
   {
     title: 'Dashboard',
     url: '/employee-dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    title: 'Programs',
+    url: '/employee-dashboard?tab=programs',
+    icon: BookOpen,
   },
   {
     title: 'My Progress',

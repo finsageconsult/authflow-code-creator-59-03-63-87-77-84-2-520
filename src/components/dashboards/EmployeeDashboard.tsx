@@ -22,6 +22,7 @@ import { CreditWallet } from '@/components/credits/CreditWallet';
 import { EmployeeAnalyticsDashboard } from '@/components/analytics/EmployeeAnalyticsDashboard';
 import { SupportQuery } from '@/components/support/SupportQuery';
 import { EmployeeToolShortcuts } from '@/components/employee/EmployeeToolShortcuts';
+import { EmployeePrograms } from '@/components/employee/EmployeePrograms';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MoodCheckIn {
@@ -50,7 +51,7 @@ export const EmployeeDashboard = () => {
   // Set active tab based on URL parameter
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['dashboard', 'analytics', 'credits', 'support'].includes(tab)) {
+    if (tab && ['dashboard', 'programs', 'analytics', 'credits', 'support'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -441,6 +442,7 @@ export const EmployeeDashboard = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList role="tablist" aria-label="Employee dashboard navigation" className="hidden">
           <TabsTrigger value="dashboard" role="tab" aria-controls="dashboard-panel">Dashboard</TabsTrigger>
+          <TabsTrigger value="programs" role="tab" aria-controls="programs-panel">Programs</TabsTrigger>
           <TabsTrigger value="analytics" role="tab" aria-controls="analytics-panel">My Progress</TabsTrigger>
           <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>
           <TabsTrigger value="support" role="tab" aria-controls="support-panel">Support</TabsTrigger>
@@ -536,6 +538,10 @@ export const EmployeeDashboard = () => {
           <EmployeeToolShortcuts />
         </div>
       </div>
+      </TabsContent>
+
+      <TabsContent value="programs" className="space-y-6" role="tabpanel" id="programs-panel" aria-labelledby="programs-tab">
+        <EmployeePrograms />
       </TabsContent>
 
       <TabsContent value="analytics" className="space-y-6">
