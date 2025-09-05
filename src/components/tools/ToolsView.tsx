@@ -27,8 +27,10 @@ interface FinancialTool {
   is_premium: boolean;
   is_active: boolean;
   access_level: string;
-  tags: string[];
+  category: string;
   price: number;
+  free_limit: number;
+  tags: string[];
   one_time_purchase: boolean;
 }
 
@@ -84,11 +86,12 @@ export const ToolsView = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch tools
+        // Fetch only paid tools for Individual Dashboard
         const { data: toolsData, error: toolsError } = await supabase
           .from('financial_tools')
           .select('*')
           .eq('is_active', true)
+          .eq('category', 'paid')
           .order('created_at', { ascending: true });
 
         if (toolsError) throw toolsError;
@@ -124,10 +127,7 @@ export const ToolsView = () => {
   }, [toast, userProfile]);
 
   const hasAccess = (tool: FinancialTool) => {
-    // Free tools are always accessible
-    if (tool.access_level === 'free') return true;
-    
-    // Check if user has purchased premium tools
+    // For paid tools, check if user has purchased
     return purchasedTools.some(purchase => purchase.tool_id === tool.id);
   };
 
@@ -199,9 +199,9 @@ export const ToolsView = () => {
         
         <EmptyState
           icon={<Wrench className="w-8 h-8 text-primary/60" />}
-          title="No Tools Available"
-          description="Financial planning tools are not yet available. Check back later for calculators, planners, and tracking tools."
-          supportiveMessage="New tools are being added regularly to help with your financial journey"
+          title="No Paid Tools Available"
+          description="Premium financial planning tools are not yet available. Check back later for advanced calculators, planners, and tracking tools."
+          supportiveMessage="New premium tools are being added regularly to help with your financial journey"
           className="max-w-md mx-auto"
         />
       </div>
@@ -212,9 +212,9 @@ export const ToolsView = () => {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Financial Tools</h1>
+          <h1 className="text-3xl font-bold">Premium Financial Tools</h1>
           <p className="text-muted-foreground mt-1">
-            Use our interactive tools to plan, calculate, and track your financial goals
+            Purchase and use our premium interactive tools to plan, calculate, and track your financial goals
           </p>
         </div>
         <Badge variant="secondary" className="bg-blue-100 text-blue-800">
@@ -251,19 +251,15 @@ export const ToolsView = () => {
                         <div className="flex flex-col gap-1">
                           {hasAccess(tool) ? (
                             <Badge className="bg-green-100 text-green-800 text-xs">
-                              Access Granted
+                              Owned
                             </Badge>
-                          ) : tool.access_level === 'premium' ? (
+                          ) : (
                             <Badge 
                               variant="secondary" 
                               className="bg-yellow-100 text-yellow-800 text-xs gap-1"
                             >
                               <Crown className="h-3 w-3" />
                               Premium
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-blue-100 text-blue-800 text-xs">
-                              Free
                             </Badge>
                           )}
                           <Badge variant="outline" className="text-xs capitalize">
@@ -278,7 +274,7 @@ export const ToolsView = () => {
                         {tool.description}
                       </p>
 
-                      {tool.access_level === 'premium' && !hasAccess(tool) && (
+                      {!hasAccess(tool) && (
                         <div className="text-center py-2">
                           <p className="text-lg font-bold text-primary">
                             {formatPrice(tool.price)}
@@ -311,9 +307,7 @@ export const ToolsView = () => {
                           <ExternalLink className="h-4 w-4" />
                           {hasAccess(tool) 
                             ? 'Use Tool' 
-                            : tool.access_level === 'premium' 
-                            ? `Buy Now - ${formatPrice(tool.price)}`
-                            : 'Use Tool'}
+                            : `Buy Now - ${formatPrice(tool.price)}`}
                         </Button>
                       </div>
                     </CardContent>
@@ -349,16 +343,14 @@ export const ToolsView = () => {
             </div>
             <div className="space-y-1">
               <h3 className="font-semibold text-blue-900">How to Use Financial Tools</h3>
-              <p className="text-sm text-blue-800">
-                Our financial tools are designed to help you make informed decisions. Calculators help with quick computations, 
-                planners assist with long-term strategies, trackers monitor your progress, and analyzers provide insights.
-                {tools.some(t => t.is_premium) && (
-                  <span className="block mt-2">
-                    <Crown className="h-4 w-4 inline mr-1" />
-                    Premium tools offer advanced features and detailed analysis for comprehensive financial planning.
-                  </span>
-                )}
-              </p>
+               <p className="text-sm text-blue-800">
+                 Our premium financial tools are designed to help you make informed decisions. Advanced calculators help with complex computations, 
+                 planners assist with detailed long-term strategies, trackers monitor your progress with precision, and analyzers provide deep insights.
+                 <span className="block mt-2">
+                   <Crown className="h-4 w-4 inline mr-1" />
+                   Premium tools offer advanced features and detailed analysis for comprehensive financial planning.
+                 </span>
+               </p>
             </div>
           </div>
         </CardContent>

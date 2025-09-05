@@ -32,6 +32,9 @@ interface FinancialTool {
   is_premium: boolean;
   is_active: boolean;
   access_level: string;
+  category: string;
+  price: number;
+  free_limit: number;
   tags: string[];
 }
 
@@ -55,6 +58,9 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
     tool_config: '{}',
     is_premium: false,
     access_level: 'free',
+    category: 'free',
+    price: 0,
+    free_limit: 5,
     tags: '',
     is_active: true
   });
@@ -98,7 +104,9 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
       const toolData = {
         ...formData,
         tool_config: toolConfig,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        price: Math.round(formData.price * 100), // Convert rupees to paisa
+        access_level: formData.category === 'paid' ? 'premium' : 'free'
       };
 
       if (editingTool) {
@@ -134,6 +142,9 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
         tool_config: '{}',
         is_premium: false,
         access_level: 'free',
+        category: 'free',
+        price: 0,
+        free_limit: 5,
         tags: '',
         is_active: true
       });
@@ -160,6 +171,9 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
       tool_config: JSON.stringify(tool.tool_config, null, 2),
       is_premium: tool.is_premium,
       access_level: tool.access_level,
+      category: tool.category || 'free',
+      price: (tool.price || 0) / 100, // Convert paisa to rupees
+      free_limit: tool.free_limit || 5,
       tags: tool.tags.join(', '),
       is_active: tool.is_active
     });
@@ -267,18 +281,44 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="access_level">Access Level</Label>
-                    <Select value={formData.access_level} onValueChange={(value) => setFormData({...formData, access_level: value})}>
+                    <Label htmlFor="category">Category</Label>
+                    <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="free">Free</SelectItem>
-                        <SelectItem value="premium">Premium</SelectItem>
-                        <SelectItem value="coaching">Coaching Only</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {formData.category === 'paid' && (
+                    <div>
+                      <Label htmlFor="price">Price (₹)</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                      />
+                    </div>
+                  )}
+
+                  {formData.category === 'free' && (
+                    <div>
+                      <Label htmlFor="free_limit">Free Usage Limit</Label>
+                      <Input
+                        id="free_limit"
+                        type="number"
+                        min="0"
+                        value={formData.free_limit}
+                        onChange={(e) => setFormData({...formData, free_limit: parseInt(e.target.value) || 5})}
+                      />
+                    </div>
+                  )}
 
                   <div className="col-span-2">
                     <Label htmlFor="ui_component">UI Component</Label>
@@ -367,11 +407,12 @@ export const ToolsManager = ({ searchTerm, category }: ToolsManagerProps) => {
                   <div className="flex items-center gap-2 mt-2">
                     <Badge variant="outline">{tool.tool_type}</Badge>
                     <Badge 
-                      variant={tool.access_level === 'free' ? 'secondary' : 'default'}
-                      className={tool.access_level === 'premium' ? 'bg-yellow-100 text-yellow-800' : ''}
+                      variant={tool.category === 'free' ? 'secondary' : 'default'}
+                      className={tool.category === 'paid' ? 'bg-yellow-100 text-yellow-800' : ''}
                     >
-                      {tool.access_level === 'premium' && <Crown className="h-3 w-3 mr-1" />}
-                      {tool.access_level}
+                      {tool.category === 'paid' && <Crown className="h-3 w-3 mr-1" />}
+                      {tool.category}
+                      {tool.category === 'paid' && tool.price && ` - ₹${(tool.price / 100).toFixed(2)}`}
                     </Badge>
                     {!tool.is_active && (
                       <Badge variant="destructive">Inactive</Badge>

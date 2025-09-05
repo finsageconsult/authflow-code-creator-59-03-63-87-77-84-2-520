@@ -607,8 +607,10 @@ export type Database = {
       financial_tools: {
         Row: {
           access_level: string | null
+          category: string | null
           created_at: string
           description: string | null
+          free_limit: number | null
           id: string
           is_active: boolean | null
           is_premium: boolean | null
@@ -623,8 +625,10 @@ export type Database = {
         }
         Insert: {
           access_level?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
+          free_limit?: number | null
           id?: string
           is_active?: boolean | null
           is_premium?: boolean | null
@@ -639,8 +643,10 @@ export type Database = {
         }
         Update: {
           access_level?: string | null
+          category?: string | null
           created_at?: string
           description?: string | null
+          free_limit?: number | null
           id?: string
           is_active?: boolean | null
           is_premium?: boolean | null
@@ -1597,6 +1603,51 @@ export type Database = {
             columns: ["tool_id"]
             isOneToOne: false
             referencedRelation: "financial_tools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tool_usage: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_used_at: string | null
+          tool_id: string
+          updated_at: string | null
+          used_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_used_at?: string | null
+          tool_id: string
+          updated_at?: string | null
+          used_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_used_at?: string | null
+          tool_id?: string
+          updated_at?: string | null
+          used_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tool_usage_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "financial_tools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tool_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
