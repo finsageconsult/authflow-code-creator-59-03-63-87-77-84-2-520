@@ -50,36 +50,6 @@ export const IndividualDashboard = () => {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
 
-  // Get purchased programs for "My Learning" section
-  const myLearning = purchases
-    .filter(purchase => purchase.status === 'completed')
-    .map(purchase => {
-      // Map to static programs for proper title display
-      let displayTitle = purchase.individual_programs?.title || 'Unknown Program';
-      let displayCategory = purchase.individual_programs?.category || 'course';
-      
-      // Find matching static program
-      const staticProgram = staticIndividualPrograms.find(p => p.id === purchase.program_id);
-      if (staticProgram) {
-        displayTitle = staticProgram.title;
-        displayCategory = staticProgram.category;
-      }
-      
-      return {
-        id: purchase.id,
-        title: displayTitle,
-        progress: purchase.progress,
-        lastWatched: purchase.last_accessed_at 
-          ? `${Math.floor((Date.now() - new Date(purchase.last_accessed_at).getTime()) / (1000 * 60 * 60 * 24))} days ago`
-          : 'Never',
-        nextLesson: purchase.progress === 100 ? 'Completed! ✅' : 'Continue learning',
-        category: displayCategory,
-        programId: purchase.program_id
-      };
-    });
-
-  const allContent = getFilteredPrograms(selectedCategory);
-
   // Static programs for individual users (same as employee programs but with pricing)
   const staticIndividualPrograms = [
     {
@@ -143,6 +113,36 @@ export const IndividualDashboard = () => {
       tags: ['investing', 'beginner', 'portfolio']
     }
   ];
+
+  // Get purchased programs for "My Learning" section
+  const myLearning = purchases
+    .filter(purchase => purchase.status === 'completed')
+    .map(purchase => {
+      // Map to static programs for proper title display
+      let displayTitle = purchase.individual_programs?.title || 'Unknown Program';
+      let displayCategory = purchase.individual_programs?.category || 'course';
+      
+      // Find matching static program
+      const staticProgram = staticIndividualPrograms.find(p => p.id === purchase.program_id);
+      if (staticProgram) {
+        displayTitle = staticProgram.title;
+        displayCategory = staticProgram.category;
+      }
+      
+      return {
+        id: purchase.id,
+        title: displayTitle,
+        progress: purchase.progress,
+        lastWatched: purchase.last_accessed_at 
+          ? `${Math.floor((Date.now() - new Date(purchase.last_accessed_at).getTime()) / (1000 * 60 * 60 * 24))} days ago`
+          : 'Never',
+        nextLesson: purchase.progress === 100 ? 'Completed! ✅' : 'Continue learning',
+        category: displayCategory,
+        programId: purchase.program_id
+      };
+    });
+
+  const allContent = getFilteredPrograms(selectedCategory);
 
   // Combine database programs with static programs, prioritizing static ones
   const combinedPrograms = [...staticIndividualPrograms];
