@@ -177,7 +177,8 @@ export const IndividualDashboard = () => {
                                 description: program.description,
                                 duration: program.duration,
                                 price: program.price,
-                                category: program.category
+                                category: program.category,
+                                tags: program.tags || []
                               });
                               setEnrollmentWorkflowOpen(true);
                             }}

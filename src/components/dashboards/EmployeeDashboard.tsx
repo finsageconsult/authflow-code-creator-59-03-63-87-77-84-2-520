@@ -506,7 +506,8 @@ export const EmployeeDashboard = () => {
                       description: rec.description,
                       duration: '60 minutes',
                       price: rec.credits * 100, // Mock price calculation
-                      category: '1-1-sessions'
+                      category: '1-1-sessions',
+                      tags: rec.tags || []
                     });
                     setEnrollmentWorkflowOpen(true);
                   }

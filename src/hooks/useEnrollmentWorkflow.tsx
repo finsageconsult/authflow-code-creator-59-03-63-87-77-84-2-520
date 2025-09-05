@@ -104,10 +104,10 @@ export const useEnrollmentWorkflow = () => {
         const experienceYears = Math.max(2, Math.floor(sessionCount / 20) + 2); // Estimate based on sessions
         const rating = 4.3 + (Math.random() * 0.7); // Generate rating between 4.3-5.0
         
-        // Use specialties from database or fallback to generated ones
+        // Use specialties from database without fallback; empty means no specialties set
         const specialties = coach.specialties && coach.specialties.length > 0 
           ? coach.specialties
-          : [getCoachSpecialization(coach.id)];
+          : [];
 
         return {
           id: coach.id,
