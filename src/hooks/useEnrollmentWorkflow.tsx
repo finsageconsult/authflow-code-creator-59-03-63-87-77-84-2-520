@@ -60,16 +60,29 @@ export const useEnrollmentWorkflow = () => {
   const fetchCoaches = async () => {
     try {
       setIsLoading(true);
+      
+      // First check what coaches exist
       const { data: coachData, error } = await supabase
         .from('users')
-        .select('id, name, email, avatar_url, specialties')
+        .select('id, name, email, avatar_url, specialties, role, status')
         .eq('role', 'COACH')
         .eq('status', 'ACTIVE');
 
-      if (error) throw error;
+      console.log('Coach query result:', coachData, error);
+
+      if (error) {
+        console.error('Error fetching coaches:', error);
+        throw error;
+      }
 
       if (!coachData || coachData.length === 0) {
         console.warn('No active coaches found in database');
+        // Try fetching all coaches to debug
+        const { data: allCoaches } = await supabase
+          .from('users')
+          .select('id, name, email, role, status')
+          .eq('role', 'COACH');
+        console.log('All coaches in database:', allCoaches);
         setRealCoaches([]);
         return;
       }
