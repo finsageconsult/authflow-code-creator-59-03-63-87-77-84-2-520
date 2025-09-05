@@ -477,12 +477,6 @@ export default function CoachProfile() {
                           <span>Created:</span>
                           <span>{new Date(accessCode.created_at).toLocaleDateString()}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Expires:</span>
-                          <span className={new Date(accessCode.expires_at) < new Date() ? 'text-red-600' : ''}>
-                            {new Date(accessCode.expires_at).toLocaleDateString()}
-                          </span>
-                        </div>
                         {accessCode.organization_id && (
                           <div className="flex justify-between">
                             <span>Organization:</span>
