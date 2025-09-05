@@ -91,6 +91,10 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
       return;
     }
 
+    console.log('Course data for payment:', course);
+    console.log('Course price (raw):', course.price);
+    console.log('Course price formatted:', formatPrice(course.price));
+
     // Check if Razorpay script is loaded
     if (!window.Razorpay) {
       toast.error('Payment gateway not loaded. Please refresh and try again.');
@@ -99,6 +103,14 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
 
     try {
       // Create Razorpay order - amount should be in paise
+      console.log('Sending to Razorpay order creation:', {
+        amount: course.price,
+        serviceType: 'short-program',
+        quantity: 1,
+        programId: course.id,
+        userType: 'INDIVIDUAL'
+      });
+
       const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
         body: {
           amount: course.price, // Already in paise from database
@@ -121,6 +133,7 @@ export const PreviewConfirm: React.FC<PreviewConfirmProps> = ({
       }
 
       const { order } = data;
+      console.log('Razorpay order response:', order);
       console.log('Opening Razorpay with order:', order);
 
       // Initialize Razorpay
