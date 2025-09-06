@@ -60,6 +60,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
       priority: 'medium',
       assignment_type: 'general',
     },
+    mode: 'onChange',
   });
   
   const [students, setStudents] = useState<Student[]>([]);
@@ -86,6 +87,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   };
 
   const handleStudentToggle = (studentId: string) => {
+    if (!studentId) return;
     setSelectedStudents(prev => 
       prev.includes(studentId) 
         ? prev.filter(id => id !== studentId)
@@ -152,10 +154,19 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   };
 
   const onSubmit = async (data: any) => {
-    if (selectedStudents.length === 0) {
+    if (!data || !data.title || selectedStudents.length === 0) {
       toast({
         title: "Error",
-        description: "Please select at least one student",
+        description: "Please fill in the title and select at least one student",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!userProfile?.id) {
+      toast({
+        title: "Error",
+        description: "User session invalid",
         variant: "destructive",
       });
       return;
@@ -214,10 +225,10 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
     }
   };
 
-  const filteredStudents = students.filter(student => 
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudents = students?.filter(student => 
+    student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   // Effect to fetch students when dialog opens
   useEffect(() => {
@@ -494,7 +505,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
               </Button>
               <Button 
                 type="submit" 
-                disabled={creating || selectedStudents.length === 0 || !form.watch('title')}
+                disabled={creating || selectedStudents.length === 0}
                 className="min-w-[160px]"
               >
                 {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
