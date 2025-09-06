@@ -28,7 +28,6 @@ interface CoachStats {
   totalSessions: number;
   completedSessions: number;
   totalBookings: number;
-  averageRating: number;
   totalOfferings: number;
   totalEnrollments: number;
 }
@@ -226,21 +225,26 @@ export default function CoachProfile() {
       });
 
       // Calculate comprehensive statistics
-      const totalSessions = sessions.length;
-      const completedSessions = sessions.filter(s => s.status === 'completed').length;
-      const totalBookings = bookings.length;
+      const totalSessions = sessions.length + bookings.length; // Include both coaching sessions and individual bookings
+      const completedSessions = sessions.filter(s => s.status === 'completed').length + 
+                               bookings.filter(b => b.status === 'completed').length;
+      const totalBookings = enrollments.length + bookings.length; // Total enrollments and bookings
       
-      // Calculate average rating from bookings
-      const ratingsArray = bookings.filter(b => b.rating && b.rating > 0).map(b => b.rating);
-      const averageRating = ratingsArray.length > 0 
-        ? ratingsArray.reduce((sum, rating) => sum + rating, 0) / ratingsArray.length
-        : 0;
+      console.log('Stats calculation:', {
+        sessions: sessions.length,
+        bookings: bookings.length, 
+        enrollments: enrollments.length,
+        completedFromSessions: sessions.filter(s => s.status === 'completed').length,
+        completedFromBookings: bookings.filter(b => b.status === 'completed').length,
+        totalCalculated: totalSessions,
+        completedCalculated: completedSessions,
+        totalBookingsCalculated: totalBookings
+      });
 
       setStats({
         totalSessions,
         completedSessions,
         totalBookings,
-        averageRating: Number(averageRating.toFixed(1)),
         totalOfferings: offeringsData?.length || 0,
         totalEnrollments: enrollments.length + bookings.length
       });
@@ -416,7 +420,7 @@ export default function CoachProfile() {
 
       {/* Statistics Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center space-x-2">
@@ -436,20 +440,6 @@ export default function CoachProfile() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
                   <p className="text-2xl font-bold">{stats.totalBookings}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Star className="h-4 w-4 text-yellow-600" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Avg Rating</p>
-                  <p className="text-2xl font-bold">
-                    {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : 'N/A'}
-                  </p>
                 </div>
               </div>
             </CardContent>
@@ -676,10 +666,6 @@ export default function CoachProfile() {
                       <div className="flex justify-between">
                         <span>Total Bookings:</span>
                         <span>{stats.totalBookings}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Average Rating:</span>
-                        <span>{stats.averageRating > 0 ? `${stats.averageRating}/5` : 'N/A'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Total Enrollments:</span>
