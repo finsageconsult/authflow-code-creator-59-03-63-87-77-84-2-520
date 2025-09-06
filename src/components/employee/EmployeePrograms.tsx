@@ -355,10 +355,26 @@ export const EmployeePrograms = () => {
           </div>
         </Card>}
       
-      {/* Enrollment Workflow */}
+      {/* Enrollment Workflow Modal */}
       {showEnrollment && selectedCourse && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-start justify-center pt-8 pb-8 px-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full min-h-[80vh] max-h-[90vh] overflow-y-auto border border-gray-200">
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">Course Enrollment</h2>
+                <button 
+                  onClick={() => {
+                    setShowEnrollment(false);
+                    setSelectedCourse(null);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
             <div className="p-6">
               <EnrollmentWorkflow
                 initialCourse={selectedCourse}
@@ -377,14 +393,6 @@ export const EmployeePrograms = () => {
               />
             </div>
           </div>
-        </div>
-      )}
-      
-      {/* Debug info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded z-50">
-          showEnrollment: {showEnrollment.toString()}<br/>
-          selectedCourse: {selectedCourse ? selectedCourse.title : 'null'}
         </div>
       )}
     </div>;
