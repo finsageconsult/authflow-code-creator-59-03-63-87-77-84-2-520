@@ -7,9 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserPurchases } from '@/hooks/useUserPurchases';
-import { useChats, useChatMessages } from '@/hooks/useChat';
-import { useAssignments } from '@/hooks/useAssignments';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { 
   Send, 
@@ -51,15 +48,28 @@ export const UserChat: React.FC = () => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const { isPurchased } = useUserPurchases();
-  const { chats, loading: chatsLoading, createDirectChat } = useChats();
-  const { assignments } = useAssignments();
+  const [chatsLoading, setChatsLoading] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<PurchasedCourse | null>(null);
   const [activeChat, setActiveChat] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const { messages, sendMessage } = useChatMessages(activeChat?.id || '');
+  const [messages, setMessages] = useState<any[]>([]);
+  
+  const sendMessage = async (content: string) => {
+    if (!content.trim()) return;
+    
+    const newMessage = {
+      id: Date.now().toString(),
+      content,
+      sender_id: userProfile?.id,
+      created_at: new Date().toISOString(),
+      chat_id: activeChat?.id
+    };
+    
+    setMessages(prev => [...prev, newMessage]);
+  };
 
   // Static programs with assigned coaches
   const staticPrograms = [
