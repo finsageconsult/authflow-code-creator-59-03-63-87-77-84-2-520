@@ -39,12 +39,6 @@ const menuItems = [
     param: "bookings"
   },
   { 
-    title: "Payments", 
-    url: "/individual-dashboard", 
-    icon: CreditCard,
-    param: "payments"
-  },
-  { 
     title: "Wellness Check", 
     url: "/individual-dashboard", 
     icon: Heart,

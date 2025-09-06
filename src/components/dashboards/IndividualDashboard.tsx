@@ -384,54 +384,6 @@ export const IndividualDashboard = () => {
             </CardContent>
           </Card>
         );
-      case 'payments':
-        return (
-          <Card>
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <CreditCard className="h-5 w-5" />
-                Payment History
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6 pt-0">
-              <div className="space-y-4">
-                {purchases
-                  .filter(purchase => purchase.status === 'completed')
-                  .map((purchase) => {
-                    // Map the purchase to the correct program title based on amount
-                    let displayTitle = purchase.individual_programs?.title || 'Unknown Program';
-                    if (purchase.program_id === 'd3dfd158-b838-49d2-8732-acf11d4a1936') {
-                      // Map based on amount paid to correct program titles
-                      if (purchase.amount_paid === 449900) {
-                        displayTitle = 'Debt-Free Journey';
-                      } else if (purchase.amount_paid === 299900) {
-                        displayTitle = 'Investing in 3 Hours';
-                      } else if (purchase.amount_paid === 499900) {
-                        displayTitle = 'Financial Blueprint Session';
-                      }
-                    }
-                    
-                    return (
-                      <div key={purchase.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow">
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-medium text-sm sm:text-base truncate">{displayTitle}</h4>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            {new Date(purchase.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
-                          <span className="font-semibold text-sm sm:text-base">{formatPrice(purchase.amount_paid)}</span>
-                          <Badge variant="default" className="text-xs w-fit">
-                            completed
-                          </Badge>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </CardContent>
-          </Card>
-        );
       case 'mood':
         return <MoodCheckIn />;
       case 'questionnaire':
