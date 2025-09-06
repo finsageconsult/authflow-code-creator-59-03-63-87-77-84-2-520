@@ -133,40 +133,80 @@ export default function CoachProfile() {
       const uniqueTags = [...new Set(allTags)].filter(tag => tag && tag.trim() !== '');
       setAvailableTags(uniqueTags);
 
-      // Fetch coach statistics
-      const [sessionsResult, bookingsResult] = await Promise.all([
+      // Fetch comprehensive data for coach analytics
+      const [
+        sessionsResult,
+        bookingsResult,
+        enrollmentsResult,
+        accessCodesResult,
+        usersResult,
+        programsResult
+      ] = await Promise.all([
+        // Fetch coaching sessions
         supabase
           .from('coaching_sessions')
-          .select('id, status')
+          .select('id, status, scheduled_at, client_id')
           .eq('coach_id', coachId),
+        
+        // Fetch individual bookings
         supabase
           .from('individual_bookings')
-          .select('id, rating')
-          .eq('coach_id', coachId)
+          .select('id, status, scheduled_at, rating, feedback, created_at, user_id, program_id')
+          .eq('coach_id', coachId),
+        
+        // Fetch enrollments
+        supabase
+          .from('enrollments')
+          .select('id, status, enrollment_date, scheduled_at, amount_paid, payment_status, user_id, course_id')
+          .eq('coach_id', coachId),
+        
+        // Fetch access codes - check both by email and by role
+        supabase
+          .from('access_codes')
+          .select('*')
+          .or(`email.eq.${coachData.email},role.eq.COACH`)
+          .order('created_at', { ascending: false }),
+        
+        // Fetch all users to map names and emails
+        supabase
+          .from('users')
+          .select('id, name, email'),
+        
+        // Fetch all programs to map titles and prices
+        supabase
+          .from('individual_programs')
+          .select('id, title, price')
       ]);
-
-      // Fetch bookings with user details
-      const { data: bookingData, error: bookingError } = await supabase
-        .from('individual_bookings')
-        .select(`
-          id, status, scheduled_at,
-          users!inner(name, email),
-          individual_programs!inner(title, price)
-        `)
-        .eq('coach_id', coachId);
-
-      if (bookingError) console.error('Bookings error:', bookingError);
 
       const sessions = sessionsResult.data || [];
       const bookings = bookingsResult.data || [];
-      const bookingDetails = bookingData || [];
+      const enrollments = enrollmentsResult.data || [];
+      const accessCodes = accessCodesResult.data || [];
+      const users = usersResult.data || [];
+      const programs = programsResult.data || [];
 
-      // Calculate statistics
+      // Create lookup maps for users and programs
+      const usersMap = new Map(users.map(u => [u.id, u]));
+      const programsMap = new Map(programs.map(p => [p.id, p]));
+
+      console.log('Coach data fetched:', {
+        sessions: sessions.length,
+        bookings: bookings.length,
+        enrollments: enrollments.length,
+        accessCodes: accessCodes.length,
+        users: users.length,
+        programs: programs.length
+      });
+
+      // Calculate comprehensive statistics
       const totalSessions = sessions.length;
       const completedSessions = sessions.filter(s => s.status === 'completed').length;
       const totalBookings = bookings.length;
-      const averageRating = bookings.length > 0 
-        ? bookings.reduce((sum, b) => sum + (b.rating || 0), 0) / bookings.filter(b => b.rating).length 
+      
+      // Calculate average rating from bookings
+      const ratingsArray = bookings.filter(b => b.rating && b.rating > 0).map(b => b.rating);
+      const averageRating = ratingsArray.length > 0 
+        ? ratingsArray.reduce((sum, rating) => sum + rating, 0) / ratingsArray.length
         : 0;
 
       setStats({
@@ -175,31 +215,48 @@ export default function CoachProfile() {
         totalBookings,
         averageRating: Number(averageRating.toFixed(1)),
         totalOfferings: offeringsData?.length || 0,
-        totalEnrollments: bookingDetails.length
+        totalEnrollments: enrollments.length + bookings.length
       });
 
-      // Format bookings for display
-      const formattedEnrollments: UserEnrollment[] = bookingDetails.map(e => ({
-        id: e.id,
-        user_name: e.users?.name || 'Unknown',
-        user_email: e.users?.email || 'Unknown',
-        offering_title: e.individual_programs?.title || 'Unknown',
-        status: e.status,
-        enrolled_at: e.scheduled_at,
-        amount_paid: e.individual_programs?.price || 0
-      }));
+      // Format enrollments from both enrollments and bookings tables
+      const formattedEnrollments: UserEnrollment[] = [
+        // From enrollments table
+        ...enrollments.map(e => {
+          const user = usersMap.get(e.user_id);
+          const program = programsMap.get(e.course_id);
+          return {
+            id: e.id,
+            user_name: user?.name || 'Unknown',
+            user_email: user?.email || 'Unknown',
+            offering_title: program?.title || 'Program',
+            status: e.status,
+            enrolled_at: e.enrollment_date || e.scheduled_at,
+            amount_paid: e.amount_paid || 0
+          };
+        }),
+        // From bookings table
+        ...bookings.map(b => {
+          const user = usersMap.get(b.user_id);
+          const program = programsMap.get(b.program_id);
+          return {
+            id: b.id,
+            user_name: user?.name || 'Unknown',
+            user_email: user?.email || 'Unknown',
+            offering_title: program?.title || 'Coaching Session',
+            status: b.status,
+            enrolled_at: b.scheduled_at || b.created_at,
+            amount_paid: program?.price || 0
+          };
+        })
+      ];
 
       setEnrollments(formattedEnrollments);
+      setAccessCodes(accessCodes);
 
-      // Fetch access codes for the coach
-      const { data: accessCodesData, error: accessCodesError } = await supabase
-        .from('access_codes')
-        .select('*')
-        .eq('email', coachData.email)
-        .order('created_at', { ascending: false });
-
-      if (accessCodesError) console.error('Access codes error:', accessCodesError);
-      setAccessCodes(accessCodesData || []);
+      if (sessionsResult.error) console.error('Sessions error:', sessionsResult.error);
+      if (bookingsResult.error) console.error('Bookings error:', bookingsResult.error);
+      if (enrollmentsResult.error) console.error('Enrollments error:', enrollmentsResult.error);
+      if (accessCodesResult.error) console.error('Access codes error:', accessCodesResult.error);
 
     } catch (error) {
       console.error('Error fetching coach data:', error);
