@@ -26,6 +26,7 @@ interface Coach {
   organization_id?: string;
   updated_at: string;
   specialties?: string[];
+  experience?: string;
   coaching_offerings?: {
     id: string;
     title: string;
@@ -128,6 +129,7 @@ export default function Coaches() {
               organization_id: coach.organization_id,
               updated_at: coach.updated_at,
               specialties: coach.specialties || [],
+              experience: coach.experience || '',
               coaching_offerings: offeringsResult.data || [],
               coaching_sessions: sessionsResult.data || [],
               coach_availability: availabilityResult.data || []
@@ -337,6 +339,7 @@ export default function Coaches() {
               <TableRow>
                 <TableHead>Coach Profile</TableHead>
                 <TableHead>Contact</TableHead>
+                <TableHead>Experience</TableHead>
                 <TableHead>Offerings</TableHead>
                 <TableHead>Sessions</TableHead>
                 <TableHead>Availability</TableHead>
@@ -359,12 +362,35 @@ export default function Coaches() {
                       <div>
                         <div className="font-medium">{coach.name}</div>
                         <div className="text-sm text-muted-foreground">Coach</div>
+                        {coach.specialties && coach.specialties.length > 0 && (
+                          <div className="flex gap-1 mt-1">
+                            {coach.specialties.slice(0, 2).map((specialty, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
+                                {specialty}
+                              </Badge>
+                            ))}
+                            {coach.specialties.length > 2 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{coach.specialties.length - 2}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
                       <div>{coach.email}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {coach.experience ? (
+                        <span className="text-foreground">{coach.experience}</span>
+                      ) : (
+                        <span className="text-muted-foreground italic">Not specified</span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>

@@ -69,7 +69,7 @@ export const useEnrollmentWorkflow = () => {
       // First check what coaches exist
       const { data: coachData, error } = await supabase
         .from('users')
-        .select('id, name, email, avatar_url, specialties, role, status')
+        .select('id, name, email, avatar_url, specialties, experience, role, status')
         .eq('role', 'COACH')
         .eq('status', 'ACTIVE');
 
@@ -85,7 +85,7 @@ export const useEnrollmentWorkflow = () => {
         // Try fetching all coaches to debug
         const { data: allCoaches } = await supabase
           .from('users')
-          .select('id, name, email, role, status')
+          .select('id, name, email, role, status, specialties, experience, avatar_url')
           .eq('role', 'COACH');
         console.log('All coaches in database:', allCoaches);
         setRealCoaches([]);
@@ -103,7 +103,6 @@ export const useEnrollmentWorkflow = () => {
       // Transform to Coach interface using real database data
       const coaches: Coach[] = coachData.map((coach) => {
         const sessionCount = sessionStats?.filter(s => s.coach_id === coach.id).length || 0;
-        const experienceYears = Math.max(2, Math.floor(sessionCount / 20) + 2); // Estimate based on sessions
         const rating = 4.3 + (Math.random() * 0.7); // Generate rating between 4.3-5.0
         
         // Use specialties from database without fallback; empty means no specialties set
@@ -116,7 +115,7 @@ export const useEnrollmentWorkflow = () => {
           name: coach.name || 'Professional Coach',
           specialties: specialties,
           rating: Number(rating.toFixed(1)),
-          experience: `${experienceYears}+ years`,
+          experience: coach.experience || 'New Coach', // Use actual experience from database
           avatar: coach.avatar_url
         };
       });

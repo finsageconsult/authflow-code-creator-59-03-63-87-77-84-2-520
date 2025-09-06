@@ -405,9 +405,16 @@ export default function CoachProfile() {
             <div>
               <h2 className="text-2xl font-bold">{coach.name}</h2>
               <p className="text-muted-foreground">{coach.email}</p>
-              <Badge className={coach.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                {coach.status}
-              </Badge>
+              {coach.experience && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  <strong>Experience:</strong> {coach.experience}
+                </p>
+              )}
+              <div className="flex items-center gap-2 mt-2">
+                <Badge className={coach.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                  {coach.status}
+                </Badge>
+              </div>
             </div>
           </CardTitle>
         </CardHeader>
