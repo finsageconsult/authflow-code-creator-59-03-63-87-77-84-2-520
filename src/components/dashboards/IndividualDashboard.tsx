@@ -241,11 +241,11 @@ export const IndividualDashboard = () => {
             bestDiff = diff;
           }
         }
-        // Accept match if within 6 hours; else fall back to the latest session with a link
+        // Accept match if within 24 hours; else fall back to the most recently updated session with a link
         const fallback = (sessions || [])
           .filter((s) => s.meeting_link)
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-        const match = bestDiff <= 6 * 60 * 60 * 1000 ? best : fallback;
+          .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0];
+        const match = bestDiff <= 24 * 60 * 60 * 1000 ? best : fallback;
         return { ...e, meeting_link: match?.meeting_link || null };
       });
 

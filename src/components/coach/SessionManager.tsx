@@ -258,23 +258,36 @@ export const SessionManager = () => {
         organization_id: userProfile?.organization_id
       });
 
-      // Upsert manually: find existing session for coach+client+time, then update or insert
-      const { data: existing, error: findError } = await supabase
+      // Find most relevant existing session for this coach+client
+      const { data: existingSessions, error: listErr } = await supabase
         .from('coaching_sessions')
-        .select('id')
+        .select('id, scheduled_at, updated_at')
         .eq('coach_id', userProfile?.id)
         .eq('client_id', enrollment.user.id)
-        .eq('scheduled_at', enrollment.scheduledAt)
-        .maybeSingle();
+        .order('updated_at', { ascending: false });
 
-      if (findError && findError.code !== 'PGRST116') {
-        // PGRST116 = no rows returned for single/maybeSingle
-        console.error('Find session error:', findError);
-        throw findError;
+      if (listErr) {
+        console.error('List sessions error:', listErr);
+        throw listErr;
+      }
+
+      // Choose the nearest by scheduled time within 24h; else take the latest
+      const targetTime = enrollment.scheduledAt ? new Date(enrollment.scheduledAt).getTime() : null;
+      let best = existingSessions?.[0] || null;
+      let bestDiff = Number.POSITIVE_INFINITY;
+      if (targetTime && existingSessions) {
+        for (const s of existingSessions) {
+          if (!s.scheduled_at) continue;
+          const diff = Math.abs(new Date(s.scheduled_at).getTime() - targetTime);
+          if (diff < bestDiff) {
+            best = s;
+            bestDiff = diff;
+          }
+        }
       }
 
       let writeError: any = null;
-      if (existing?.id) {
+      if (best?.id && (!targetTime || bestDiff <= 24 * 60 * 60 * 1000)) {
         const { error: updateErr } = await supabase
           .from('coaching_sessions')
           .update({
@@ -283,8 +296,9 @@ export const SessionManager = () => {
             session_type: enrollment.course?.title || 'Coaching Session',
             organization_id: userProfile?.organization_id || null,
             duration_minutes: 60,
+            scheduled_at: enrollment.scheduledAt, // keep in sync
           })
-          .eq('id', existing.id);
+          .eq('id', best.id);
         writeError = updateErr;
       } else {
         const { error: insertErr } = await supabase
