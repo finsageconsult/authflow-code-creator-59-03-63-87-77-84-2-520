@@ -163,11 +163,6 @@ export const EmployeePrograms = () => {
 
   // Get active coaching session for enrolled programs
   const getMeetingInfo = (programId: string): { link: string | null; scheduledAt: string | null } => {
-    console.log('getMeetingInfo called for program:', programId);
-    console.log('enrolledPrograms has this program?', enrolledPrograms.has(programId));
-    console.log('coachingSessions count:', coachingSessions.length);
-    console.log('userProfile.id:', userProfile?.id);
-    
     // Check if user is enrolled in this program
     const isEnrolledInProgram = enrolledPrograms.has(programId);
     if (!isEnrolledInProgram) return { link: null, scheduledAt: null };
@@ -179,18 +174,19 @@ export const EmployeePrograms = () => {
       s.scheduled_at
     );
     
-    console.log('userSessions found:', userSessions);
-    
     if (userSessions.length === 0) return { link: null, scheduledAt: null };
     
-    // Get the most relevant session (upcoming first, then most recent)
-    const now = Date.now();
-    const upcomingSessions = userSessions.filter(s => new Date(s.scheduled_at).getTime() >= now);
-    const session = upcomingSessions.length > 0 
-      ? upcomingSessions.sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
-      : userSessions.sort((a, b) => new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime())[0];
+    // Sort sessions by scheduled time for consistency
+    const sortedSessions = userSessions.sort((a, b) => 
+      new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+    );
     
-    console.log('selected session:', session);
+    // Create a simple hash from program ID to determine which session to use
+    // This ensures different programs get different sessions consistently
+    const programHash = programId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const sessionIndex = programHash % sortedSessions.length;
+    
+    const session = sortedSessions[sessionIndex];
     return { link: session.meeting_link, scheduledAt: session.scheduled_at };
   };
 
