@@ -256,8 +256,6 @@ export const SessionManager = () => {
           status: 'scheduled',
           organization_id: userProfile?.organization_id || null,
           duration_minutes: 60
-        }, {
-          onConflict: 'coach_id,client_id,scheduled_at'
         });
 
       if (error) {
