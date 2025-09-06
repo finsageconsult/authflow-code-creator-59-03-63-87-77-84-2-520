@@ -356,25 +356,30 @@ export const IndividualDashboard = () => {
                           </span>
                           <Button
                             onClick={() => {
-                              setSelectedCourse({
-                                id: program.id,
-                                title: program.title,
-                                description: program.description,
-                                duration: program.duration,
-                                price: program.price,
-                                category: program.category,
-                                tags: program.tags || []
-                              });
-                              setShowEnrollment(true);
+                              if (isItemPurchased('program', program.id)) {
+                                // Open session in new tab for purchased programs
+                                window.open(`/program/${program.id}/session`, '_blank');
+                              } else {
+                                setSelectedCourse({
+                                  id: program.id,
+                                  title: program.title,
+                                  description: program.description,
+                                  duration: program.duration,
+                                  price: program.price,
+                                  category: program.category,
+                                  tags: program.tags || []
+                                });
+                                setShowEnrollment(true);
+                              }
                             }}
                             className="w-full"
                             size="sm"
-                            disabled={isItemPurchased('program', program.id) || processingPurchases.has(program.id)}
+                            disabled={processingPurchases.has(program.id)}
                           >
                             {processingPurchases.has(program.id)
                               ? 'Processing...'
                               : isItemPurchased('program', program.id) 
-                                ? '✓ Purchased' 
+                                ? 'Join Session' 
                                 : program.category === '1-1-sessions' 
                                   ? 'Book Session' 
                                   : 'Buy Now'
