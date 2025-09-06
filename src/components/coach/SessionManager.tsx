@@ -278,7 +278,7 @@ export const SessionManager = () => {
 
       toast({
         title: "Join Link Generated",
-        description: "Meeting link has been set and will be active 30 minutes before the session",
+        description: "Meeting link has been set successfully",
       });
 
       setMeetingLinkInput('');
@@ -480,7 +480,7 @@ export const SessionManager = () => {
                                     onChange={(e) => setMeetingLinkInput(e.target.value)}
                                   />
                                   <p className="text-xs text-muted-foreground mt-1">
-                                    Link will be active 30 minutes before session and expire 2 hours after
+                                    Link will be active before session starts
                                   </p>
                                 </div>
                                 <div className="flex gap-2 justify-end">
