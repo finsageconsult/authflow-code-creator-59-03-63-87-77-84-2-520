@@ -89,6 +89,7 @@ export const EmployeePrograms = () => {
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [enrolledPrograms, setEnrolledPrograms] = useState<Set<string>>(new Set());
   const [coachingSessions, setCoachingSessions] = useState<any[]>([]);
+  const [userEnrollments, setUserEnrollments] = useState<any[]>([]);
   useEffect(() => {
     if (userProfile) {
       fetchData();
@@ -116,9 +117,13 @@ export const EmployeePrograms = () => {
         // Fetch enrollments to track enrolled programs using the internal user ID
         const {
           data: enrollmentsData
-        } = await supabase.from('enrollments').select('course_id').eq('user_id', userProfile.id);
+        } = await supabase
+          .from('enrollments')
+          .select('id, course_id, scheduled_at, status')
+          .eq('user_id', userProfile.id);
         
         if (enrollmentsData) {
+          setUserEnrollments(enrollmentsData);
           const enrolled = new Set(enrollmentsData.map(e => e.course_id));
           setEnrolledPrograms(enrolled);
         }
@@ -153,18 +158,30 @@ export const EmployeePrograms = () => {
     return purchase?.progress || 0;
   };
 
-  const getMeetingLink = (programId: string) => {
-    // Find the most recent coaching session with a meeting link for this program
-    const session = coachingSessions
-      .filter(s => s.meeting_link)
-      .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0];
-    return session?.meeting_link || null;
+  // Legacy helper removed in favor of per-enrollment matching
+
+  // Per-enrollment meeting info based on enrollment's scheduled_at
+  const getMeetingInfo = (programId: string): { link: string | null; scheduledAt: string | null } => {
+    const enrollmentsForProgram = userEnrollments
+      .filter(e => e.course_id === programId && e.scheduled_at)
+      .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime());
+    const now = Date.now();
+    const upcoming = enrollmentsForProgram.find(e => new Date(e.scheduled_at).getTime() >= now) || enrollmentsForProgram.slice().reverse()[0];
+    if (!upcoming) return { link: null, scheduledAt: null };
+    const matchingSessions = coachingSessions
+      .filter(s => s.scheduled_at && new Date(s.scheduled_at).getTime() === new Date(upcoming.scheduled_at).getTime() && s.meeting_link)
+      .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime());
+    const session = matchingSessions[0];
+    return { link: session?.meeting_link || null, scheduledAt: upcoming.scheduled_at };
   };
 
-  const isLinkActive = (meetingLink: string) => {
-    // For now, return true if there's a meeting link. You can add time-based logic later if needed
-    return !!meetingLink;
+  const isMeetingActive = (scheduledAt?: string | null, meetingLink?: string | null) => {
+    if (!scheduledAt || !meetingLink) return false;
+    const t = new Date(scheduledAt).getTime();
+    const now = Date.now();
+    return now >= t - 30 * 60 * 1000 && now <= t + 2 * 60 * 60 * 1000;
   };
+
   const handleProgramClick = (program: Program) => {
     if (isPurchased(program.id)) {
       navigate(`/program/${program.id}`);
@@ -313,22 +330,22 @@ export const EmployeePrograms = () => {
                           ✓ Enrolled - Continue Learning
                         </Button>
                         
-                        {(() => {
-                          const meetingLink = getMeetingLink(program.id);
-                          if (meetingLink && isLinkActive(meetingLink)) {
-                            return (
-                              <Button 
-                                className="w-full" 
-                                variant="default"
-                                onClick={() => window.open(meetingLink, '_blank')}
-                              >
-                                <Video className="w-4 h-4 mr-2" />
-                                Join Session
-                              </Button>
-                            );
-                          }
-                          return null;
-                        })()}
+                          {(() => {
+                            const { link, scheduledAt } = getMeetingInfo(program.id);
+                            if (isMeetingActive(scheduledAt, link)) {
+                              return (
+                                <Button 
+                                  className="w-full" 
+                                  variant="default"
+                                  onClick={() => window.open(link!, '_blank')}
+                                >
+                                  <Video className="w-4 h-4 mr-2" />
+                                  Join Session
+                                </Button>
+                              );
+                            }
+                            return null;
+                          })()}
                       </div>
                     ) : (
                       <Button 
