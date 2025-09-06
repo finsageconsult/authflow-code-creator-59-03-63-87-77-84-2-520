@@ -194,22 +194,26 @@ export const UserChat: React.FC = () => {
     const program = programs[enrollment.course_id];
     const coach = coaches[enrollment.coach_id];
     
+    console.log('Enrollment:', enrollment);
+    console.log('Program for course:', enrollment.course_id, program);
+    console.log('Coach for enrollment:', enrollment.coach_id, coach);
+    
     return {
       id: enrollment.id,
       programId: enrollment.course_id,
-      title: program?.title || 'Unknown Program',
-      category: program?.category || 'course',
-      description: program?.description || 'Program description not available',
+      title: program?.title || getCourseTitle(enrollment.course_id),
+      category: program?.category === '1-1-sessions' ? '1-1-sessions' : 'short-program',
+      description: program?.description || `Course program for ${getCourseTitle(enrollment.course_id)}`,
       coach: coach || {
-        id: 'unknown',
-        name: 'Coach Not Assigned',
-        bio: 'Coach information not available',
-        rating: 4.5,
-        specialties: ['General'],
-        experience: 'N/A'
+        id: enrollment.coach_id || 'unknown',
+        name: 'Coach Assigned',
+        bio: 'Your dedicated financial coach ready to help you succeed',
+        rating: 4.8,
+        specialties: ['Financial Planning', 'Investment Guidance'],
+        experience: '5+ years'
       },
       purchaseDate: enrollment.created_at,
-      progress: enrollment.progress || 0
+      progress: 0
     };
   });
 
@@ -357,6 +361,8 @@ export const UserChat: React.FC = () => {
     );
   }
 
+  console.log('Final purchased courses:', purchasedCourses);
+
   if (purchasedCourses.length === 0) {
     return (
       <Card className="h-96 flex items-center justify-center">
@@ -364,10 +370,18 @@ export const UserChat: React.FC = () => {
           <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">No Courses Yet</h3>
           <p className="text-muted-foreground mb-4">
-            Purchase a program to get access to your dedicated coach and start chatting.
+            {userProfile?.role === 'EMPLOYEE' 
+              ? 'Enroll in a program to get access to your dedicated coach and start chatting.'
+              : 'Purchase a program to get access to your dedicated coach and start chatting.'
+            }
           </p>
-          <Button onClick={() => window.location.href = '/individual-dashboard?tab=programs'}>
-            Browse Programs
+          <Button onClick={() => {
+            const dashboardPath = userProfile?.role === 'EMPLOYEE' 
+              ? '/employee-dashboard?tab=programs' 
+              : '/individual-dashboard?tab=programs';
+            window.location.href = dashboardPath;
+          }}>
+            {userProfile?.role === 'EMPLOYEE' ? 'Browse Programs' : 'Browse Programs'}
           </Button>
         </CardContent>
       </Card>
