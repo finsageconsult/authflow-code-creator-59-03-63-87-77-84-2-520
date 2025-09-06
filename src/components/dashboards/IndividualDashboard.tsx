@@ -18,6 +18,7 @@ import { UserChat } from '@/components/user/UserChat';
 import { UserAssignments } from '@/components/user/UserAssignments';
 import { SupportQuery } from '@/components/support/SupportQuery';
 import { IndividualSidebar } from './IndividualSidebar';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   BookOpen, 
@@ -357,8 +358,17 @@ export const IndividualDashboard = () => {
                           <Button
                             onClick={() => {
                               if (isItemPurchased('program', program.id)) {
-                                // Open session in new tab for purchased programs
-                                window.open(`/program/${program.id}/session`, '_blank');
+                                // Check if session link is available
+                                const now = new Date();
+                                const sessionTime = new Date('2024-01-15T19:30:00Z'); // This would come from booking
+                                const linkActiveTime = new Date(sessionTime.getTime() - 30 * 60 * 1000);
+                                
+                                if (now >= linkActiveTime) {
+                                  // Open session in new tab for purchased programs
+                                  window.open(`/program/${program.id}/session`, '_blank');
+                                } else {
+                                  toast.error('Join link will be available 30 minutes before your session time');
+                                }
                               } else {
                                 setSelectedCourse({
                                   id: program.id,

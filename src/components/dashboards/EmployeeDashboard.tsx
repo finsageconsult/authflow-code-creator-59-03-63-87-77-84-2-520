@@ -27,6 +27,7 @@ import { EnrollmentWorkflow } from '@/components/enrollment/EnrollmentWorkflow';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserChat } from '@/components/user/UserChat';
 import { UserAssignments } from '@/components/user/UserAssignments';
+import { toast } from 'sonner';
 
 interface MoodCheckIn {
   mood: 'excited' | 'optimistic' | 'neutral' | 'worried' | 'stressed' | null;
@@ -550,9 +551,30 @@ export const EmployeeDashboard = () => {
                   <p className="text-sm text-muted-foreground">{booking.type}</p>
                   <p className="text-sm text-muted-foreground">{booking.date}</p>
                 </div>
-                <Badge className="bg-green-100 text-green-800">
-                  Confirmed
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-green-100 text-green-800">
+                    {booking.status}
+                  </Badge>
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      // Check if session link is available
+                      const now = new Date();
+                      const sessionTime = new Date('2024-01-15T19:30:00Z'); // This would come from booking
+                      const linkActiveTime = new Date(sessionTime.getTime() - 30 * 60 * 1000);
+                      
+                      if (now >= linkActiveTime) {
+                        // Open session in new tab
+                        window.open(`/session/${booking.title.toLowerCase().replace(/\s+/g, '-')}`, '_blank');
+                      } else {
+                        toast.error('Join link will be available 30 minutes before your session time');
+                      }
+                    }}
+                    className="text-xs"
+                  >
+                    Join Session
+                  </Button>
+                </div>
               </div>
             ))}
             {upcomingBookings.length === 0 && (

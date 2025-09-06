@@ -21,6 +21,9 @@ interface Session {
   outcomeTags: string[];
   resources: string[];
   meetingLink?: string;
+  linkGeneratedAt?: string;
+  linkExpiresAt?: string;
+  isLinkActive?: boolean;
 }
 
 const OUTCOME_TAGS = [
@@ -46,26 +49,32 @@ export const SessionManager = () => {
     {
       id: '1',
       clientName: 'Sarah M.',
-      scheduledAt: '2024-01-15T14:00:00Z',
+      scheduledAt: '2024-01-15T19:30:00Z',
       duration: 60,
       sessionType: 'Investment Planning',
       status: 'scheduled',
       notes: '',
       outcomeTags: [],
       resources: [],
-      meetingLink: 'https://meet.google.com/abc-def-ghi'
+      meetingLink: 'https://meet.google.com/abc-def-ghi',
+      linkGeneratedAt: '2024-01-15T14:00:00Z',
+      linkExpiresAt: '2024-01-15T19:00:00Z',
+      isLinkActive: false
     },
     {
       id: '2',
       clientName: 'John D.',
-      scheduledAt: '2024-01-15T16:00:00Z',
+      scheduledAt: '2024-01-15T21:30:00Z',
       duration: 45,
       sessionType: 'Debt Management',
       status: 'completed',
       notes: 'Client showed great progress in debt reduction strategy. Needs follow-up on consolidation loan application.',
       outcomeTags: ['DEBT_PLAN', 'FINANCIAL_GOAL_SET'],
       resources: ['debt-consolidation-guide.pdf'],
-      meetingLink: 'https://meet.google.com/xyz-uvw-rst'
+      meetingLink: 'https://meet.google.com/xyz-uvw-rst',
+      linkGeneratedAt: '2024-01-15T16:00:00Z',
+      linkExpiresAt: '2024-01-15T21:00:00Z',
+      isLinkActive: false
     }
   ]);
 
@@ -98,6 +107,42 @@ export const SessionManager = () => {
     toast({
       title: "Session Updated",
       description: "Session notes and outcome tags have been saved successfully.",
+    });
+  };
+
+  const generateJoinLink = (session: Session) => {
+    const now = new Date();
+    const sessionTime = new Date(session.scheduledAt);
+    const linkActiveTime = new Date(sessionTime.getTime() - 30 * 60 * 1000); // 30 minutes before session
+    
+    setSessions(prev => prev.map(s => 
+      s.id === session.id 
+        ? { 
+            ...s, 
+            linkGeneratedAt: now.toISOString(),
+            linkExpiresAt: linkActiveTime.toISOString(),
+            isLinkActive: false,
+            meetingLink: `https://meet.google.com/${Math.random().toString(36).substr(2, 12)}`
+          }
+        : s
+    ));
+
+    toast({
+      title: "Join Link Generated",
+      description: `Join link will be active 30 minutes before the session`,
+    });
+  };
+
+  const activateJoinLink = (session: Session) => {
+    setSessions(prev => prev.map(s => 
+      s.id === session.id 
+        ? { ...s, isLinkActive: true }
+        : s
+    ));
+
+    toast({
+      title: "Join Link Activated",
+      description: `Join link is now active for ${session.clientName}`,
     });
   };
 
@@ -150,6 +195,13 @@ export const SessionManager = () => {
                     <p className="text-sm text-muted-foreground">{session.sessionType}</p>
                     <p className="text-sm text-muted-foreground">{date} • {time} • {session.duration}min</p>
                     
+                    {session.linkExpiresAt && (
+                      <p className="text-xs text-muted-foreground">
+                        Join link active: {new Date(session.linkExpiresAt).toLocaleString()} 
+                        {session.isLinkActive ? " (Active)" : " (Pending)"}
+                      </p>
+                    )}
+                    
                     {session.outcomeTags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {session.outcomeTags.map(tag => (
@@ -163,12 +215,36 @@ export const SessionManager = () => {
                 </div>
                 
                 <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
-                  {session.meetingLink && (
+                  {session.meetingLink && session.isLinkActive && (
                     <Button size="sm" variant="outline" className="flex-1 sm:flex-none" asChild>
                       <a href={session.meetingLink} target="_blank" rel="noopener noreferrer">
                         <Video className="w-4 h-4 mr-1" />
                         <span className="hidden xs:inline">Join</span>
                       </a>
+                    </Button>
+                  )}
+                  
+                  {session.meetingLink && !session.isLinkActive && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="flex-1 sm:flex-none"
+                      onClick={() => activateJoinLink(session)}
+                    >
+                      <Video className="w-4 h-4 mr-1" />
+                      <span className="hidden xs:inline">Activate Link</span>
+                    </Button>
+                  )}
+                  
+                  {!session.meetingLink && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="flex-1 sm:flex-none"
+                      onClick={() => generateJoinLink(session)}
+                    >
+                      <Video className="w-4 h-4 mr-1" />
+                      <span className="hidden xs:inline">Generate Link</span>
                     </Button>
                   )}
                   
