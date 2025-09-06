@@ -96,18 +96,16 @@ export const SessionManager = () => {
       // Group enrollments by course
       const courseMap = new Map();
       
-      studentsData.forEach((student: any) => {
+       studentsData.forEach((student: any) => {
         if (!student.enrollments || student.enrollments.length === 0) return;
         
         student.enrollments.forEach((enrollment: any) => {
           const courseTitle = enrollment.program_title;
           const courseCategory = enrollment.program_category || 'coaching';
           
-          // Find matching coaching session
-          const session = sessions?.find(s => 
-            s.client_id === student.id && 
-            enrollment.scheduled_at && new Date(s.scheduled_at).getTime() === new Date(enrollment.scheduled_at).getTime()
-          );
+          // Find the most recent coaching session for this coach+client (not exact time match)
+          const session = sessions?.filter(s => s.client_id === student.id)
+            .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0];
 
           const enrollmentData = {
             id: enrollment.id,
