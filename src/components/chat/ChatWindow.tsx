@@ -20,9 +20,9 @@ import {
   Phone,
   Video,
   MoreVertical,
-  ClipboardList
+  
 } from 'lucide-react';
-import ChatAssignmentDialog from './ChatAssignmentDialog';
+
 import { format, isToday, isYesterday } from 'date-fns';
 
 interface ChatWindowProps {
@@ -40,7 +40,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, onBack }) => {
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -266,16 +266,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, onBack }) => {
           </div>
           
           <div className="flex items-center gap-2">
-            {(userProfile?.role === 'COACH' || userProfile?.role === 'HR' || userProfile?.role === 'ADMIN') && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowAssignmentDialog(true)}
-                title="Create Assignment"
-              >
-                <ClipboardList className="h-4 w-4" />
-              </Button>
-            )}
             <Button variant="ghost" size="sm">
               <Phone className="h-4 w-4" />
             </Button>
@@ -352,12 +342,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, onBack }) => {
           className="hidden"
           onChange={handleFileUpload}
           accept="*/*"
-        />
-        
-        <ChatAssignmentDialog
-          open={showAssignmentDialog}
-          onOpenChange={setShowAssignmentDialog}
-          chat={chat}
         />
       </div>
     </div>
