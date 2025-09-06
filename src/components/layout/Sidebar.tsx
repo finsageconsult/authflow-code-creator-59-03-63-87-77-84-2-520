@@ -119,34 +119,14 @@ const coachMenuItems = [{
   icon: MessageSquare,
   roles: ['COACH']
 }, {
-  title: 'Analytics',
-  url: '/coach-dashboard?tab=analytics',
-  icon: BarChart3,
-  roles: ['COACH']
-}, {
   title: 'Sessions',
   url: '/coach-dashboard?tab=sessions',
   icon: Calendar,
   roles: ['COACH']
 }, {
-  title: 'Clients',
-  url: '/coach-dashboard?tab=clients',
-  icon: UserCheck,
-  roles: ['COACH']
-}, {
-  title: 'Content',
-  url: '/coach-dashboard?tab=content',
-  icon: FileText,
-  roles: ['COACH']
-}, {
   title: 'Availability',
   url: '/coach-dashboard?tab=availability',
   icon: Clock,
-  roles: ['COACH']
-}, {
-  title: 'Payouts',
-  url: '/coach-dashboard?tab=payouts',
-  icon: Coins,
   roles: ['COACH']
 }, {
   title: 'Support',
