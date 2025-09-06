@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Calendar, Clock, FileText, Tags, Video, Send, Paperclip, BookOpen, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -251,12 +251,15 @@ export const SessionManager = () => {
       return;
     }
 
+    // Get the course title from the current enrollment's course
+    const courseTitle = enrollment.course?.title || 'Financial Coaching';
+
     try {
       console.log('Generating join link for:', {
         coach_id: userProfile?.id,
         client_id: enrollment.user.id,
         scheduled_at: enrollment.scheduledAt,
-        session_type: enrollment.course?.title || 'Coaching Session',
+        session_type: courseTitle,
         meeting_link: linkToUse,
         organization_id: userProfile?.organization_id
       });
@@ -267,7 +270,7 @@ export const SessionManager = () => {
         .select('id')
         .eq('coach_id', userProfile?.id)
         .eq('client_id', enrollment.user.id)
-        .eq('session_type', enrollment.course?.title || 'Financial Coaching')
+        .eq('session_type', courseTitle)
         .eq('scheduled_at', enrollment.scheduledAt)
         .limit(1);
 
@@ -285,7 +288,7 @@ export const SessionManager = () => {
           .update({
             meeting_link: linkToUse,
             status: 'scheduled',
-            session_type: enrollment.course?.title || 'Financial Coaching',
+            session_type: courseTitle,
             organization_id: userProfile?.organization_id || null,
             duration_minutes: 60,
             scheduled_at: enrollment.scheduledAt,
@@ -299,7 +302,7 @@ export const SessionManager = () => {
             coach_id: userProfile?.id,
             client_id: enrollment.user.id,
             scheduled_at: enrollment.scheduledAt,
-            session_type: enrollment.course?.title || 'Financial Coaching',
+            session_type: courseTitle,
             meeting_link: linkToUse,
             status: 'scheduled',
             organization_id: userProfile?.organization_id || null,
@@ -538,6 +541,9 @@ export const SessionManager = () => {
                                 <DialogTitle>
                                   {currentEnrollment?.meetingLink ? 'Update' : 'Set'} Meeting Link - {currentEnrollment?.user.name}
                                 </DialogTitle>
+                                <DialogDescription>
+                                  Set the meeting link for this session. The link will be active 30 minutes before the scheduled time.
+                                </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4">
                                 <div>
