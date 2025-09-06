@@ -135,6 +135,7 @@ export const EmployeePrograms = () => {
           .eq('client_id', userProfile.id)
           .order('updated_at', { ascending: false });
         
+        console.log('Fetched coaching sessions for user:', userProfile.id, sessionsData);
         setCoachingSessions(sessionsData || []);
       }
     } catch (error) {
@@ -162,6 +163,11 @@ export const EmployeePrograms = () => {
 
   // Get active coaching session for enrolled programs
   const getMeetingInfo = (programId: string): { link: string | null; scheduledAt: string | null } => {
+    console.log('getMeetingInfo called for program:', programId);
+    console.log('enrolledPrograms has this program?', enrolledPrograms.has(programId));
+    console.log('coachingSessions count:', coachingSessions.length);
+    console.log('userProfile.id:', userProfile?.id);
+    
     // Check if user is enrolled in this program
     const isEnrolledInProgram = enrolledPrograms.has(programId);
     if (!isEnrolledInProgram) return { link: null, scheduledAt: null };
@@ -173,6 +179,8 @@ export const EmployeePrograms = () => {
       s.scheduled_at
     );
     
+    console.log('userSessions found:', userSessions);
+    
     if (userSessions.length === 0) return { link: null, scheduledAt: null };
     
     // Get the most relevant session (upcoming first, then most recent)
@@ -182,6 +190,7 @@ export const EmployeePrograms = () => {
       ? upcomingSessions.sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
       : userSessions.sort((a, b) => new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime())[0];
     
+    console.log('selected session:', session);
     return { link: session.meeting_link, scheduledAt: session.scheduled_at };
   };
 
@@ -339,9 +348,12 @@ export const EmployeePrograms = () => {
                         >
                           ✓ Enrolled - Continue Learning
                         </Button>
-                        
+                         
                           {(() => {
                             const { link, scheduledAt } = getMeetingInfo(program.id);
+                            console.log(`Program ${program.title} (${program.id}):`, { link, scheduledAt });
+                            console.log(`isMeetingActive result:`, isMeetingActive(scheduledAt, link));
+                            
                             if (isMeetingActive(scheduledAt, link)) {
                               return (
                                 <Button 
@@ -354,6 +366,22 @@ export const EmployeePrograms = () => {
                                 </Button>
                               );
                             }
+                            
+                            // Show debug info if we have link but meeting isn't active
+                            if (link) {
+                              const now = Date.now();
+                              const sessionTime = new Date(scheduledAt || '').getTime();
+                              const activeStart = sessionTime - 30 * 60 * 1000;
+                              const activeEnd = sessionTime + 2 * 60 * 60 * 1000;
+                              console.log('Debug meeting timing:', {
+                                now: new Date(now),
+                                sessionTime: new Date(sessionTime),
+                                activeStart: new Date(activeStart),
+                                activeEnd: new Date(activeEnd),
+                                isInActiveWindow: now >= activeStart && now <= activeEnd
+                              });
+                            }
+                            
                             return null;
                           })()}
                       </div>
