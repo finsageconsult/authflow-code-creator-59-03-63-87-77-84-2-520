@@ -28,6 +28,191 @@ interface PlatformStats {
   monthlyRevenue: number;
 }
 
+interface RecentActivityItem {
+  id: string;
+  type: 'organization' | 'user' | 'credit' | 'payment';
+  title: string;
+  description: string;
+  created_at: string;
+  organization_name?: string;
+  user_name?: string;
+  amount?: number;
+}
+
+const RecentActivity = () => {
+  const [activities, setActivities] = useState<RecentActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecentActivity = async () => {
+      try {
+        // Fetch recent organizations
+        const { data: recentOrgs } = await supabase
+          .from('organizations')
+          .select('id, name, created_at')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        // Fetch recent users
+        const { data: recentUsers } = await supabase
+          .from('users')
+          .select('id, name, created_at, organization_id')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        // Fetch recent payments
+        const { data: recentPayments } = await supabase
+          .from('payments')
+          .select('id, amount, created_at, status')
+          .eq('status', 'captured')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        const activityItems: RecentActivityItem[] = [];
+
+        // Add organization activities
+        recentOrgs?.forEach(org => {
+          activityItems.push({
+            id: `org-${org.id}`,
+            type: 'organization',
+            title: 'New organization registered',
+            description: `${org.name} joined the platform`,
+            created_at: org.created_at,
+            organization_name: org.name
+          });
+        });
+
+        // Add user activities
+        recentUsers?.forEach(user => {
+          activityItems.push({
+            id: `user-${user.id}`,
+            type: 'user',
+            title: 'New user joined',
+            description: `${user.name || 'New user'} created an account`,
+            created_at: user.created_at,
+            user_name: user.name
+          });
+        });
+
+        // Add payment activities
+        recentPayments?.forEach(payment => {
+          activityItems.push({
+            id: `payment-${payment.id}`,
+            type: 'payment',
+            title: 'Payment completed',
+            description: `₹${payment.amount} payment processed`,
+            created_at: payment.created_at || new Date().toISOString(),
+            amount: payment.amount
+          });
+        });
+
+        // Sort by date and take most recent 5
+        const sortedActivities = activityItems
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 5);
+
+        setActivities(sortedActivities);
+      } catch (error) {
+        console.error('Error fetching recent activity:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecentActivity();
+  }, []);
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'organization': return Building2;
+      case 'user': return Users;
+      case 'payment': return CreditCard;
+      default: return Activity;
+    }
+  };
+
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'organization': return 'text-blue-600';
+      case 'user': return 'text-purple-600';
+      case 'payment': return 'text-green-600';
+      default: return 'text-gray-600';
+    }
+  };
+
+  const getActivityBgColor = (type: string) => {
+    switch (type) {
+      case 'organization': return 'bg-blue-100';
+      case 'user': return 'bg-purple-100';
+      case 'payment': return 'bg-green-100';
+      default: return 'bg-gray-100';
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    if (diffInHours < 48) return '1 day ago';
+    return `${Math.floor(diffInHours / 24)} days ago`;
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Recent Platform Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-muted-foreground">Loading recent activity...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Activity className="h-5 w-5" />
+          Recent Platform Activity
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {activities.length === 0 ? (
+          <div className="text-muted-foreground text-center py-4">
+            No recent activity found
+          </div>
+        ) : (
+          activities.map((activity) => {
+            const Icon = getActivityIcon(activity.type);
+            return (
+              <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg border">
+                <div className={`p-2 rounded-full ${getActivityBgColor(activity.type)}`}>
+                  <Icon className={`h-4 w-4 ${getActivityColor(activity.type)}`} />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium">{activity.title}</h4>
+                  <p className="text-sm text-muted-foreground">{activity.description}</p>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {formatTimeAgo(activity.created_at)}
+                </span>
+              </div>
+            );
+          })
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 export const AdminDashboard = () => {
   const { userProfile } = useAuth();
   const navigate = useNavigate();
@@ -62,11 +247,23 @@ export const AdminDashboard = () => {
         const totalCredits = orgPlans?.reduce((sum, plan) => 
           sum + plan.credit_allotment_1on1 + plan.credit_allotment_webinar, 0) || 0;
 
+        // Fetch actual monthly revenue from payments
+        const currentMonth = new Date();
+        const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+        
+        const { data: monthlyPayments } = await supabase
+          .from('payments')
+          .select('amount')
+          .eq('status', 'captured')
+          .gte('created_at', firstDayOfMonth.toISOString());
+
+        const monthlyRevenue = monthlyPayments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
+
         setStats({
           totalOrganizations: orgCount || 0,
           totalUsers: userCount || 0,
           totalCredits,
-          monthlyRevenue: 45000 // Placeholder
+          monthlyRevenue
         });
       } catch (error) {
         console.error('Error fetching platform stats:', error);
@@ -234,48 +431,7 @@ export const AdminDashboard = () => {
       </Card>
 
       {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Recent Platform Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3 p-3 rounded-lg border">
-            <div className="p-2 rounded-full bg-blue-100">
-              <Building2 className="h-4 w-4 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-medium">New organization registered</h4>
-              <p className="text-sm text-muted-foreground">TechCorp signed up for Premium plan</p>
-            </div>
-            <span className="text-xs text-muted-foreground">2 hours ago</span>
-          </div>
-          
-          <div className="flex items-center gap-3 p-3 rounded-lg border">
-            <div className="p-2 rounded-full bg-green-100">
-              <CreditCard className="h-4 w-4 text-green-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-medium">Credits purchased</h4>
-              <p className="text-sm text-muted-foreground">StartupXYZ bought 500 webinar credits</p>
-            </div>
-            <span className="text-xs text-muted-foreground">4 hours ago</span>
-          </div>
-
-          <div className="flex items-center gap-3 p-3 rounded-lg border">
-            <div className="p-2 rounded-full bg-purple-100">
-              <Users className="h-4 w-4 text-purple-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-medium">Bulk user invitation</h4>
-              <p className="text-sm text-muted-foreground">InnovateCorp invited 50 employees</p>
-            </div>
-            <span className="text-xs text-muted-foreground">1 day ago</span>
-          </div>
-        </CardContent>
-      </Card>
+      <RecentActivity />
     </div>
   );
 };
