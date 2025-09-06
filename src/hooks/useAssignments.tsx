@@ -64,10 +64,20 @@ export const useAssignments = () => {
     if (!userProfile) return;
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('assignments')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      // Filter assignments based on user role
+      if (userProfile.role === 'COACH' || userProfile.role === 'HR' || userProfile.role === 'ADMIN') {
+        // Coaches, HR, and Admins can see assignments they created or are assigned to
+        query = query.or(`created_by.eq.${userProfile.id},assigned_to.eq.${userProfile.id}`);
+      } else {
+        // Employees and Individuals can only see assignments assigned to them
+        query = query.eq('assigned_to', userProfile.id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       setAssignments(data || []);
@@ -173,7 +183,7 @@ export const useAssignments = () => {
   return {
     assignments,
     loading,
-    createAssignment,
+    createAssignment,  
     updateAssignmentStatus,
     refetch: fetchAssignments,
   };
