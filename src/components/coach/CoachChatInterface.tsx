@@ -39,82 +39,63 @@ export const CoachChatInterface: React.FC = () => {
       console.log('Fetching students for coach:', userProfile.id);
       
       // Get all students who have enrolled with this coach OR purchased individual programs
-      const studentsFromSources = await Promise.all([
-        // 1. Get enrollments where this user is the coach
+      // Avoid FK-dependent joins (some FKs may be missing) and fetch in steps
+      const [enrollmentsRes, bookingsRes] = await Promise.all([
         supabase
           .from('enrollments')
-          .select(`
-            *,
-            user:users!enrollments_user_id_fkey(id, name, email, role, organization_id)
-          `)
-          .eq('coach_id', userProfile.id),
-        
-        // 2. Get individual purchases/bookings with this coach
+          .select('*')
+          .eq('coach_id', userProfile.id)
+          .in('status', ['confirmed', 'active', 'enrolled', 'completed']),
         supabase
           .from('individual_bookings')
-          .select(`
-            *,
-            user:users!individual_bookings_user_id_fkey(id, name, email, role, organization_id),
-            program:individual_programs!individual_bookings_program_id_fkey(id, title)
-          `)
-          .eq('coach_id', userProfile.id),
-        
-        // 3. Get all individual purchases where the user later selected this coach
-        supabase
-          .from('individual_purchases')
-          .select(`
-            *,
-            user:users!individual_purchases_user_id_fkey(id, name, email, role, organization_id),
-            program:individual_programs!individual_purchases_program_id_fkey(id, title)
-          `)
-          .eq('status', 'completed')
+          .select('*')
+          .eq('coach_id', userProfile.id)
       ]);
 
-      const [enrollmentsResponse, bookingsResponse, purchasesResponse] = studentsFromSources;
-      
-      console.log('Enrollments:', enrollmentsResponse.data);
-      console.log('Bookings:', bookingsResponse.data);
-      console.log('Purchases:', purchasesResponse.data);
+      const allEnrollments = enrollmentsRes.data || [];
+      const allBookings = bookingsRes.data || [];
 
-      const allEnrollments = enrollmentsResponse.data || [];
-      const allBookings = bookingsResponse.data || [];
-      const allPurchases = purchasesResponse.data || [];
-
-      // Get all unique course/program IDs
+      // Collect unique user and program ids
+      const userIds = [
+        ...new Set([
+          ...allEnrollments.map(e => e.user_id).filter(Boolean),
+          ...allBookings.map(b => b.user_id).filter(Boolean)
+        ])
+      ];
       const courseIds = [
         ...new Set([
-          ...allEnrollments.map(e => e.course_id),
-          ...allBookings.map(b => b.program_id),
-          ...allPurchases.map(p => p.program_id)
+          ...allEnrollments.map(e => e.course_id).filter(Boolean),
+          ...allBookings.map(b => b.program_id).filter(Boolean)
         ])
-      ].filter(Boolean);
+      ];
 
-      console.log('Course IDs:', courseIds);
+      // Fetch users and programs in bulk
+      const [{ data: usersData }, { data: programs }] = await Promise.all([
+        userIds.length
+          ? supabase.from('users').select('id, name, email').in('id', userIds)
+          : Promise.resolve({ data: [] as any }),
+        courseIds.length
+          ? supabase.from('individual_programs').select('id, title').in('id', courseIds)
+          : Promise.resolve({ data: [] as any })
+      ]);
 
-      // Get program data
-      const { data: programs, error: programError } = await supabase
-        .from('individual_programs')
-        .select('id, title')
-        .in('id', courseIds);
-
-      console.log('Programs:', programs);
-
-      const programMap = (programs || []).reduce((acc, program) => {
-        acc[program.id] = program.title;
+      const userMap = (usersData || []).reduce((acc: Record<string, any>, u: any) => {
+        acc[u.id] = u;
         return acc;
-      }, {} as Record<string, string>);
+      }, {});
+      const programMap = (programs || []).reduce((acc: Record<string, string>, p: any) => {
+        acc[p.id] = p.title;
+        return acc;
+      }, {});
 
       // Group all student data by user ID
       const studentMap: Record<string, CoachingStudent> = {};
-      
+
       // Process enrollments
       allEnrollments.forEach((enrollment: any) => {
-        const student = enrollment.user;
-        if (!student || !student.id) {
-          console.warn('Enrollment missing user data:', enrollment);
-          return;
-        }
-        
+        const student = userMap[enrollment.user_id];
+        if (!student) return;
+
         if (!studentMap[student.id]) {
           studentMap[student.id] = {
             id: student.id,
@@ -123,7 +104,7 @@ export const CoachChatInterface: React.FC = () => {
             enrollments: []
           };
         }
-        
+
         studentMap[student.id].enrollments.push({
           id: enrollment.id,
           course_id: enrollment.course_id,
@@ -136,12 +117,9 @@ export const CoachChatInterface: React.FC = () => {
 
       // Process bookings
       allBookings.forEach((booking: any) => {
-        const student = booking.user;
-        if (!student || !student.id) {
-          console.warn('Booking missing user data:', booking);
-          return;
-        }
-        
+        const student = userMap[booking.user_id];
+        if (!student) return;
+
         if (!studentMap[student.id]) {
           studentMap[student.id] = {
             id: student.id,
@@ -150,41 +128,14 @@ export const CoachChatInterface: React.FC = () => {
             enrollments: []
           };
         }
-        
+
         studentMap[student.id].enrollments.push({
           id: booking.id,
           course_id: booking.program_id,
-          program_title: booking.program?.title || programMap[booking.program_id] || getCourseTitle(booking.program_id),
+          program_title: programMap[booking.program_id] || getCourseTitle(booking.program_id),
           enrollment_date: booking.created_at,
           scheduled_at: booking.scheduled_at,
           source: 'booking'
-        });
-      });
-
-      // Process purchases
-      allPurchases.forEach((purchase: any) => {
-        const student = purchase.user;
-        if (!student || !student.id) {
-          console.warn('Purchase missing user data:', purchase);
-          return;
-        }
-        
-        if (!studentMap[student.id]) {
-          studentMap[student.id] = {
-            id: student.id,
-            name: student.name || 'Unknown User',
-            email: student.email || 'No email',
-            enrollments: []
-          };
-        }
-        
-        studentMap[student.id].enrollments.push({
-          id: purchase.id,
-          course_id: purchase.program_id,
-          program_title: purchase.program?.title || programMap[purchase.program_id] || getCourseTitle(purchase.program_id),
-          enrollment_date: purchase.created_at,
-          scheduled_at: null,
-          source: 'purchase'
         });
       });
 
