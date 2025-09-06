@@ -408,12 +408,25 @@ export const useChatMessages = (chatId: string) => {
     }
   };
 
+  // Function to sanitize filenames for Supabase storage
+  const sanitizeFileName = (fileName: string): string => {
+    // Remove invalid characters and replace with safe alternatives
+    return fileName
+      .replace(/[{}]/g, '') // Remove curly braces
+      .replace(/[()]/g, '') // Remove parentheses
+      .replace(/\s+/g, '_') // Replace spaces with underscores
+      .replace(/[^a-zA-Z0-9._-]/g, '') // Remove any other special characters except dots, underscores, and hyphens
+      .replace(/_+/g, '_') // Replace multiple underscores with single underscore
+      .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+  };
+
   const uploadFile = async (file: File) => {
     if (!userProfile || !chatId) return null;
 
     try {
-      // Upload file to storage
-      const fileName = `${userProfile.id}/${chatId}/${Date.now()}-${file.name}`;
+      // Sanitize the filename to ensure it's valid for Supabase storage
+      const sanitizedFileName = sanitizeFileName(file.name);
+      const fileName = `${userProfile.id}/${chatId}/${Date.now()}-${sanitizedFileName}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('chat-files')
         .upload(fileName, file);
