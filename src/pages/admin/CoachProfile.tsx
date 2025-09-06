@@ -79,6 +79,7 @@ export default function CoachProfile() {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [newSpecialty, setNewSpecialty] = useState('');
+  const [experience, setExperience] = useState('');
   const [saving, setSaving] = useState(false);
   const [stats, setStats] = useState<CoachStats | null>(null);
   const [offerings, setOfferings] = useState<CoachOffering[]>([]);
@@ -109,6 +110,7 @@ export default function CoachProfile() {
         setCoach(coachData);
         setSpecialties(coachData.specialties || []);
         setSelectedTags(coachData.specialties || []);
+        setExperience(coachData.experience || '');
       }
 
       // Fetch coach offerings
