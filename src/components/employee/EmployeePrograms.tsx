@@ -319,7 +319,8 @@ export const EmployeePrograms = () => {
                       <Button 
                         className="w-full" 
                         onClick={() => {
-                          setSelectedCourse({
+                          console.log('Enroll button clicked for program:', program.id);
+                          const courseData = {
                             id: program.id,
                             title: program.title,
                             description: program.description,
@@ -327,7 +328,10 @@ export const EmployeePrograms = () => {
                             price: 0, // Free for employees
                             category: program.category,
                             tags: ['financial-planning', 'budgeting', 'investing'] // Default tags for matching coaches
-                          });
+                          };
+                          console.log('Setting course data:', courseData);
+                          setSelectedCourse(courseData);
+                          console.log('Setting showEnrollment to true');
                           setShowEnrollment(true);
                         }}
                       >
@@ -352,20 +356,36 @@ export const EmployeePrograms = () => {
         </Card>}
       
       {/* Enrollment Workflow */}
-      {showEnrollment && (
-        <EnrollmentWorkflow
-          initialCourse={selectedCourse}
-          userType="employee"
-          onBack={() => {
-            setShowEnrollment(false);
-            setSelectedCourse(null);
-          }}
-          onComplete={() => {
-            setShowEnrollment(false);
-            setSelectedCourse(null);
-            fetchData();
-          }}
-        />
+      {showEnrollment && selectedCourse && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <EnrollmentWorkflow
+                initialCourse={selectedCourse}
+                userType="employee"
+                onBack={() => {
+                  console.log('Enrollment workflow - Back clicked');
+                  setShowEnrollment(false);
+                  setSelectedCourse(null);
+                }}
+                onComplete={() => {
+                  console.log('Enrollment workflow - Complete clicked');
+                  setShowEnrollment(false);
+                  setSelectedCourse(null);
+                  fetchData();
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Debug info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs rounded z-50">
+          showEnrollment: {showEnrollment.toString()}<br/>
+          selectedCourse: {selectedCourse ? selectedCourse.title : 'null'}
+        </div>
       )}
     </div>;
 };
