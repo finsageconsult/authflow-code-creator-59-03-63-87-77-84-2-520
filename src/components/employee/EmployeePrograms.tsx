@@ -160,19 +160,29 @@ export const EmployeePrograms = () => {
 
   // Legacy helper removed in favor of per-enrollment matching
 
-  // Per-enrollment meeting info based on enrollment's scheduled_at
+  // Get active coaching session for enrolled programs
   const getMeetingInfo = (programId: string): { link: string | null; scheduledAt: string | null } => {
-    const enrollmentsForProgram = userEnrollments
-      .filter(e => e.course_id === programId && e.scheduled_at)
-      .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime());
+    // Check if user is enrolled in this program
+    const isEnrolledInProgram = enrolledPrograms.has(programId);
+    if (!isEnrolledInProgram) return { link: null, scheduledAt: null };
+    
+    // Find any coaching session for this user with an active meeting link
+    const userSessions = coachingSessions.filter(s => 
+      s.client_id === userProfile?.id && 
+      s.meeting_link && 
+      s.scheduled_at
+    );
+    
+    if (userSessions.length === 0) return { link: null, scheduledAt: null };
+    
+    // Get the most relevant session (upcoming first, then most recent)
     const now = Date.now();
-    const upcoming = enrollmentsForProgram.find(e => new Date(e.scheduled_at).getTime() >= now) || enrollmentsForProgram.slice().reverse()[0];
-    if (!upcoming) return { link: null, scheduledAt: null };
-    const matchingSessions = coachingSessions
-      .filter(s => s.scheduled_at && new Date(s.scheduled_at).getTime() === new Date(upcoming.scheduled_at).getTime() && s.meeting_link)
-      .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime());
-    const session = matchingSessions[0];
-    return { link: session?.meeting_link || null, scheduledAt: upcoming.scheduled_at };
+    const upcomingSessions = userSessions.filter(s => new Date(s.scheduled_at).getTime() >= now);
+    const session = upcomingSessions.length > 0 
+      ? upcomingSessions.sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
+      : userSessions.sort((a, b) => new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime())[0];
+    
+    return { link: session.meeting_link, scheduledAt: session.scheduled_at };
   };
 
   const isMeetingActive = (scheduledAt?: string | null, meetingLink?: string | null) => {
