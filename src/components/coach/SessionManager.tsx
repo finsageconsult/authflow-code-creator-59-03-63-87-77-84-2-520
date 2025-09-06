@@ -103,9 +103,12 @@ export const SessionManager = () => {
           const courseTitle = enrollment.program_title;
           const courseCategory = enrollment.program_category || 'coaching';
           
-          // Find the most recent coaching session for this coach+client (not exact time match)
-          const session = sessions?.filter(s => s.client_id === student.id)
-            .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0];
+          // Find coaching session for this specific enrollment (match by scheduled time and client)
+          const session = sessions?.find(s => 
+            s.client_id === student.id && 
+            s.scheduled_at && enrollment.scheduled_at &&
+            new Date(s.scheduled_at).getTime() === new Date(enrollment.scheduled_at).getTime()
+          );
 
           const enrollmentData = {
             id: enrollment.id,
@@ -258,22 +261,20 @@ export const SessionManager = () => {
         organization_id: userProfile?.organization_id
       });
 
-      // Always update the most recent session for this coach+client; insert if none
+      // Find existing session for this specific enrollment (match by scheduled time and client)
       const { data: existingSessions, error: listErr } = await supabase
         .from('coaching_sessions')
         .select('id')
         .eq('coach_id', userProfile?.id)
         .eq('client_id', enrollment.user.id)
-        .order('updated_at', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .eq('scheduled_at', enrollment.scheduledAt);
 
       if (listErr) {
         console.error('List sessions error:', listErr);
         throw listErr;
       }
 
-      const existing = existingSessions?.[0] || null;
+      const existing = existingSessions?.find(s => s.id) || null;
       let writeError: any = null;
 
       if (existing?.id) {
