@@ -21,6 +21,7 @@ interface Coach {
   created_at: string;
   avatar_url?: string;
   specialties?: string[];
+  experience?: string;
 }
 
 interface CoachStats {
@@ -298,23 +299,26 @@ export default function CoachProfile() {
     try {
       const { error } = await supabase
         .from('users')
-        .update({ specialties: selectedTags })
+        .update({ 
+          specialties: selectedTags,
+          experience: experience 
+        })
         .eq('id', coach.id);
 
       if (error) throw error;
 
       setSpecialties(selectedTags);
-      setCoach({ ...coach, specialties: selectedTags });
+      setCoach({ ...coach, specialties: selectedTags, experience: experience });
 
       toast({
         title: 'Success',
-        description: 'Specialties updated successfully'
+        description: 'Coach profile updated successfully'
       });
     } catch (error) {
-      console.error('Error updating specialties:', error);
+      console.error('Error updating coach profile:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update specialties',
+        description: 'Failed to update coach profile',
         variant: 'destructive'
       });
     } finally {
@@ -447,6 +451,22 @@ export default function CoachProfile() {
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Coach Experience Section */}
+              <div className="space-y-2">
+                <Label htmlFor="experience">Coach Experience</Label>
+                <Input
+                  id="experience"
+                  type="text"
+                  placeholder="e.g., 5+ years in financial coaching, CFA certified"
+                  value={experience}
+                  onChange={(e) => setExperience(e.target.value)}
+                  className="w-full"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Describe the coach's experience, qualifications, and expertise
+                </p>
+              </div>
+
               {/* Current Selected Specialties */}
               <div className="space-y-2">
                 <Label>Current Specialties ({selectedTags.length})</Label>
