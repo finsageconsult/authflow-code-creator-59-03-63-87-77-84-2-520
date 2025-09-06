@@ -448,41 +448,39 @@ export const SessionManager = () => {
                             </Button>
                           )}
                           
-                          {!enrollment.meetingLink && (
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button size="sm" variant="outline" className="flex-1 lg:flex-none">
-                                  <Video className="w-4 h-4 mr-1" />
-                                  Set Link
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Set Meeting Link - {enrollment.user.name}</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                  <div>
-                                    <Label htmlFor="meetingLink">Meeting Link</Label>
-                                    <Input
-                                      id="meetingLink"
-                                      placeholder="https://meet.google.com/... or https://zoom.us/..."
-                                      value={meetingLinkInput}
-                                      onChange={(e) => setMeetingLinkInput(e.target.value)}
-                                    />
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Link will be active 30 minutes before session and expire 2 hours after
-                                    </p>
-                                  </div>
-                                  <div className="flex gap-2 justify-end">
-                                    <Button variant="outline">Cancel</Button>
-                                    <Button onClick={() => generateJoinLink(enrollment)}>
-                                      Set Link
-                                    </Button>
-                                  </div>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button size="sm" variant="outline" className="flex-1 lg:flex-none">
+                                <Video className="w-4 h-4 mr-1" />
+                                {enrollment.meetingLink ? 'Update Link' : 'Set Link'}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>{enrollment.meetingLink ? 'Update' : 'Set'} Meeting Link - {enrollment.user.name}</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <Label htmlFor="meetingLink">Meeting Link</Label>
+                                  <Input
+                                    id="meetingLink"
+                                    placeholder="https://meet.google.com/... or https://zoom.us/..."
+                                    value={meetingLinkInput || enrollment.meetingLink || ''}
+                                    onChange={(e) => setMeetingLinkInput(e.target.value)}
+                                  />
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Link will be active 30 minutes before session and expire 2 hours after
+                                  </p>
                                 </div>
-                              </DialogContent>
-                            </Dialog>
-                          )}
+                                <div className="flex gap-2 justify-end">
+                                  <Button variant="outline">Cancel</Button>
+                                  <Button onClick={() => generateJoinLink(enrollment)}>
+                                    {enrollment.meetingLink ? 'Update Link' : 'Set Link'}
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </div>
                       </div>
                     );
