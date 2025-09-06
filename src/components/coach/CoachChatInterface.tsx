@@ -17,6 +17,7 @@ interface CoachingStudent {
     program_title: string;
     enrollment_date: string;
     scheduled_at?: string;
+    source?: string;
   }>;
 }
 
@@ -35,42 +36,80 @@ export const CoachChatInterface: React.FC = () => {
 
     try {
       setStudentsLoading(true);
+      console.log('Fetching students for coach:', userProfile.id);
       
-      // Get enrollments where this user is the coach
-      const { data: enrollments, error: enrollmentError } = await supabase
-        .from('enrollments')
-        .select(`
-          *,
-          user:users!enrollments_user_id_fkey(id, name, email)
-        `)
-        .eq('coach_id', userProfile.id)
-        .eq('status', 'confirmed');
+      // Get all students who have enrolled with this coach OR purchased individual programs
+      const studentsFromSources = await Promise.all([
+        // 1. Get enrollments where this user is the coach
+        supabase
+          .from('enrollments')
+          .select(`
+            *,
+            user:users!enrollments_user_id_fkey(id, name, email, role, organization_id)
+          `)
+          .eq('coach_id', userProfile.id),
+        
+        // 2. Get individual purchases/bookings with this coach
+        supabase
+          .from('individual_bookings')
+          .select(`
+            *,
+            user:users!individual_bookings_user_id_fkey(id, name, email, role, organization_id),
+            program:individual_programs!individual_bookings_program_id_fkey(id, title)
+          `)
+          .eq('coach_id', userProfile.id),
+        
+        // 3. Get all individual purchases where the user later selected this coach
+        supabase
+          .from('individual_purchases')
+          .select(`
+            *,
+            user:users!individual_purchases_user_id_fkey(id, name, email, role, organization_id),
+            program:individual_programs!individual_purchases_program_id_fkey(id, title)
+          `)
+          .eq('status', 'completed')
+      ]);
 
-      if (enrollmentError) throw enrollmentError;
+      const [enrollmentsResponse, bookingsResponse, purchasesResponse] = studentsFromSources;
+      
+      console.log('Enrollments:', enrollmentsResponse.data);
+      console.log('Bookings:', bookingsResponse.data);
+      console.log('Purchases:', purchasesResponse.data);
 
-      if (!enrollments || enrollments.length === 0) {
-        setStudents([]);
-        return;
-      }
+      const allEnrollments = enrollmentsResponse.data || [];
+      const allBookings = bookingsResponse.data || [];
+      const allPurchases = purchasesResponse.data || [];
+
+      // Get all unique course/program IDs
+      const courseIds = [
+        ...new Set([
+          ...allEnrollments.map(e => e.course_id),
+          ...allBookings.map(b => b.program_id),
+          ...allPurchases.map(p => p.program_id)
+        ])
+      ].filter(Boolean);
+
+      console.log('Course IDs:', courseIds);
 
       // Get program data
-      const courseIds = [...new Set(enrollments.map(e => e.course_id))];
       const { data: programs, error: programError } = await supabase
         .from('individual_programs')
         .select('id, title')
         .in('id', courseIds);
+
+      console.log('Programs:', programs);
 
       const programMap = (programs || []).reduce((acc, program) => {
         acc[program.id] = program.title;
         return acc;
       }, {} as Record<string, string>);
 
-      // Group enrollments by student
+      // Group all student data by user ID
       const studentMap: Record<string, CoachingStudent> = {};
       
-      enrollments.forEach((enrollment: any) => {
+      // Process enrollments
+      allEnrollments.forEach((enrollment: any) => {
         const student = enrollment.user;
-        // Skip if user data is null or missing
         if (!student || !student.id) {
           console.warn('Enrollment missing user data:', enrollment);
           return;
@@ -79,8 +118,8 @@ export const CoachChatInterface: React.FC = () => {
         if (!studentMap[student.id]) {
           studentMap[student.id] = {
             id: student.id,
-            name: student.name,
-            email: student.email,
+            name: student.name || 'Unknown User',
+            email: student.email || 'No email',
             enrollments: []
           };
         }
@@ -89,12 +128,69 @@ export const CoachChatInterface: React.FC = () => {
           id: enrollment.id,
           course_id: enrollment.course_id,
           program_title: programMap[enrollment.course_id] || getCourseTitle(enrollment.course_id),
-          enrollment_date: enrollment.created_at,
-          scheduled_at: enrollment.scheduled_at
+          enrollment_date: enrollment.created_at || enrollment.enrollment_date,
+          scheduled_at: enrollment.scheduled_at,
+          source: 'enrollment'
         });
       });
 
-      setStudents(Object.values(studentMap));
+      // Process bookings
+      allBookings.forEach((booking: any) => {
+        const student = booking.user;
+        if (!student || !student.id) {
+          console.warn('Booking missing user data:', booking);
+          return;
+        }
+        
+        if (!studentMap[student.id]) {
+          studentMap[student.id] = {
+            id: student.id,
+            name: student.name || 'Unknown User',
+            email: student.email || 'No email',
+            enrollments: []
+          };
+        }
+        
+        studentMap[student.id].enrollments.push({
+          id: booking.id,
+          course_id: booking.program_id,
+          program_title: booking.program?.title || programMap[booking.program_id] || getCourseTitle(booking.program_id),
+          enrollment_date: booking.created_at,
+          scheduled_at: booking.scheduled_at,
+          source: 'booking'
+        });
+      });
+
+      // Process purchases
+      allPurchases.forEach((purchase: any) => {
+        const student = purchase.user;
+        if (!student || !student.id) {
+          console.warn('Purchase missing user data:', purchase);
+          return;
+        }
+        
+        if (!studentMap[student.id]) {
+          studentMap[student.id] = {
+            id: student.id,
+            name: student.name || 'Unknown User',
+            email: student.email || 'No email',
+            enrollments: []
+          };
+        }
+        
+        studentMap[student.id].enrollments.push({
+          id: purchase.id,
+          course_id: purchase.program_id,
+          program_title: purchase.program?.title || programMap[purchase.program_id] || getCourseTitle(purchase.program_id),
+          enrollment_date: purchase.created_at,
+          scheduled_at: null,
+          source: 'purchase'
+        });
+      });
+
+      const studentsArray = Object.values(studentMap);
+      console.log('Final students array:', studentsArray);
+      setStudents(studentsArray);
     } catch (error) {
       console.error('Error fetching coaching students:', error);
     } finally {

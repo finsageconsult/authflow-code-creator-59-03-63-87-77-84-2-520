@@ -24,6 +24,7 @@ interface CoachingStudent {
     program_title: string;
     enrollment_date: string;
     scheduled_at?: string;
+    source?: string;
   }>;
 }
 
