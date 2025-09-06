@@ -12,7 +12,6 @@ import { HRInvoices } from '@/components/hr/HRInvoices';
 import { EmployeeDashboard } from '@/components/dashboards/EmployeeDashboard';
 import { CoachDashboard } from '@/components/dashboards/CoachDashboard';
 import { IndividualDashboard } from '@/components/dashboards/IndividualDashboard';
-import { CoachLayout } from '@/components/layout/CoachLayout';
 import Organizations from '@/pages/admin/Organizations';
 import OrganizationDetail from '@/pages/admin/OrganizationDetail';
 import Coaches from '@/pages/admin/Coaches';
@@ -68,7 +67,7 @@ export const SubdomainRouter = () => {
       <Route path="/hr-dashboard/insights" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRInsights /></AppLayout></ProtectedRoute>} />
       <Route path="/hr-dashboard/invoices" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRInvoices /></AppLayout></ProtectedRoute>} />
       <Route path="/employee-dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeLayout><EmployeeDashboard /></EmployeeLayout></ProtectedRoute>} />
-      <Route path="/coach-dashboard" element={<ProtectedRoute allowedRoles={['COACH']}><CoachLayout><CoachDashboard /></CoachLayout></ProtectedRoute>} />
+      <Route path="/coach-dashboard" element={<ProtectedRoute allowedRoles={['COACH']}><AppLayout><CoachDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/individual-dashboard" element={<ProtectedRoute allowedRoles={['INDIVIDUAL']}><SimpleLayout><IndividualDashboard /></SimpleLayout></ProtectedRoute>} />
       <Route path="/catalog" element={<ProtectedRoute><RoleBasedLayout><div>Catalog Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/coaching" element={<ProtectedRoute><RoleBasedLayout><div>Coaching Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
