@@ -263,7 +263,15 @@ export const SessionManager = () => {
         throw error;
       }
 
-      console.log('Successfully created/updated coaching session:', data);
+      // Also update the enrollment status to confirmed when link is set
+      const { error: enrollmentError } = await supabase
+        .from('enrollments')
+        .update({ status: 'confirmed' })
+        .eq('id', enrollment.id);
+
+      if (enrollmentError) {
+        console.error('Error updating enrollment status:', enrollmentError);
+      }
 
       toast({
         title: "Join Link Generated",
