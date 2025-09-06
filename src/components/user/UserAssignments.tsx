@@ -199,101 +199,52 @@ export const UserAssignments: React.FC = () => {
               </Badge>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
+            {/* Description */}
             {selectedAssignment.description && (
-              <div className="mb-6">
+              <div>
                 <h4 className="font-medium mb-2">Description</h4>
-                <p className="text-muted-foreground">{selectedAssignment.description}</p>
+                <p className="text-muted-foreground whitespace-pre-wrap">{selectedAssignment.description}</p>
               </div>
             )}
             
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Messages Section */}
-              <div>
-                <h4 className="font-medium mb-3">Discussion</h4>
-                <div className="border rounded-lg p-4 h-64 overflow-y-auto mb-3">
-                  {assignmentMessages.length === 0 ? (
-                    <p className="text-muted-foreground text-sm">No messages yet</p>
-                  ) : (
-                    assignmentMessages.map((message) => (
-                      <div key={message.id} className="mb-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-sm">
-                            {message.sender_id === userProfile?.id ? 'You' : coach.coachName}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {format(new Date(message.created_at), 'MMM dd, HH:mm')}
-                          </span>
-                        </div>
-                        <p className="text-sm">{message.message}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Type a message..."
-                    value={responses[selectedAssignment.id] || ''}
-                    onChange={(e) => setResponses(prev => ({
-                      ...prev,
-                      [selectedAssignment.id]: e.target.value
-                    }))}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        sendMessage(responses[selectedAssignment.id] || '');
-                        setResponses(prev => ({ ...prev, [selectedAssignment.id]: '' }));
-                      }
-                    }}
-                  />
-                  <Button 
-                    onClick={() => {
-                      sendMessage(responses[selectedAssignment.id] || '');
-                      setResponses(prev => ({ ...prev, [selectedAssignment.id]: '' }));
-                    }}
-                    disabled={!responses[selectedAssignment.id]?.trim()}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Files Section */}
-              <div>
-                <h4 className="font-medium mb-3">Files</h4>
-                <div className="border rounded-lg p-4 h-64 overflow-y-auto mb-3">
-                  {assignmentFiles.length === 0 ? (
-                    <p className="text-muted-foreground text-sm">No files uploaded</p>
-                  ) : (
-                    assignmentFiles.map((file) => (
-                      <div key={file.id} className="flex items-center gap-2 mb-2">
-                        <FileText className="h-4 w-4" />
-                        <span className="text-sm">{file.file_name}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
+            {/* Files Section */}
+            <div>
+              <h4 className="font-medium mb-3">Files</h4>
+              {assignmentFiles.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No files uploaded</p>
+              ) : (
                 <div className="space-y-2">
-                  <Input
-                    type="file"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileUpload(selectedAssignment.id, file);
-                    }}
-                    disabled={uploadingFile === selectedAssignment.id}
-                  />
-                  {selectedAssignment.status === 'pending' && (
-                    <Button
-                      onClick={() => handleStatusUpdate(selectedAssignment.id, 'completed')}
-                      disabled={submittingId === selectedAssignment.id}
-                      className="w-full"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Mark as Complete
-                    </Button>
-                  )}
+                  {assignmentFiles.map((file) => (
+                    <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{file.file_name}</span>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(file.file_url, '_blank')}
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
             </div>
+
+            {/* Mark as Complete Button */}
+            {selectedAssignment.status === 'pending' && (
+              <Button
+                onClick={() => handleStatusUpdate(selectedAssignment.id, 'completed')}
+                disabled={submittingId === selectedAssignment.id}
+                className="w-full"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Mark as Complete
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
