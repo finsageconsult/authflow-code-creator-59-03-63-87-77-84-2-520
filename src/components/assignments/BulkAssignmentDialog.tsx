@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAssignments } from '@/hooks/useAssignments';
@@ -50,6 +50,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   open,
   onOpenChange,
 }) => {
+  console.log('BulkAssignmentDialog render', { open });
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
@@ -69,8 +70,8 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
     },
   });
 
-  const fetchStudents = async () => {
-    if (!userProfile) return;
+  const fetchStudents = useCallback(async () => {
+    if (!userProfile?.id) return;
 
     try {
       setLoading(true);
@@ -88,7 +89,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [userProfile?.id, toast]);
 
   const handleStudentToggle = (studentId: string) => {
     setSelectedStudents(prev => 
@@ -219,10 +220,10 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   };
 
   useEffect(() => {
-    if (open && userProfile?.id) {
+    if (open) {
       fetchStudents();
     }
-  }, [open, userProfile?.id]);
+  }, [open, fetchStudents]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -427,7 +428,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
                     >
                       <Checkbox
                         checked={selectedStudents.includes(student.id)}
-                        onChange={() => handleStudentToggle(student.id)}
+                        onCheckedChange={() => handleStudentToggle(student.id)}
                       />
                       <Avatar className="h-10 w-10">
                         <AvatarFallback>

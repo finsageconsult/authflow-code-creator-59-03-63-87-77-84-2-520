@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,8 +37,8 @@ const StudentsProfileView: React.FC = () => {
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
 
-  const fetchStudents = async () => {
-    if (!userProfile) return;
+  const fetchStudents = useCallback(async () => {
+    if (!userProfile?.id) return;
 
     try {
       setLoading(true);
@@ -56,7 +56,7 @@ const StudentsProfileView: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userProfile?.id, toast]);
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -148,10 +148,8 @@ const StudentsProfileView: React.FC = () => {
   };
 
   useEffect(() => {
-    if (userProfile?.id) {
-      fetchStudents();
-    }
-  }, [userProfile?.id]);
+    fetchStudents();
+  }, [fetchStudents]);
 
   return (
     <div className="space-y-6">
