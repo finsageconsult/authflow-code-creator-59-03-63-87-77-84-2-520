@@ -15,11 +15,6 @@ const employeeMenuItems = [
     icon: BookOpen,
   },
   {
-    title: 'My Progress',
-    url: '/employee-dashboard?tab=analytics',
-    icon: TrendingUp,
-  },
-  {
     title: 'My Credits',
     url: '/employee-dashboard?tab=credits',
     icon: CreditCard,
