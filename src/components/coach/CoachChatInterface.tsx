@@ -215,6 +215,16 @@ export const CoachChatInterface: React.FC = () => {
     fetchCoachingStudents();
   }, [userProfile]);
 
+  // Force refresh when component mounts
+  useEffect(() => {
+    if (userProfile?.role === 'COACH') {
+      const timer = setTimeout(() => {
+        fetchCoachingStudents();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   // Filter coaching chats for this coach
   const coachingChats = chats.filter(chat => 
     chat.chat_type === 'coaching' && 
