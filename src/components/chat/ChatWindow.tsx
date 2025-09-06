@@ -290,8 +290,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, onBack }) => {
       </CardHeader>
 
       {/* Messages */}
-      <CardContent className="flex-1 p-0">
-        <ScrollArea className="h-full p-4">
+      <CardContent className="p-0">
+        <ScrollArea className="h-96 p-4">
           {loading ? (
             <div className="text-center text-muted-foreground">Loading messages...</div>
           ) : messages.length === 0 ? (
