@@ -195,6 +195,14 @@ export default function CoachProfile() {
         accessCodesData: accessCodesResult.data?.length
       });
 
+      // Log if no data found for this coach
+      const totalDataPoints = (sessionsResult.data?.length || 0) + 
+                             (bookingsResult.data?.length || 0) + 
+                             (enrollmentsResult.data?.length || 0);
+      if (totalDataPoints === 0) {
+        console.log(`No coaching data found for coach ${coachData.name} (${coachId})`);
+      }
+
       const sessions = sessionsResult.data || [];
       const bookings = bookingsResult.data || [];
       const enrollments = enrollmentsResult.data || [];
@@ -548,7 +556,12 @@ export default function CoachProfile() {
             </CardHeader>
             <CardContent>
               {accessCodes.length === 0 ? (
-                <p className="text-muted-foreground">No access codes found for this coach</p>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-2">No access codes found for this coach</p>
+                  <p className="text-sm text-muted-foreground">
+                    Access codes will appear here when created for {coach?.name}
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {accessCodes.map((accessCode) => (
@@ -594,7 +607,12 @@ export default function CoachProfile() {
             </CardHeader>
             <CardContent>
               {enrollments.length === 0 ? (
-                <p className="text-muted-foreground">No enrollments yet</p>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-2">No student enrollments yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Students will appear here when they enroll with {coach?.name}
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {enrollments.map((enrollment) => (
