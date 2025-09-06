@@ -226,14 +226,25 @@ export const SessionManager = () => {
 
   const generateJoinLink = async (enrollment: any) => {
     // Use the input value or the current meeting link if input is empty
-    const linkToUse = meetingLinkInput.trim() || enrollment.meetingLink;
-    
-    if (!linkToUse || !linkToUse.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a meeting link",
-        variant: "destructive"
-      });
+    const raw = meetingLinkInput.trim() || enrollment.meetingLink;
+
+    if (!raw || !raw.trim()) {
+      toast({ title: 'Error', description: 'Please enter a meeting link', variant: 'destructive' });
+      return;
+    }
+
+    // Basic validation: prevent double protocols and ensure http(s)
+    if (/(https?:\/\/).+https?:\/\//i.test(raw)) {
+      toast({ title: 'Invalid URL', description: 'Please paste a single valid link (remove duplicates).', variant: 'destructive' });
+      return;
+    }
+
+    const linkToUse = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    try {
+      // Throws if invalid
+      new URL(linkToUse);
+    } catch {
+      toast({ title: 'Invalid URL', description: 'Please enter a valid meeting URL.', variant: 'destructive' });
       return;
     }
 
@@ -247,23 +258,53 @@ export const SessionManager = () => {
         organization_id: userProfile?.organization_id
       });
 
-      // Create or update coaching session with meeting link
-      const { data, error } = await supabase
+      // Upsert manually: find existing session for coach+client+time, then update or insert
+      const { data: existing, error: findError } = await supabase
         .from('coaching_sessions')
-        .upsert({
-          coach_id: userProfile?.id,
-          client_id: enrollment.user.id,
-          scheduled_at: enrollment.scheduledAt,
-          session_type: enrollment.course?.title || 'Coaching Session',
-          meeting_link: linkToUse,
-          status: 'scheduled',
-          organization_id: userProfile?.organization_id || null,
-          duration_minutes: 60
-        });
+        .select('id')
+        .eq('coach_id', userProfile?.id)
+        .eq('client_id', enrollment.user.id)
+        .eq('scheduled_at', enrollment.scheduledAt)
+        .maybeSingle();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
+      if (findError && findError.code !== 'PGRST116') {
+        // PGRST116 = no rows returned for single/maybeSingle
+        console.error('Find session error:', findError);
+        throw findError;
+      }
+
+      let writeError: any = null;
+      if (existing?.id) {
+        const { error: updateErr } = await supabase
+          .from('coaching_sessions')
+          .update({
+            meeting_link: linkToUse,
+            status: 'scheduled',
+            session_type: enrollment.course?.title || 'Coaching Session',
+            organization_id: userProfile?.organization_id || null,
+            duration_minutes: 60,
+          })
+          .eq('id', existing.id);
+        writeError = updateErr;
+      } else {
+        const { error: insertErr } = await supabase
+          .from('coaching_sessions')
+          .insert({
+            coach_id: userProfile?.id,
+            client_id: enrollment.user.id,
+            scheduled_at: enrollment.scheduledAt,
+            session_type: enrollment.course?.title || 'Coaching Session',
+            meeting_link: linkToUse,
+            status: 'scheduled',
+            organization_id: userProfile?.organization_id || null,
+            duration_minutes: 60,
+          });
+        writeError = insertErr;
+      }
+
+      if (writeError) {
+        console.error('Session write error:', writeError);
+        throw writeError;
       }
 
       // Also update the enrollment status to confirmed when link is set
