@@ -223,14 +223,17 @@ export const useChats = () => {
 
       console.log('Creating new coaching chat with user:', userProfile.id);
       
-      // Create new coaching chat using RPC to ensure proper user ID
+      // Create new coaching chat directly with proper authentication check
       const { data: newChat, error: chatError } = await supabase
-        .rpc('create_coaching_chat', {
-          chat_name: `${programTitle} - Coaching Session`,
-          participant_id: participantId,
-          org_id: userProfile.organization_id
+        .from('chats')
+        .insert({
+          chat_type: 'coaching',
+          name: `${programTitle} - Coaching Session`,
+          created_by: userProfile.id,
+          organization_id: userProfile.organization_id,
         })
-        .single();
+        .select('*')
+        .maybeSingle();
 
       if (chatError) {
         console.error('Error creating chat:', chatError);

@@ -2170,6 +2170,19 @@ export type Database = {
         Args: { freq: string; last_sent?: string }
         Returns: string
       }
+      create_coaching_chat: {
+        Args: { chat_name: string; org_id?: string; participant_id: string }
+        Returns: {
+          chat_type: string
+          created_at: string
+          created_by: string
+          id: string
+          last_message_at: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }[]
+      }
       create_notification: {
         Args: {
           notification_message: string
