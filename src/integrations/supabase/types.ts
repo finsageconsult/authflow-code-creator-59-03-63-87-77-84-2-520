@@ -2196,6 +2196,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_user_chat_ids: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          chat_id: string
+        }[]
+      }
       log_security_event: {
         Args: {
           p_event_details?: Json

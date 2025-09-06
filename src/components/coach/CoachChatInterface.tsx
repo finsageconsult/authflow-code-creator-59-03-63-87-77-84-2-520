@@ -81,6 +81,12 @@ export const CoachChatInterface: React.FC = () => {
       
       enrollments.forEach((enrollment: any) => {
         const student = enrollment.user;
+        // Skip if user data is null or missing
+        if (!student || !student.id) {
+          console.warn('Enrollment missing user data:', enrollment);
+          return;
+        }
+        
         if (!studentMap[student.id]) {
           studentMap[student.id] = {
             id: student.id,
