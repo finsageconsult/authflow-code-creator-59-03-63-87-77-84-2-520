@@ -3,7 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Calendar, 
   Users, 
@@ -12,7 +14,8 @@ import {
   FileText,
   Star,
   CheckCircle,
-  Coins
+  Coins,
+  Menu
 } from 'lucide-react';
 import { AvailabilitySettings } from '@/components/coach/AvailabilitySettings';
 import { SessionManager } from '@/components/coach/SessionManager';
@@ -22,6 +25,7 @@ import { CoachAnalyticsDashboard } from '@/components/analytics/CoachAnalyticsDa
 import { SupportQuery } from '@/components/support/SupportQuery';
 import AssignmentsList from '@/components/assignments/AssignmentsList';
 import { CoachChatInterface } from '@/components/coach/CoachChatInterface';
+import { CoachSidebar } from './CoachSidebar';
 
 interface CoachStats {
   totalClients: number;
@@ -31,6 +35,7 @@ interface CoachStats {
 }
 
 export const CoachDashboard = () => {
+  const isMobile = useIsMobile();
   const { userProfile } = useAuth();
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'overview';
@@ -276,9 +281,53 @@ export const CoachDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Content */}
-      {renderContent()}
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        {/* Single Sidebar instance for proper state management */}
+        <CoachSidebar />
+
+        {/* Main Content using SidebarInset for proper responsive layout */}
+        <SidebarInset className="flex-1">
+          {/* Mobile Header with Hamburger Menu */}
+          <header className="sticky top-0 z-40 h-12 sm:h-14 flex items-center justify-between px-3 sm:px-4 bg-background border-b md:hidden">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <SidebarTrigger className="h-7 w-7 sm:h-8 sm:w-8 p-0 shrink-0">
+                <Menu className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              </SidebarTrigger>
+              <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                <h1 className="text-sm sm:text-lg font-semibold truncate">
+                  Welcome, Coach {userProfile?.name?.split(' ')[0]}!
+                </h1>
+                <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-[10px] sm:text-xs hidden sm:inline-flex shrink-0">
+                  Coach  
+                </Badge>
+              </div>
+            </div>
+          </header>
+
+          {/* Desktop Header */}
+          <header className="hidden md:sticky md:top-0 md:z-40 md:h-14 md:flex md:items-center md:justify-between md:px-4 lg:px-6 md:bg-background md:border-b">
+            <div className="flex items-center gap-2 lg:gap-3">
+              <SidebarTrigger className="h-8 w-8 p-0 lg:hidden">
+                <Menu className="h-4 w-4" />
+              </SidebarTrigger>
+              <h1 className="text-lg lg:text-xl font-semibold">
+                Welcome, Coach {userProfile?.name?.split(' ')[0]}!
+              </h1>
+              <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs lg:text-sm">
+                Coach  
+              </Badge>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="flex-1 p-3 sm:p-4 md:p-6">
+            <div className="max-w-7xl mx-auto">
+              {renderContent()}
+            </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 };
