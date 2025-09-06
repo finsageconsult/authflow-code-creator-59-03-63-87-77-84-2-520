@@ -10,7 +10,7 @@ export interface TimeSlot {
   isAvailable: boolean;
   maxBookings: number;
   currentBookings: number;
-  slotType: 'coaching' | 'consultation';
+  slotType: 'coaching' | 'webinar' | 'workshop';
 }
 
 export const useCoachAvailability = (coachId?: string) => {
@@ -50,7 +50,7 @@ export const useCoachAvailability = (coachId?: string) => {
         isAvailable: slot.current_bookings < slot.max_bookings,
         maxBookings: slot.max_bookings || 1,
         currentBookings: slot.current_bookings || 0,
-        slotType: (slot.slot_type === 'consultation' ? 'consultation' : 'coaching') as 'coaching' | 'consultation'
+        slotType: slot.slot_type as 'coaching' | 'webinar' | 'workshop'
       })) || [];
 
       setTimeSlots(formattedSlots);

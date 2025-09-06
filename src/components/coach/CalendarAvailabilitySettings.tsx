@@ -20,7 +20,7 @@ interface AvailabilitySlot {
   endTime: string;
   maxBookings: number;
   currentBookings: number;
-  slotType: 'coaching' | 'consultation';
+  slotType: 'coaching' | 'webinar' | 'workshop';
 }
 
 export const CalendarAvailabilitySettings = () => {
@@ -33,7 +33,7 @@ export const CalendarAvailabilitySettings = () => {
     startTime: '09:00',
     endTime: '10:00',
     maxBookings: 1,
-    slotType: 'coaching' as 'coaching' | 'consultation'
+    slotType: 'coaching' as 'coaching' | 'webinar' | 'workshop'
   });
 
   // Get date range for the selected week
@@ -62,7 +62,7 @@ export const CalendarAvailabilitySettings = () => {
         endTime: format(new Date(slot.end_time), 'HH:mm'),
         maxBookings: slot.max_bookings || 1,
         currentBookings: slot.current_bookings || 0,
-        slotType: slot.slot_type as 'coaching' | 'consultation'
+        slotType: slot.slot_type as 'coaching' | 'webinar' | 'workshop'
       })) || [];
 
       setAvailabilitySlots(slots);
@@ -233,11 +233,12 @@ export const CalendarAvailabilitySettings = () => {
                       <Label className="text-xs text-muted-foreground">Type</Label>
                       <select
                         value={newSlot.slotType}
-                        onChange={(e) => setNewSlot(prev => ({ ...prev, slotType: e.target.value as 'coaching' | 'consultation' }))}
+                        onChange={(e) => setNewSlot(prev => ({ ...prev, slotType: e.target.value as 'coaching' | 'webinar' | 'workshop' }))}
                         className="mt-1 w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
                       >
                         <option value="coaching">Coaching</option>
-                        <option value="consultation">Consultation</option>
+                        <option value="webinar">Webinar</option>
+                        <option value="workshop">Workshop</option>
                       </select>
                     </div>
                   </div>
