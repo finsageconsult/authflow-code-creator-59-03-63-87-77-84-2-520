@@ -167,10 +167,11 @@ export default function CoachProfile() {
           .select('id, status, enrollment_date, scheduled_at, amount_paid, payment_status, user_id, course_id')
           .eq('coach_id', coachId),
         
-        // Fetch access codes - try multiple approaches
+        // Fetch access codes - filter by coach email
         supabase
           .from('access_codes')
-          .select('*'),
+          .select('*')
+          .eq('email', coachData.email),
         
         // Fetch all users to map names and emails
         supabase
