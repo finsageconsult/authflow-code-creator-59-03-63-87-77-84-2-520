@@ -39,12 +39,6 @@ const menuItems = [
     param: "bookings"
   },
   { 
-    title: "Wellness Check", 
-    url: "/individual-dashboard", 
-    icon: Heart,
-    param: "mood"
-  },
-  { 
     title: "Chat", 
     url: "/individual-dashboard", 
     icon: MessageSquare,
