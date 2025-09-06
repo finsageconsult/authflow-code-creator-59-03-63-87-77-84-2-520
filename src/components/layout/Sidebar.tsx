@@ -40,11 +40,6 @@ const menuItems = [{
   icon: Calendar,
   roles: ['ADMIN', 'HR', 'COACH', 'INDIVIDUAL']
 }, {
-  title: 'Assignments',
-  url: '/assignments',
-  icon: MessageSquare,
-  roles: ['ADMIN', 'HR', 'COACH', 'EMPLOYEE', 'INDIVIDUAL']
-}, {
   title: 'Tools',
   url: '/tools',
   icon: Wrench,
@@ -112,11 +107,6 @@ const coachMenuItems = [{
   title: 'Dashboard',
   url: '/coach-dashboard',
   icon: LayoutDashboard,
-  roles: ['COACH']
-}, {
-  title: 'Assignments',
-  url: '/coach-dashboard?tab=assignments',
-  icon: MessageSquare,
   roles: ['COACH']
 }, {
   title: 'Chat',
