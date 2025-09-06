@@ -72,7 +72,7 @@ export const useChats = () => {
     if (!userProfile) return;
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('chats')
         .select(`
           *,
@@ -80,11 +80,23 @@ export const useChats = () => {
             *,
             user:users(id, name, email, role)
           )
-        `)
-        .order('last_message_at', { ascending: false });
+        `);
+
+      // For coaches, prioritize coaching chats
+      if (userProfile.role === 'COACH') {
+        query = query.or('chat_type.eq.coaching,chat_type.eq.direct');
+      }
+
+      const { data, error } = await query.order('last_message_at', { ascending: false });
 
       if (error) throw error;
-      setChats((data as any) || []);
+      
+      // Filter chats where user is a participant
+      const userChats = (data as any)?.filter((chat: any) => 
+        chat.participants?.some((p: any) => p.user_id === userProfile.id)
+      ) || [];
+      
+      setChats(userChats);
     } catch (error) {
       console.error('Error fetching chats:', error);
       toast({
@@ -173,6 +185,77 @@ export const useChats = () => {
     }
   };
 
+  const createCoachingChat = async (coachId: string, programTitle: string, enrollmentId: string) => {
+    if (!userProfile) return null;
+
+    try {
+      // Check if coaching chat already exists for this enrollment
+      const { data: existingChat, error: checkError } = await supabase
+        .from('chats')
+        .select(`
+          *,
+          participants:chat_participants(user_id)
+        `)
+        .eq('chat_type', 'coaching')
+        .ilike('name', `%${programTitle}%`);
+
+      if (checkError) throw checkError;
+
+      // Find existing coaching chat between this user and coach for this program
+      const coachingChat = existingChat?.find(chat => {
+        const participants = (chat as any).participants || [];
+        const userIds = participants.map((p: any) => p.user_id) || [];
+        return userIds.includes(userProfile.id) && userIds.includes(coachId);
+      });
+
+      if (coachingChat) {
+        return coachingChat;
+      }
+
+      // Create new coaching chat
+      const { data: newChat, error: chatError } = await supabase
+        .from('chats')
+        .insert({
+          chat_type: 'coaching',
+          name: `${programTitle} - Coaching Session`,
+          created_by: userProfile.id,
+          organization_id: userProfile.organization_id,
+        })
+        .select('*')
+        .single();
+
+      if (chatError) throw chatError;
+
+      // Add participants
+      const { error: participantsError } = await supabase
+        .from('chat_participants')
+        .insert([
+          {
+            chat_id: newChat.id,
+            user_id: userProfile.id,
+            role: 'student',
+          },
+          {
+            chat_id: newChat.id,
+            user_id: coachId,
+            role: 'coach',
+          },
+        ]);
+
+      if (participantsError) throw participantsError;
+
+      return newChat;
+    } catch (error) {
+      console.error('Error creating coaching chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create coaching chat",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   const updateLastRead = async (chatId: string) => {
     if (!userProfile) return;
 
@@ -228,6 +311,7 @@ export const useChats = () => {
     chats,
     loading,
     createDirectChat,
+    createCoachingChat,
     updateLastRead,
     refetch: fetchChats,
   };

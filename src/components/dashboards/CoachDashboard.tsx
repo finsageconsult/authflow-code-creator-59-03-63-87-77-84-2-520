@@ -21,7 +21,7 @@ import { ContentCatalog } from '@/components/cms/ContentCatalog';
 import { CoachAnalyticsDashboard } from '@/components/analytics/CoachAnalyticsDashboard';
 import { SupportQuery } from '@/components/support/SupportQuery';
 import AssignmentsList from '@/components/assignments/AssignmentsList';
-import { ChatInterface } from '@/components/chat/ChatInterface';
+import { CoachChatInterface } from '@/components/coach/CoachChatInterface';
 
 interface CoachStats {
   totalClients: number;
@@ -193,7 +193,7 @@ export const CoachDashboard = () => {
       case 'assignments':
         return <AssignmentsList />;
       case 'chat':
-        return <ChatInterface />;
+        return <CoachChatInterface />;
       case 'support':
         return <SupportQuery />;
       default:
