@@ -2188,6 +2188,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_org_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2195,6 +2199,14 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_students_for_current_coach: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          email: string
+          id: string
+          name: string
+        }[]
       }
       get_user_chat_ids: {
         Args: Record<PropertyKey, never>
