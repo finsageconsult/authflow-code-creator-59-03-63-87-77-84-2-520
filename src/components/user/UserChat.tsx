@@ -101,7 +101,7 @@ export const UserChat: React.FC = () => {
     }
   ];
 
-  // Coach profiles
+  // Coach profiles  
   const coachProfiles: { [key: string]: CoachProfile } = {
     'coach_sarah': {
       id: 'coach_sarah',
@@ -112,7 +112,7 @@ export const UserChat: React.FC = () => {
       experience: '8+ years'
     },
     'coach_michael': {
-      id: 'coach_michael',
+      id: 'coach_michael', 
       name: 'Michael Chen',
       bio: 'Investment specialist focusing on equity markets, mutual funds, and portfolio optimization.',
       rating: 4.8,
@@ -121,7 +121,7 @@ export const UserChat: React.FC = () => {
     },
     'coach_emma': {
       id: 'coach_emma',
-      name: 'Emma Davis',
+      name: 'Emma Davis', 
       bio: 'Tax planning expert and financial advisor specializing in comprehensive financial blueprints.',
       rating: 4.9,
       specialties: ['Tax Planning', 'Financial Strategy', 'Retirement Planning'],
@@ -134,17 +134,33 @@ export const UserChat: React.FC = () => {
       rating: 4.7,
       specialties: ['Behavioral Finance', 'Debt Elimination', 'Financial Psychology'],
       experience: '6+ years'
+    },
+    'coach_priya': {
+      id: 'coach_priya',
+      name: 'Priya Sharma',
+      bio: 'Certified investment advisor specializing in beginner-friendly investment strategies.',
+      rating: 4.8,
+      specialties: ['Beginner Investing', 'SIP Planning', 'Risk Management'],
+      experience: '7+ years'
+    },
+    'coach_david': {
+      id: 'coach_david',
+      name: 'David Wilson',
+      bio: 'Comprehensive financial planner with expertise in budgeting and wealth creation.',
+      rating: 4.9,
+      specialties: ['Budgeting', 'Wealth Creation', 'Financial Control'],
+      experience: '15+ years'
     }
   };
 
-  // Map programs to coaches
+  // Map programs to coaches - ensuring correct mappings
   const programCoachMapping: { [key: string]: string } = {
-    '550e8400-e29b-41d4-a716-446655440000': 'coach_sarah', // Financial Fitness Bootcamp
-    '550e8400-e29b-41d4-a716-446655440001': 'coach_michael', // Investment Mastery Series
-    '550e8400-e29b-41d4-a716-446655440002': 'coach_emma', // Smart Tax Planning
-    '550e8400-e29b-41d4-a716-446655440003': 'coach_emma', // Financial Blueprint Session
-    '550e8400-e29b-41d4-a716-446655440004': 'coach_raj', // Debt-Free Journey
-    '550e8400-e29b-41d4-a716-446655440005': 'coach_michael', // Investing in 3 Hours
+    '550e8400-e29b-41d4-a716-446655440000': 'coach_david', // Financial Fitness Bootcamp - David Wilson
+    '550e8400-e29b-41d4-a716-446655440001': 'coach_michael', // Investment Mastery Series - Michael Chen  
+    '550e8400-e29b-41d4-a716-446655440002': 'coach_emma', // Smart Tax Planning - Emma Davis
+    '550e8400-e29b-41d4-a716-446655440003': 'coach_emma', // Financial Blueprint Session - Emma Davis
+    '550e8400-e29b-41d4-a716-446655440004': 'coach_raj', // Debt-Free Journey - Raj Patel
+    '550e8400-e29b-41d4-a716-446655440005': 'coach_priya', // Investing in 3 Hours - Priya Sharma
   };
 
   // Get purchased courses
@@ -154,13 +170,22 @@ export const UserChat: React.FC = () => {
       const coachId = programCoachMapping[program.id];
       const coach = coachProfiles[coachId];
       
+      console.log('Program:', program.title, 'CoachId:', coachId, 'Coach:', coach?.name);
+      
       return {
         id: program.id,
         programId: program.id,
         title: program.title,
         category: program.category,
         description: program.description,
-        coach,
+        coach: coach || {
+          id: 'fallback',
+          name: 'Unassigned Coach',
+          bio: 'No coach profile available',
+          rating: 4.5,
+          specialties: ['General'],
+          experience: 'N/A'
+        },
         purchaseDate: new Date().toISOString(),
         progress: Math.floor(Math.random() * 100) // Mock progress
       };
