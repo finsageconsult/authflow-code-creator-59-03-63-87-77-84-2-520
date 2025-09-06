@@ -85,8 +85,8 @@ export const SessionManager = () => {
           notes,
           user_id,
           course_id,
-          users!inner(id, name, email),
-          individual_programs!inner(id, title, category, duration)
+          users!enrollments_user_id_fkey(id, name, email),
+          individual_programs!enrollments_course_id_fkey(id, title, category, duration)
         `)
         .eq('coach_id', userProfile.id)
         .order('scheduled_at', { ascending: true });
