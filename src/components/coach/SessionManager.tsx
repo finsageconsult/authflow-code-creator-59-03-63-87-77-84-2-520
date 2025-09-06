@@ -235,8 +235,17 @@ export const SessionManager = () => {
     }
 
     try {
+      console.log('Generating join link for:', {
+        coach_id: userProfile?.id,
+        client_id: enrollment.user.id,
+        scheduled_at: enrollment.scheduledAt,
+        session_type: enrollment.course?.title || 'Coaching Session',
+        meeting_link: meetingLinkInput,
+        organization_id: userProfile?.organization_id
+      });
+
       // Create or update coaching session with meeting link
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('coaching_sessions')
         .upsert({
           coach_id: userProfile?.id,
@@ -245,11 +254,18 @@ export const SessionManager = () => {
           session_type: enrollment.course?.title || 'Coaching Session',
           meeting_link: meetingLinkInput,
           status: 'scheduled',
-          organization_id: userProfile?.organization_id,
+          organization_id: userProfile?.organization_id || null,
           duration_minutes: 60
+        }, {
+          onConflict: 'coach_id,client_id,scheduled_at'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Successfully created/updated coaching session:', data);
 
       toast({
         title: "Join Link Generated",
@@ -258,11 +274,11 @@ export const SessionManager = () => {
 
       setMeetingLinkInput('');
       fetchCourseEnrollments(); // Refresh data
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating join link:', error);
       toast({
         title: "Error",
-        description: "Failed to generate join link",
+        description: error.message || "Failed to generate join link",
         variant: "destructive"
       });
     }
