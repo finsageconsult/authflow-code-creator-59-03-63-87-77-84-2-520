@@ -56,7 +56,7 @@ export const EmployeeDashboard = () => {
   // Set active tab based on URL parameter
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['dashboard', 'programs', 'analytics', 'credits', 'support', 'chat', 'assignments'].includes(tab)) {
+    if (tab && ['dashboard', 'programs', 'credits', 'support', 'chat', 'assignments'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -463,7 +463,7 @@ export const EmployeeDashboard = () => {
           <TabsList role="tablist" aria-label="Employee dashboard navigation" className="hidden">
             <TabsTrigger value="dashboard" role="tab" aria-controls="dashboard-panel">Dashboard</TabsTrigger>
             <TabsTrigger value="programs" role="tab" aria-controls="programs-panel">Programs</TabsTrigger>
-            <TabsTrigger value="analytics" role="tab" aria-controls="analytics-panel">My Progress</TabsTrigger>
+            <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>
             <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>
             <TabsTrigger value="chat" role="tab" aria-controls="chat-panel">Chat</TabsTrigger>
             <TabsTrigger value="assignments" role="tab" aria-controls="assignments-panel">Assignments</TabsTrigger>
@@ -580,9 +580,6 @@ export const EmployeeDashboard = () => {
         <EmployeePrograms />
       </TabsContent>
 
-      <TabsContent value="analytics" className="space-y-6">
-        <EmployeeAnalyticsDashboard />
-      </TabsContent>
 
       <TabsContent value="credits" className="space-y-6">
         <CreditWallet />
