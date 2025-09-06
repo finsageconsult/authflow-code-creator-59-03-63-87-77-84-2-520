@@ -79,15 +79,10 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
       setStudents(data || []);
     } catch (error) {
       console.error('Error fetching students:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load students",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
-  }, [userProfile?.id, toast]);
+  }, [userProfile?.id]);
 
   const handleStudentToggle = useCallback((studentId: string) => {
     setSelectedStudents(prev => 
@@ -151,11 +146,6 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
 
   const onSubmit = useCallback(async (data: any) => {
     if (selectedStudents.length === 0) {
-      toast({
-        title: "No students selected",
-        description: "Please select at least one student",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -189,26 +179,16 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
 
       await Promise.all(assignmentPromises);
 
-      toast({
-        title: "Success",
-        description: `Assignment ${selectedFiles.length > 0 ? 'with files ' : ''}sent to ${selectedStudents.length} student${selectedStudents.length > 1 ? 's' : ''}`,
-      });
-
       form.reset();
       setSelectedStudents([]);
       setSelectedFiles([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating bulk assignments:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create assignments",
-        variant: "destructive",
-      });
     } finally {
       setCreating(false);
     }
-  }, [selectedStudents, selectedFiles, userProfile?.id, userProfile?.organization_id, toast, form, onOpenChange, uploadFiles]);
+  }, [selectedStudents, selectedFiles, userProfile?.id, userProfile?.organization_id, form, onOpenChange, uploadFiles]);
 
   useEffect(() => {
     if (open) {
@@ -218,7 +198,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
       setSelectedStudents([]);
       setSelectedFiles([]);
     }
-  }, [open, fetchStudents, form]);
+  }, [open, fetchStudents]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
