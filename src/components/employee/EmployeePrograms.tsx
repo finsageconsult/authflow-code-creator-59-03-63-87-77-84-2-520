@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { UnifiedPaymentButton } from '@/components/payments/UnifiedPaymentButton';
 import { EnrollmentWorkflow } from '@/components/enrollment/EnrollmentWorkflow';
-import { BookOpen, Clock, Users, Star, Lock, GraduationCap, TrendingUp, Target, ChevronRight, DollarSign, Heart, Shield, Calculator } from 'lucide-react';
+import { BookOpen, Clock, Users, Star, Lock, GraduationCap, TrendingUp, Target, ChevronRight, DollarSign, Heart, Shield, Calculator, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 interface Program {
@@ -88,6 +88,7 @@ export const EmployeePrograms = () => {
   const [showEnrollment, setShowEnrollment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [enrolledPrograms, setEnrolledPrograms] = useState<Set<string>>(new Set());
+  const [coachingSessions, setCoachingSessions] = useState<any[]>([]);
   useEffect(() => {
     if (userProfile) {
       fetchData();
@@ -121,6 +122,15 @@ export const EmployeePrograms = () => {
           const enrolled = new Set(enrollmentsData.map(e => e.course_id));
           setEnrolledPrograms(enrolled);
         }
+
+        // Fetch coaching sessions for meeting links
+        const { data: sessionsData } = await supabase
+          .from('coaching_sessions')
+          .select('*')
+          .eq('client_id', userProfile.id)
+          .order('updated_at', { ascending: false });
+        
+        setCoachingSessions(sessionsData || []);
       }
     } catch (error) {
       console.error('Error fetching programs:', error);
@@ -141,6 +151,19 @@ export const EmployeePrograms = () => {
   const getProgress = (programId: string) => {
     const purchase = purchases.find(p => p.program_id === programId);
     return purchase?.progress || 0;
+  };
+
+  const getMeetingLink = (programId: string) => {
+    // Find the most recent coaching session with a meeting link for this program
+    const session = coachingSessions
+      .filter(s => s.meeting_link)
+      .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0];
+    return session?.meeting_link || null;
+  };
+
+  const isLinkActive = (meetingLink: string) => {
+    // For now, return true if there's a meeting link. You can add time-based logic later if needed
+    return !!meetingLink;
   };
   const handleProgramClick = (program: Program) => {
     if (isPurchased(program.id)) {
@@ -305,16 +328,35 @@ export const EmployeePrograms = () => {
                     </div>
                     
                     {isEnrolled ? (
-                      <Button 
-                        className="w-full" 
-                        variant="secondary"
-                        onClick={() => {
-                          toast.success(`Opening ${program.title}...`);
-                          // Navigate to program content
-                        }}
-                      >
-                        ✓ Enrolled - Continue Learning
-                      </Button>
+                      <div className="space-y-2">
+                        <Button 
+                          className="w-full" 
+                          variant="secondary"
+                          onClick={() => {
+                            toast.success(`Opening ${program.title}...`);
+                            // Navigate to program content
+                          }}
+                        >
+                          ✓ Enrolled - Continue Learning
+                        </Button>
+                        
+                        {(() => {
+                          const meetingLink = getMeetingLink(program.id);
+                          if (meetingLink && isLinkActive(meetingLink)) {
+                            return (
+                              <Button 
+                                className="w-full" 
+                                variant="default"
+                                onClick={() => window.open(meetingLink, '_blank')}
+                              >
+                                <Video className="w-4 h-4 mr-2" />
+                                Join Session
+                              </Button>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
                     ) : (
                       <Button 
                         className="w-full" 
