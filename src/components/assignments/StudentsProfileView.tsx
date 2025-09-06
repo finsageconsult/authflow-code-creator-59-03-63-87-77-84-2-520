@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,15 +55,17 @@ const StudentsProfileView: React.FC = () => {
     }
   }, [userProfile?.id]);
 
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = filterType === 'all' || 
-                         student.user_type.toLowerCase() === filterType.toLowerCase();
-    
-    return matchesSearch && matchesFilter;
-  });
+  const filteredStudents = useMemo(() => {
+    return students.filter(student => {
+      const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           student.email.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesFilter = filterType === 'all' || 
+                           student.user_type.toLowerCase() === filterType.toLowerCase();
+      
+      return matchesSearch && matchesFilter;
+    });
+  }, [students, searchTerm, filterType]);
 
   const getActiveEnrollments = (enrollments: any) => {
     if (!Array.isArray(enrollments)) return [];
