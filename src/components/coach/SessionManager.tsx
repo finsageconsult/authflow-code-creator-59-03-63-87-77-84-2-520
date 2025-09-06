@@ -98,8 +98,8 @@ export const SessionManager = () => {
         if (!student.enrollments || student.enrollments.length === 0) return;
         
         student.enrollments.forEach((enrollment: any) => {
-          const courseId = enrollment.id; // Using enrollment ID as course grouping
           const courseTitle = enrollment.program_title;
+          const courseCategory = enrollment.program_category || 'coaching';
           
           // Find matching coaching session
           const session = sessions?.find(s => 
@@ -126,16 +126,16 @@ export const SessionManager = () => {
             isLinkActive: session?.meeting_link && enrollment.scheduled_at && checkLinkActive(enrollment.scheduled_at)
           };
 
-          const courseKey = `${courseTitle}-${enrollment.program_category}`;
+          const courseKey = `${courseTitle}-${courseCategory}`;
           
           if (!courseMap.has(courseKey)) {
             courseMap.set(courseKey, {
               id: courseKey,
               course: {
-                id: courseId,
+                id: enrollment.id, // Use enrollment id as course id for this context
                 title: courseTitle,
-                category: enrollment.program_category || 'coaching',
-                duration: '60 minutes' // Default duration
+                category: courseCategory,
+                duration: courseCategory === '1-1-sessions' ? '1 hour' : courseCategory === 'short-program' ? '2-4 weeks' : '60 minutes'
               },
               enrollments: []
             });
