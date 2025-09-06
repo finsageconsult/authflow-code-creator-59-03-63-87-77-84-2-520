@@ -109,6 +109,11 @@ const coachMenuItems = [{
   icon: LayoutDashboard,
   roles: ['COACH']
 }, {
+  title: 'Assignments',
+  url: '/coach-dashboard?tab=assignments',
+  icon: MessageSquare,
+  roles: ['COACH']
+}, {
   title: 'Chat',
   url: '/coach-dashboard?tab=chat',
   icon: MessageSquare,

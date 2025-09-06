@@ -20,7 +20,7 @@ import { PayoutView } from '@/components/coach/PayoutView';
 import { ContentCatalog } from '@/components/cms/ContentCatalog';
 import { CoachAnalyticsDashboard } from '@/components/analytics/CoachAnalyticsDashboard';
 import { SupportQuery } from '@/components/support/SupportQuery';
-import SimpleAssignmentsList from '@/components/assignments/SimpleAssignmentsList';
+import { CoachAssignments } from '@/components/assignments/CoachAssignments';
 import { CoachChatInterface } from '@/components/coach/CoachChatInterface';
 
 interface CoachStats {
@@ -191,7 +191,7 @@ export const CoachDashboard = () => {
       case 'payouts':
         return <PayoutView />;
       case 'assignments':
-        return <SimpleAssignmentsList />;
+        return <CoachAssignments />;
       case 'chat':
         return <CoachChatInterface />;
       case 'support':

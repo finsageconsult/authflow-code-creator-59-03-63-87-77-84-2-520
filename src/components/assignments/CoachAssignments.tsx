@@ -1,0 +1,393 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { Users, Plus, Calendar, Send, FileText, Clock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface Student {
+  id: string;
+  name: string;
+  email: string;
+  user_type: string;
+}
+
+interface Assignment {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  due_date: string;
+  assigned_to: string;
+  student_name: string;
+  created_at: string;
+}
+
+export const CoachAssignments = () => {
+  const { userProfile } = useAuth();
+  const { toast } = useToast();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    priority: 'medium' as 'low' | 'medium' | 'high',
+    due_date: '',
+    assignment_type: 'general'
+  });
+
+  useEffect(() => {
+    fetchStudents();
+    fetchAssignments();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_students_for_current_coach');
+      if (error) throw error;
+      setStudents(data || []);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load students",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const fetchAssignments = async () => {
+    try {
+      const { data: assignmentsData, error } = await supabase
+        .from('assignments')
+        .select('*')
+        .eq('created_by', userProfile?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch user names separately to avoid relation issues
+      const assignmentIds = assignmentsData?.map(a => a.assigned_to) || [];
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, name')
+        .in('id', assignmentIds);
+
+      const formattedAssignments = assignmentsData?.map(assignment => ({
+        ...assignment,
+        student_name: usersData?.find(u => u.id === assignment.assigned_to)?.name || 'Unknown Student'
+      })) || [];
+
+      setAssignments(formattedAssignments);
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load assignments",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateAssignment = async () => {
+    if (!selectedStudent || !formData.title.trim()) {
+      toast({
+        title: "Error",
+        description: "Please select a student and enter assignment title",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('assignments')
+        .insert({
+          title: formData.title,
+          description: formData.description,
+          priority: formData.priority,
+          due_date: formData.due_date || null,
+          assignment_type: formData.assignment_type,
+          assigned_to: selectedStudent.id,
+          created_by: userProfile?.id,
+          organization_id: userProfile?.organization_id,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Assignment created successfully"
+      });
+
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        priority: 'medium',
+        due_date: '',
+        assignment_type: 'general'
+      });
+      setSelectedStudent(null);
+      setShowCreateForm(false);
+      
+      // Refresh assignments
+      fetchAssignments();
+
+    } catch (error) {
+      console.error('Error creating assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create assignment",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'destructive';
+      case 'medium': return 'default';
+      case 'low': return 'secondary';
+      default: return 'default';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <Clock className="h-8 w-8 animate-spin mx-auto mb-2" />
+          <p>Loading assignments...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Assignment Center</h1>
+          <p className="text-muted-foreground">Manage and track student assignments</p>
+        </div>
+        
+        <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create Assignment
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Create New Assignment</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Student Selection */}
+              <div className="space-y-2">
+                <Label>Select Student</Label>
+                <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
+                  {students.map((student) => (
+                    <div
+                      key={student.id}
+                      onClick={() => setSelectedStudent(student)}
+                      className={`p-3 border rounded-lg cursor-pointer flex items-center gap-3 ${
+                        selectedStudent?.id === student.id ? 'border-primary bg-primary/5' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <Avatar>
+                        <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{student.name}</p>
+                        <p className="text-sm text-muted-foreground">{student.email}</p>
+                        <Badge variant="outline" className="text-xs">{student.user_type}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Assignment Form */}
+              {selectedStudent && (
+                <div className="space-y-4 border-t pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Assignment Title *</Label>
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="Enter assignment title"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Describe the assignment details"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="priority">Priority</Label>
+                      <select
+                        id="priority"
+                        value={formData.priority}
+                        onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'low' | 'medium' | 'high' })}
+                        className="w-full p-2 border rounded-md"
+                      >
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="due_date">Due Date</Label>
+                      <Input
+                        id="due_date"
+                        type="datetime-local"
+                        value={formData.due_date}
+                        onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowCreateForm(false);
+                        setSelectedStudent(null);
+                        setFormData({
+                          title: '',
+                          description: '',
+                          priority: 'medium',
+                          due_date: '',
+                          assignment_type: 'general'
+                        });
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={handleCreateAssignment} className="flex items-center gap-2">
+                      <Send className="h-4 w-4" />
+                      Send Assignment
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Students Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Your Students ({students.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {students.map((student) => (
+              <div key={student.id} className="p-3 border rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Avatar>
+                    <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{student.name}</p>
+                    <p className="text-sm text-muted-foreground">{student.user_type}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Assignments */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Recent Assignments
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {assignments.length > 0 ? (
+              assignments.map((assignment) => (
+                <div key={assignment.id} className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <h3 className="font-medium">{assignment.title}</h3>
+                      <p className="text-sm text-muted-foreground">{assignment.description}</p>
+                      <p className="text-sm text-muted-foreground">Assigned to: {assignment.student_name}</p>
+                      {assignment.due_date && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          Due: {new Date(assignment.due_date).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Badge variant={getPriorityColor(assignment.priority)}>
+                        {assignment.priority}
+                      </Badge>
+                      <Badge className={getStatusColor(assignment.status)}>
+                        {assignment.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No assignments created yet</p>
+                <p className="text-sm text-muted-foreground">Create your first assignment to get started</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
