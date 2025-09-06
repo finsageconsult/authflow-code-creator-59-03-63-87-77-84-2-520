@@ -196,9 +196,14 @@ export const EmployeePrograms = () => {
 
   const isMeetingActive = (scheduledAt?: string | null, meetingLink?: string | null) => {
     if (!scheduledAt || !meetingLink) return false;
-    const t = new Date(scheduledAt).getTime();
+    const sessionTime = new Date(scheduledAt).getTime();
     const now = Date.now();
-    return now >= t - 30 * 60 * 1000 && now <= t + 2 * 60 * 60 * 1000;
+    
+    // Show join button if session is within 7 days and has a meeting link
+    const sevenDaysBeforeSession = sessionTime - (7 * 24 * 60 * 60 * 1000); // 7 days before
+    const twoHoursAfterSession = sessionTime + (2 * 60 * 60 * 1000); // 2 hours after
+    
+    return now >= sevenDaysBeforeSession && now <= twoHoursAfterSession;
   };
 
   const handleProgramClick = (program: Program) => {
@@ -351,8 +356,6 @@ export const EmployeePrograms = () => {
                          
                           {(() => {
                             const { link, scheduledAt } = getMeetingInfo(program.id);
-                            console.log(`Program ${program.title} (${program.id}):`, { link, scheduledAt });
-                            console.log(`isMeetingActive result:`, isMeetingActive(scheduledAt, link));
                             
                             if (isMeetingActive(scheduledAt, link)) {
                               return (
@@ -365,21 +368,6 @@ export const EmployeePrograms = () => {
                                   Join Session
                                 </Button>
                               );
-                            }
-                            
-                            // Show debug info if we have link but meeting isn't active
-                            if (link) {
-                              const now = Date.now();
-                              const sessionTime = new Date(scheduledAt || '').getTime();
-                              const activeStart = sessionTime - 30 * 60 * 1000;
-                              const activeEnd = sessionTime + 2 * 60 * 60 * 1000;
-                              console.log('Debug meeting timing:', {
-                                now: new Date(now),
-                                sessionTime: new Date(sessionTime),
-                                activeStart: new Date(activeStart),
-                                activeEnd: new Date(activeEnd),
-                                isInActiveWindow: now >= activeStart && now <= activeEnd
-                              });
                             }
                             
                             return null;
