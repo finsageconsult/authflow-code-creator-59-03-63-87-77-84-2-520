@@ -114,7 +114,7 @@ export function IndividualSidebar() {
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="pt-1 bg-background/95">
+      <SidebarContent className="flex-1 overflow-auto">
         <SidebarGroup>
           <SidebarGroupLabel className={`px-2 py-1 text-sm font-medium ${isCollapsed ? "sr-only" : ""}`}>
             Individual Learning
@@ -129,7 +129,7 @@ export function IndividualSidebar() {
                     <SidebarMenuButton 
                       asChild
                       isActive={active}
-                      className="w-full justify-start hover:bg-accent/50 data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+                      className="w-full justify-start"
                     >
                       <NavLink
                         to={`${item.url}?tab=${item.param}`}
