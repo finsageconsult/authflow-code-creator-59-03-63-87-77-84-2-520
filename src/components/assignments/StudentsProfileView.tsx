@@ -148,8 +148,10 @@ const StudentsProfileView: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchStudents();
-  }, [userProfile]);
+    if (userProfile?.id) {
+      fetchStudents();
+    }
+  }, [userProfile?.id]);
 
   return (
     <div className="space-y-6">

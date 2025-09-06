@@ -219,10 +219,10 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   };
 
   useEffect(() => {
-    if (open) {
+    if (open && userProfile?.id) {
       fetchStudents();
     }
-  }, [open, userProfile]);
+  }, [open, userProfile?.id]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
