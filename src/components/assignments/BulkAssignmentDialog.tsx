@@ -198,7 +198,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
       setSelectedStudents([]);
       setSelectedFiles([]);
     }
-  }, [open, fetchStudents]);
+  }, [open, userProfile?.id]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
