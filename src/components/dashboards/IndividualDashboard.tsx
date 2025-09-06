@@ -214,14 +214,28 @@ export const IndividualDashboard = () => {
     
     setLoadingEnrollments(true);
     try {
-      const { data, error } = await supabase
+      const { data: enrolls, error } = await supabase
         .from('enrollments')
         .select('*')
         .eq('user_id', userProfile.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setEnrollments(data || []);
+
+      // Fetch any coaching sessions for this user and merge meeting links
+      const { data: sessions } = await supabase
+        .from('coaching_sessions')
+        .select('*')
+        .eq('client_id', userProfile.id);
+
+      const mapped = (enrolls || []).map((e) => {
+        const match = sessions?.find(
+          (s) => e.scheduled_at && new Date(s.scheduled_at).getTime() === new Date(e.scheduled_at).getTime()
+        );
+        return { ...e, meeting_link: match?.meeting_link || null };
+      });
+
+      setEnrollments(mapped);
     } catch (error) {
       console.error('Error fetching enrollments:', error);
     } finally {
@@ -358,16 +372,13 @@ export const IndividualDashboard = () => {
                           <Button
                             onClick={() => {
                               if (isItemPurchased('program', program.id)) {
-                                // Check if session link is available
-                                const now = new Date();
-                                const sessionTime = new Date('2024-01-15T19:30:00Z'); // This would come from booking
-                                const linkActiveTime = new Date(sessionTime.getTime() - 30 * 60 * 1000);
-                                
-                                if (now >= linkActiveTime) {
-                                  // Open session in new tab for purchased programs
-                                  window.open(`/program/${program.id}/session`, '_blank');
+                                // Open the actual meeting link from your booking if available
+                                const enrollment = enrollments.find((e) => e.course_id === program.id);
+                                const meetingLink = enrollment?.meeting_link;
+                                if (meetingLink) {
+                                  window.open(meetingLink, '_blank', 'noopener,noreferrer');
                                 } else {
-                                  toast.error('Join link will be available 30 minutes before your session time');
+                                  toast.error('Meeting link not available yet. Please check your Bookings.');
                                 }
                               } else {
                                 setSelectedCourse({
@@ -438,12 +449,24 @@ export const IndividualDashboard = () => {
                             Enrolled: {new Date(enrollment.created_at).toLocaleDateString()}
                           </p>
                         </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
-                          <span className="font-semibold text-sm sm:text-base">{formatPrice(enrollment.amount_paid || 0)}</span>
-                          <Badge variant={enrollment.status === 'confirmed' ? 'default' : 'secondary'} className="text-xs w-fit">
-                            {enrollment.status}
-                          </Badge>
-                        </div>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
+                            <span className="font-semibold text-sm sm:text-base">{formatPrice(enrollment.amount_paid || 0)}</span>
+                            <Badge variant={enrollment.status === 'confirmed' ? 'default' : 'secondary'} className="text-xs w-fit">
+                              {enrollment.status}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                if (enrollment.meeting_link) {
+                                  window.open(enrollment.meeting_link, '_blank', 'noopener,noreferrer');
+                                } else {
+                                  toast.error('Meeting link not available yet.');
+                                }
+                              }}
+                            >
+                              Join Session
+                            </Button>
+                          </div>
                       </div>
                     );
                   })}
