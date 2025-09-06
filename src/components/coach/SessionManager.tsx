@@ -225,7 +225,10 @@ export const SessionManager = () => {
   };
 
   const generateJoinLink = async (enrollment: any) => {
-    if (!meetingLinkInput.trim()) {
+    // Use the input value or the current meeting link if input is empty
+    const linkToUse = meetingLinkInput.trim() || enrollment.meetingLink;
+    
+    if (!linkToUse || !linkToUse.trim()) {
       toast({
         title: "Error",
         description: "Please enter a meeting link",
@@ -240,7 +243,7 @@ export const SessionManager = () => {
         client_id: enrollment.user.id,
         scheduled_at: enrollment.scheduledAt,
         session_type: enrollment.course?.title || 'Coaching Session',
-        meeting_link: meetingLinkInput,
+        meeting_link: linkToUse,
         organization_id: userProfile?.organization_id
       });
 
@@ -252,7 +255,7 @@ export const SessionManager = () => {
           client_id: enrollment.user.id,
           scheduled_at: enrollment.scheduledAt,
           session_type: enrollment.course?.title || 'Coaching Session',
-          meeting_link: meetingLinkInput,
+          meeting_link: linkToUse,
           status: 'scheduled',
           organization_id: userProfile?.organization_id || null,
           duration_minutes: 60
