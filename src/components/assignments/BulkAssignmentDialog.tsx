@@ -191,14 +191,14 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   }, [selectedStudents, selectedFiles, userProfile?.id, userProfile?.organization_id, form, onOpenChange, uploadFiles]);
 
   useEffect(() => {
-    if (open) {
+    if (open && userProfile?.id) {
       fetchStudents();
       // Reset form when dialog opens
       form.reset();
       setSelectedStudents([]);
       setSelectedFiles([]);
     }
-  }, [open, userProfile?.id]);
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
