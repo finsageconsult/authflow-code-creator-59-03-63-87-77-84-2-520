@@ -204,6 +204,7 @@ export default function CoachProfile() {
         console.log(`No coaching data found for coach ${coachData.name} (${coachId})`);
       }
 
+      // Use the filtered data (database queries already filter by coach_id)
       const sessions = sessionsResult.data || [];
       const bookings = bookingsResult.data || [];
       const enrollments = enrollmentsResult.data || [];
