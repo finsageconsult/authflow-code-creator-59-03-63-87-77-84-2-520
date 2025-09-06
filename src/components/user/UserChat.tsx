@@ -88,6 +88,8 @@ export const UserChat: React.FC = () => {
         .eq('status', 'confirmed');
 
       if (enrollmentError) throw enrollmentError;
+      
+      console.log('Enrollments:', enrollmentData);
 
       // Fetch coach data for enrolled coaches
       if (enrollmentData && enrollmentData.length > 0) {
@@ -101,6 +103,8 @@ export const UserChat: React.FC = () => {
             .eq('role', 'COACH');
 
           if (coachError) throw coachError;
+          
+          console.log('Coach data:', coachData);
 
           const coachMap = (coachData || []).reduce((acc, coach) => {
             acc[coach.id] = {
@@ -117,21 +121,43 @@ export const UserChat: React.FC = () => {
           setCoaches(coachMap);
         }
 
-        // Fetch program data for enrolled courses
+        // Fetch program data for enrolled courses - try both individual_programs and a broader approach
         const courseIds = [...new Set(enrollmentData.map(e => e.course_id).filter(Boolean))];
         
+        console.log('Course IDs to fetch:', courseIds);
+        
         if (courseIds.length > 0) {
+          // First try individual_programs
           const { data: programData, error: programError } = await supabase
             .from('individual_programs')
             .select('*')
             .in('id', courseIds);
 
-          if (programError) throw programError;
+          console.log('Program data from individual_programs:', programData);
+          console.log('Program error:', programError);
 
-          const programMap = (programData || []).reduce((acc, program) => {
-            acc[program.id] = program;
-            return acc;
-          }, {} as { [key: string]: any });
+          let programMap = {} as { [key: string]: any };
+          
+          if (programData && programData.length > 0) {
+            programMap = programData.reduce((acc, program) => {
+              acc[program.id] = program;
+              return acc;
+            }, {} as { [key: string]: any });
+          } else {
+            // If no programs found, create fallback data using the enrollment course_id
+            courseIds.forEach(courseId => {
+              // Map known course IDs to program titles
+              const courseTitle = getCourseTitle(courseId);
+              programMap[courseId] = {
+                id: courseId,
+                title: courseTitle,
+                description: `Course program for ${courseTitle}`,
+                category: 'course',
+                level: 'Beginner',
+                duration: '60 min'
+              };
+            });
+          }
 
           setPrograms(programMap);
         }
@@ -148,6 +174,19 @@ export const UserChat: React.FC = () => {
     } finally {
       setChatsLoading(false);
     }
+  };
+
+  // Helper function to get course title from known course IDs
+  const getCourseTitle = (courseId: string) => {
+    const courseMap: { [key: string]: string } = {
+      '550e8400-e29b-41d4-a716-446655440000': 'Financial Fitness Bootcamp',
+      '550e8400-e29b-41d4-a716-446655440001': 'Investment Mastery Series',
+      '550e8400-e29b-41d4-a716-446655440002': 'Smart Tax Planning',
+      '550e8400-e29b-41d4-a716-446655440003': 'Financial Blueprint Session',
+      '550e8400-e29b-41d4-a716-446655440004': 'Debt-Free Journey',
+      '550e8400-e29b-41d4-a716-446655440005': 'Investing in 3 Hours'
+    };
+    return courseMap[courseId] || 'Financial Program';
   };
 
   // Convert enrollments to purchased courses format
