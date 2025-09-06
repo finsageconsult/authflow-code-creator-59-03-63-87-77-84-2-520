@@ -1,23 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { useChats } from '@/hooks/useChat';
-import { ChatWindow } from '@/components/chat/ChatWindow';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  MessageSquare, 
-  Users, 
-  Search,
-  Calendar,
-  Star,
-  BookOpen
-} from 'lucide-react';
-import { format } from 'date-fns';
+import { ChatProfileSidebar } from './ChatProfileSidebar';
+import { ChatMessageArea } from './ChatMessageArea';
+import { MessageSquare } from 'lucide-react';
 
 interface CoachingStudent {
   id: string;
@@ -34,8 +22,9 @@ interface CoachingStudent {
 
 export const CoachChatInterface: React.FC = () => {
   const { userProfile } = useAuth();
-  const { chats, loading } = useChats();
+  const { chats, loading: chatsLoading } = useChats();
   const [selectedChat, setSelectedChat] = useState<any>(null);
+  const [selectedStudent, setSelectedStudent] = useState<CoachingStudent | null>(null);
   const [students, setStudents] = useState<CoachingStudent[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -150,32 +139,32 @@ export const CoachChatInterface: React.FC = () => {
     );
   };
 
-  if (selectedChat) {
-    return (
-      <div className="h-[calc(100vh-200px)]">
-        <ChatWindow 
-          chat={selectedChat} 
-          onBack={() => setSelectedChat(null)} 
-        />
-      </div>
-    );
-  }
+  // Handle student selection
+  const handleStudentSelect = (student: CoachingStudent) => {
+    setSelectedStudent(student);
+    setSelectedChat(null);
+  };
 
-  if (loading || studentsLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p className="text-muted-foreground">Loading coaching sessions...</p>
-        </div>
-      </div>
-    );
-  }
+  // Handle starting chat
+  const handleStartChat = (student: CoachingStudent) => {
+    const chat = getChatForStudent(student);
+    if (chat) {
+      setSelectedChat(chat);
+    }
+  };
+
+  // Handle back navigation
+  const handleBack = () => {
+    setSelectedChat(null);
+    setSelectedStudent(null);
+  };
+
+  const loading = chatsLoading || studentsLoading;
 
   return (
-    <div className="space-y-6">
+    <div className="h-[calc(100vh-200px)]">
       {/* Header */}
-      <Card>
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
@@ -187,132 +176,32 @@ export const CoachChatInterface: React.FC = () => {
         </CardHeader>
       </Card>
 
-      {/* Search */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search students or programs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Main Chat Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+        {/* Left Sidebar - Student Profiles */}
+        <div className="lg:col-span-1">
+          <ChatProfileSidebar
+            students={filteredStudents}
+            loading={loading}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onStudentSelect={handleStudentSelect}
+            selectedStudentId={selectedStudent?.id}
+            getChatForStudent={getChatForStudent}
+          />
+        </div>
 
-      {/* Students List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Your Students ({filteredStudents.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[500px]">
-            {filteredStudents.length === 0 ? (
-              <div className="text-center py-8">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Students Yet</h3>
-                <p className="text-muted-foreground">
-                  {searchQuery 
-                    ? 'No students match your search criteria'
-                    : 'Students will appear here once they enroll in your programs'
-                  }
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredStudents.map((student) => {
-                  const chat = getChatForStudent(student);
-                  
-                  return (
-                    <div
-                      key={student.id}
-                      className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-start gap-4">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                            {student.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-semibold text-lg">{student.name}</h4>
-                            <Badge variant="outline">
-                              {student.enrollments.length} Program{student.enrollments.length !== 1 ? 's' : ''}
-                            </Badge>
-                          </div>
-                          
-                          <p className="text-sm text-muted-foreground mb-3">{student.email}</p>
-                          
-                          {/* Enrolled Programs */}
-                          <div className="space-y-2 mb-4">
-                            {student.enrollments.map((enrollment) => (
-                              <div key={enrollment.id} className="flex items-center gap-2 text-sm">
-                                <BookOpen className="h-4 w-4 text-primary" />
-                                <span className="font-medium">{enrollment.program_title}</span>
-                                <span className="text-muted-foreground">•</span>
-                                <span className="text-muted-foreground">
-                                  Enrolled {format(new Date(enrollment.enrollment_date), 'MMM dd, yyyy')}
-                                </span>
-                                {enrollment.scheduled_at && (
-                                  <>
-                                    <span className="text-muted-foreground">•</span>
-                                    <div className="flex items-center gap-1">
-                                      <Calendar className="h-3 w-3" />
-                                      <span className="text-muted-foreground">
-                                        {format(new Date(enrollment.scheduled_at), 'MMM dd, HH:mm')}
-                                      </span>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                          
-                          {/* Chat Button */}
-                          <div className="flex items-center gap-3">
-                            {chat ? (
-                              <Button 
-                                onClick={() => setSelectedChat(chat)}
-                                className="flex items-center gap-2"
-                              >
-                                <MessageSquare className="h-4 w-4" />
-                                Open Chat
-                              </Button>
-                            ) : (
-                              <Button 
-                                variant="outline" 
-                                disabled
-                                className="flex items-center gap-2"
-                              >
-                                <MessageSquare className="h-4 w-4" />
-                                Chat Unavailable
-                              </Button>
-                            )}
-                            
-                            <Button variant="outline" size="sm">
-                              View Progress
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              Session Notes
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </ScrollArea>
-        </CardContent>
-      </Card>
+        {/* Right Side - Chat Area */}
+        <div className="lg:col-span-2">
+          <ChatMessageArea
+            selectedStudent={selectedStudent}
+            selectedChat={selectedChat}
+            onBack={handleBack}
+            onStartChat={handleStartChat}
+            getChatForStudent={getChatForStudent}
+          />
+        </div>
+      </div>
     </div>
   );
 };
