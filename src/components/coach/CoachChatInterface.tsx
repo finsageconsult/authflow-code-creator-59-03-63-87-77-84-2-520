@@ -39,8 +39,8 @@ export const CoachChatInterface: React.FC = () => {
       console.log('Fetching students for coach:', userProfile.id);
       
       // Get all students who have enrolled with this coach OR purchased individual programs
-      // Avoid FK-dependent joins (some FKs may be missing) and fetch in steps
-      const [enrollmentsRes, bookingsRes] = await Promise.all([
+      // Use the new RPC function to avoid RLS issues
+      const [enrollmentsRes, bookingsRes, studentsRes] = await Promise.all([
         supabase
           .from('enrollments')
           .select('*')
@@ -49,19 +49,21 @@ export const CoachChatInterface: React.FC = () => {
         supabase
           .from('individual_bookings')
           .select('*')
-          .eq('coach_id', userProfile.id)
+          .eq('coach_id', userProfile.id),
+        supabase.rpc('get_students_for_current_coach')
       ]);
 
       const allEnrollments = enrollmentsRes.data || [];
       const allBookings = bookingsRes.data || [];
+      const studentsList = studentsRes.data || [];
 
-      // Collect unique user and program ids
-      const userIds = [
-        ...new Set([
-          ...allEnrollments.map(e => e.user_id).filter(Boolean),
-          ...allBookings.map(b => b.user_id).filter(Boolean)
-        ])
-      ];
+      // Create user map from RPC results
+      const userMap = studentsList.reduce((acc: Record<string, any>, u: any) => {
+        acc[u.id] = u;
+        return acc;
+      }, {});
+
+      // Collect unique program ids
       const courseIds = [
         ...new Set([
           ...allEnrollments.map(e => e.course_id).filter(Boolean),
@@ -69,20 +71,11 @@ export const CoachChatInterface: React.FC = () => {
         ])
       ];
 
-      // Fetch users and programs in bulk
-      const [{ data: usersData }, { data: programs }] = await Promise.all([
-        userIds.length
-          ? supabase.from('users').select('id, name, email').in('id', userIds)
-          : Promise.resolve({ data: [] as any }),
-        courseIds.length
-          ? supabase.from('individual_programs').select('id, title').in('id', courseIds)
-          : Promise.resolve({ data: [] as any })
-      ]);
+      // Fetch programs in bulk
+      const { data: programs } = courseIds.length
+        ? await supabase.from('individual_programs').select('id, title').in('id', courseIds)
+        : { data: [] as any };
 
-      const userMap = (usersData || []).reduce((acc: Record<string, any>, u: any) => {
-        acc[u.id] = u;
-        return acc;
-      }, {});
       const programMap = (programs || []).reduce((acc: Record<string, string>, p: any) => {
         acc[p.id] = p.title;
         return acc;
