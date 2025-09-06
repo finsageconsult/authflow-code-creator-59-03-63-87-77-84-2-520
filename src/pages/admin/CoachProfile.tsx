@@ -329,19 +329,7 @@ export default function CoachProfile() {
 
       {/* Statistics Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-primary" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Sessions</p>
-                  <p className="text-2xl font-bold">{stats.totalSessions}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center space-x-2">
@@ -372,31 +360,9 @@ export default function CoachProfile() {
                 <Star className="h-4 w-4 text-yellow-600" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Avg Rating</p>
-                  <p className="text-2xl font-bold">{stats.averageRating || 'N/A'}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <BookOpen className="h-4 w-4 text-purple-600" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Offerings</p>
-                  <p className="text-2xl font-bold">{stats.totalOfferings}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-orange-600" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Enrollments</p>
-                  <p className="text-2xl font-bold">{stats.totalEnrollments}</p>
+                  <p className="text-2xl font-bold">
+                    {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : 'N/A'}
+                  </p>
                 </div>
               </div>
             </CardContent>
