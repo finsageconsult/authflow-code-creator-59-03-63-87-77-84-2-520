@@ -103,9 +103,11 @@ export const SessionManager = () => {
           const courseTitle = enrollment.program_title;
           const courseCategory = enrollment.program_category || 'coaching';
           
-          // Find the most recent coaching session for this coach+client (not exact time match)
-          const session = sessions?.filter(s => s.client_id === student.id)
-            .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0];
+          // Find specific coaching session for this enrollment/program using session_type
+          const session = sessions?.filter(s => 
+            s.client_id === student.id && 
+            s.session_type === courseTitle
+          ).sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0];
 
           const enrollmentData = {
             id: enrollment.id,
@@ -258,12 +260,13 @@ export const SessionManager = () => {
         organization_id: userProfile?.organization_id
       });
 
-      // Always update the most recent session for this coach+client; insert if none
+      // Look for existing session for this specific enrollment/program
       const { data: existingSessions, error: listErr } = await supabase
         .from('coaching_sessions')
         .select('id')
         .eq('coach_id', userProfile?.id)
         .eq('client_id', enrollment.user.id)
+        .eq('session_type', enrollment.course?.title || 'Coaching Session')
         .order('updated_at', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(1);

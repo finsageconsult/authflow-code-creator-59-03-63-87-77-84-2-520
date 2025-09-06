@@ -154,9 +154,12 @@ export const EmployeePrograms = () => {
   };
 
   const getMeetingLink = (programId: string) => {
-    // Find the most recent coaching session with a meeting link for this program
+    // Find coaching session specifically for this program by matching program title
+    const currentProgram = programs.find(p => p.id === programId);
+    if (!currentProgram) return null;
+    
     const session = coachingSessions
-      .filter(s => s.meeting_link)
+      .filter(s => s.meeting_link && s.session_type === currentProgram.title)
       .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0];
     return session?.meeting_link || null;
   };
