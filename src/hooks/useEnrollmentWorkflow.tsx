@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useCoachAvailability } from './useCoachAvailability';
 import { toast } from 'sonner';
 
 export interface EnrollmentData {
@@ -58,6 +59,7 @@ export const useEnrollmentWorkflow = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [realCoaches, setRealCoaches] = useState<Coach[]>([]);
   const [filteredCoaches, setFilteredCoaches] = useState<Coach[]>([]);
+  const { timeSlots, fetchAvailableSlots } = useCoachAvailability();
 
   // Fetch real coaches from database 
   const fetchCoaches = async () => {
@@ -214,41 +216,9 @@ export const useEnrollmentWorkflow = () => {
   }, [realCoaches, enrollmentData.course, filterCoachesByCourse]);
 
   const generateTimeSlots = (coachId: string): TimeSlot[] => {
-    const slots: TimeSlot[] = [];
-    const today = new Date();
-    
-    // Generate slots for next 14 days (instead of 7)
-    for (let i = 1; i <= 14; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      
-      // Skip weekends for now
-      if (date.getDay() === 0 || date.getDay() === 6) continue;
-      
-      // Generate time slots based on typical working hours
-      const timeSlots = [
-        { start: '09:00', end: '10:00' },
-        { start: '10:30', end: '11:30' },
-        { start: '14:00', end: '15:00' },
-        { start: '15:30', end: '16:30' },
-        { start: '17:00', end: '18:00' }
-      ];
-      
-      timeSlots.forEach((timeSlot) => {
-        // Generate proper UUID for slot
-        const slotId = crypto.randomUUID();
-        
-        slots.push({
-          id: slotId,
-          startTime: timeSlot.start,
-          endTime: timeSlot.end,
-          date: date.toISOString().split('T')[0],
-          isAvailable: Math.random() > 0.4 // 60% availability
-        });
-      });
-    }
-    
-    return slots.filter(slot => slot.isAvailable);
+    // Fetch real time slots from the coach's availability
+    fetchAvailableSlots(coachId);
+    return timeSlots;
   };
 
   const setCourse = useCallback((course: EnrollmentData['course']) => {
@@ -258,7 +228,10 @@ export const useEnrollmentWorkflow = () => {
 
   const setCoach = useCallback((coach: EnrollmentData['coach']) => {
     setEnrollmentData(prev => ({ ...prev, coach }));
-  }, []);
+    if (coach) {
+      fetchAvailableSlots(coach.id);
+    }
+  }, [fetchAvailableSlots]);
 
   const setTimeSlot = useCallback((timeSlot: EnrollmentData['timeSlot']) => {
     setEnrollmentData(prev => ({ ...prev, timeSlot }));
@@ -331,6 +304,7 @@ export const useEnrollmentWorkflow = () => {
     enrollmentData,
     isLoading,
     coaches: filteredCoaches,
+    timeSlots,
     generateTimeSlots,
     setCourse,
     setCoach,

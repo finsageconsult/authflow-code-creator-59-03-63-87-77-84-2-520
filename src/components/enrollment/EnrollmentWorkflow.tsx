@@ -27,6 +27,7 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
     enrollmentData,
     isLoading,
     coaches,
+    timeSlots,
     generateTimeSlots,
     setCourse,
     setCoach,
@@ -88,7 +89,7 @@ export const EnrollmentWorkflow: React.FC<EnrollmentWorkflowProps> = ({
         return (
           <TimeSlotSelection
             coach={enrollmentData.coach}
-            timeSlots={enrollmentData.coach ? generateTimeSlots(enrollmentData.coach.id) : []}
+            timeSlots={timeSlots || []}
             selectedTimeSlot={enrollmentData.timeSlot}
             onSelectTimeSlot={setTimeSlot}
             onNext={nextStep}
