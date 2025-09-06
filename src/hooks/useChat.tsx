@@ -410,14 +410,24 @@ export const useChatMessages = (chatId: string) => {
 
   // Function to sanitize filenames for Supabase storage
   const sanitizeFileName = (fileName: string): string => {
-    // Remove invalid characters and replace with safe alternatives
-    return fileName
-      .replace(/[{}]/g, '') // Remove curly braces
-      .replace(/[()]/g, '') // Remove parentheses
+    // Extract file extension
+    const lastDotIndex = fileName.lastIndexOf('.');
+    const name = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
+    const extension = lastDotIndex > 0 ? fileName.substring(lastDotIndex) : '';
+    
+    // Sanitize the name part
+    const sanitizedName = name
+      .replace(/[{}()\[\]]/g, '') // Remove braces, parentheses, brackets
       .replace(/\s+/g, '_') // Replace spaces with underscores
-      .replace(/[^a-zA-Z0-9._-]/g, '') // Remove any other special characters except dots, underscores, and hyphens
-      .replace(/_+/g, '_') // Replace multiple underscores with single underscore
-      .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+      .replace(/[^a-zA-Z0-9._-]/g, '') // Keep only alphanumeric, dots, underscores, hyphens
+      .replace(/_+/g, '_') // Replace multiple underscores with single
+      .replace(/^[._-]+|[._-]+$/g, '') // Remove leading/trailing special chars
+      .substring(0, 100); // Limit length
+    
+    // Ensure we have a valid name
+    const finalName = sanitizedName || 'file';
+    
+    return finalName + extension;
   };
 
   const uploadFile = async (file: File) => {
@@ -427,6 +437,9 @@ export const useChatMessages = (chatId: string) => {
       // Sanitize the filename to ensure it's valid for Supabase storage
       const sanitizedFileName = sanitizeFileName(file.name);
       const fileName = `${userProfile.id}/${chatId}/${Date.now()}-${sanitizedFileName}`;
+      
+      console.log('Uploading file with sanitized name:', fileName);
+      
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('chat-files')
         .upload(fileName, file);
