@@ -80,7 +80,7 @@ export function IndividualSidebar() {
 
   return (
     <Sidebar
-      className="border-r bg-background/95 backdrop-blur-sm md:static md:w-48 lg:w-56"
+      className="border-r bg-background/95 backdrop-blur-sm md:static md:w-48 lg:w-56 flex flex-col h-full"
       collapsible="icon"
       variant="sidebar"
       side="left"
