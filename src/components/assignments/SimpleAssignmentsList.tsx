@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Plus } from 'lucide-react';
-import BulkAssignmentDialog from './BulkAssignmentDialog';
 
 const SimpleAssignmentsList: React.FC = () => {
   const { userProfile } = useAuth();
@@ -73,9 +72,9 @@ const SimpleAssignmentsList: React.FC = () => {
           <h1 className="text-3xl font-bold text-foreground">Assignment Center</h1>
           <p className="text-muted-foreground">Manage and track student assignments</p>
         </div>
-        <Button onClick={() => setShowBulkDialog(true)} className="gap-2">
+        <Button onClick={() => setShowBulkDialog(true)} className="gap-2" disabled>
           <Plus className="h-4 w-4" />
-          Create Bulk Assignment
+          Create Bulk Assignment (Coming Soon)
         </Button>
       </div>
 
@@ -157,11 +156,6 @@ const SimpleAssignmentsList: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
-      <BulkAssignmentDialog
-        open={showBulkDialog}
-        onOpenChange={setShowBulkDialog}
-      />
     </div>
   );
 };
