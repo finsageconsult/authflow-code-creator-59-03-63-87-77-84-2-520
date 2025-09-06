@@ -48,11 +48,8 @@ const StudentsProfileView: React.FC = () => {
       setStudents(data || []);
     } catch (error) {
       console.error('Error fetching students:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load students",
-        variant: "destructive",
-      });
+      // Remove toast to avoid unstable dependencies
+      console.error('Failed to load students');
     } finally {
       setLoading(false);
     }
