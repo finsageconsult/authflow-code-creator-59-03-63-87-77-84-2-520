@@ -182,35 +182,8 @@ export const EmployeePrograms = () => {
       </div>;
   }
 
-  // Static short programs for employees with proper UUID format
-  const shortPrograms = [{
-    id: '550e8400-e29b-41d4-a716-446655440000', // UUID for financial-fitness-bootcamp
-    title: 'Financial Fitness Bootcamp (Flagship)',
-    description: '7-day program covering budgeting, saving, investing, and debt control.',
-    price: 700000,
-    // ₹7,000 in paisa
-    duration: '7 days',
-    level: 'Beginner to Advanced',
-    category: 'short-program'
-  }, {
-    id: '550e8400-e29b-41d4-a716-446655440001', // UUID for investment-mastery-series
-    title: 'Investment Mastery Series',
-    description: '14-day deep dive into equity, mutual funds, and alternative assets.',
-    price: 1000000,
-    // ₹10,000 in paisa
-    duration: '14 days',
-    level: 'Intermediate to Advanced',
-    category: 'short-program'
-  }, {
-    id: '550e8400-e29b-41d4-a716-446655440002', // UUID for tax-compliance-essentials
-    title: 'Tax & Compliance Essentials',
-    description: '3-day crash course to optimize tax-saving while staying compliant.',
-    price: 400000,
-    // ₹4,000 in paisa
-    duration: '3 days',
-    level: 'Beginner to Intermediate',
-    category: 'short-program'
-  }];
+  // Filter programs for short programs category or show all active programs
+  const availablePrograms = programs.filter(program => program.is_active);
   return <div className="space-y-6">
       {/* Free Courses & Tools Section */}
       <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border">
@@ -285,7 +258,7 @@ export const EmployeePrograms = () => {
       </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {shortPrograms.map(program => {
+          {availablePrograms.map(program => {
           // Check if user has already enrolled in this program
           const isEnrolled = enrolledPrograms.has(program.id);
           return <Card key={program.id} className="group hover:shadow-lg transition-all bg-white/70">
@@ -369,7 +342,7 @@ export const EmployeePrograms = () => {
                             duration: program.duration,
                             price: 0, // Free for employees
                             category: program.category,
-                            tags: ['financial-planning', 'budgeting', 'investing'] // Default tags for matching coaches
+                            tags: program.tags || ['financial-planning', 'budgeting', 'investing'] // Use program tags or defaults
                           };
                           console.log('Setting course data:', courseData);
                           setSelectedCourse(courseData);
