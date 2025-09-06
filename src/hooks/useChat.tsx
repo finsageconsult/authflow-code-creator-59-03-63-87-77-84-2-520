@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
@@ -471,12 +471,26 @@ export const useChatMessages = (chatId: string) => {
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'chat_messages',
           filter: `chat_id=eq.${chatId}`
         },
-        () => {
+        (payload) => {
+          console.log('New message received:', payload);
+          fetchMessages();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `chat_id=eq.${chatId}`
+        },
+        (payload) => {
+          console.log('Message updated:', payload);
           fetchMessages();
         }
       )
@@ -499,9 +513,25 @@ export const useChatMessages = (chatId: string) => {
 export const usePresence = () => {
   const [presenceData, setPresenceData] = useState<Record<string, UserPresence>>({});
   const { userProfile } = useAuth();
+  const lastUpdateRef = useRef<number>(0);
+  const updateTimeoutRef = useRef<NodeJS.Timeout>();
 
   const updatePresence = async (status: string, typingInChat?: string) => {
     if (!userProfile) return;
+
+    // Throttle updates to prevent rapid successive calls
+    const now = Date.now();
+    if (now - lastUpdateRef.current < 1000) { // 1 second throttle
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+      updateTimeoutRef.current = setTimeout(() => {
+        updatePresence(status, typingInChat);
+      }, 1000);
+      return;
+    }
+
+    lastUpdateRef.current = now;
 
     try {
       const { error } = await supabase
@@ -511,6 +541,10 @@ export const usePresence = () => {
           status,
           typing_in_chat: typingInChat,
           last_seen: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id',
+          ignoreDuplicates: false
         });
 
       if (error) throw error;
@@ -539,11 +573,13 @@ export const usePresence = () => {
   };
 
   useEffect(() => {
+    if (!userProfile) return;
+
     fetchPresence();
 
     // Set up real-time subscription for presence
     const channel = supabase
-      .channel('user-presence')
+      .channel('user-presence-changes')
       .on(
         'postgres_changes',
         {
@@ -551,27 +587,31 @@ export const usePresence = () => {
           schema: 'public',
           table: 'user_presence'
         },
-        () => {
+        (payload) => {
+          console.log('Presence change:', payload);
           fetchPresence();
         }
       )
       .subscribe();
 
     // Update presence to online on mount
-    updatePresence('online');
+    setTimeout(() => updatePresence('online'), 100);
 
-    // Set up interval to keep presence updated
+    // Set up interval to keep presence updated (less frequent)
     const interval = setInterval(() => {
       updatePresence('online');
-    }, 30000); // Update every 30 seconds
+    }, 60000); // Update every 60 seconds instead of 30
 
     // Update presence to offline on unmount
     return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
       updatePresence('offline');
       clearInterval(interval);
       supabase.removeChannel(channel);
     };
-  }, [userProfile]);
+  }, [userProfile?.id]); // Only depend on user ID to prevent re-subscriptions
 
   return {
     presenceData,
