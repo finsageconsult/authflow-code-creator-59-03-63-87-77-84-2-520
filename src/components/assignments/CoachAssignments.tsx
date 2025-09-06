@@ -51,8 +51,13 @@ export const CoachAssignments = () => {
 
   useEffect(() => {
     fetchStudents();
-    fetchAssignments();
   }, []);
+
+  useEffect(() => {
+    if (students.length > 0) {
+      fetchAssignments();
+    }
+  }, [students]);
 
   const fetchStudents = async () => {
     try {
@@ -79,17 +84,14 @@ export const CoachAssignments = () => {
 
       if (error) throw error;
 
-      // Fetch user names separately to avoid relation issues
-      const assignmentIds = assignmentsData?.map(a => a.assigned_to) || [];
-      const { data: usersData } = await supabase
-        .from('users')
-        .select('id, name')
-        .in('id', assignmentIds);
-
-      const formattedAssignments = assignmentsData?.map(assignment => ({
-        ...assignment,
-        student_name: usersData?.find(u => u.id === assignment.assigned_to)?.name || 'Unknown Student'
-      })) || [];
+      // Use the students data that's already available to get names
+      const formattedAssignments = assignmentsData?.map(assignment => {
+        const student = students.find(s => s.id === assignment.assigned_to);
+        return {
+          ...assignment,
+          student_name: student?.name || 'Unknown Student'
+        };
+      }) || [];
 
       setAssignments(formattedAssignments);
     } catch (error) {
