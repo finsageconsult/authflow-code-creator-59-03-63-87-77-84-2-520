@@ -25,7 +25,7 @@ interface CoachingStudent {
 
 export const CoachChatInterface: React.FC = () => {
   const { userProfile } = useAuth();
-  const { chats, loading: chatsLoading } = useChats();
+  const { chats, loading: chatsLoading, createCoachingChat, createDirectChat } = useChats();
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [selectedStudent, setSelectedStudent] = useState<CoachingStudent | null>(null);
   const [students, setStudents] = useState<CoachingStudent[]>([]);
@@ -123,17 +123,62 @@ export const CoachChatInterface: React.FC = () => {
     );
   };
 
-  // Handle student selection
-  const handleStudentSelect = (student: CoachingStudent) => {
+  // Handle student selection - automatically try to start chat
+  const handleStudentSelect = async (student: CoachingStudent) => {
     setSelectedStudent(student);
-    setSelectedChat(null);
+    
+    // Check if chat already exists
+    const existingChat = getChatForStudent(student);
+    if (existingChat) {
+      setSelectedChat(existingChat);
+    } else {
+      // Don't automatically create chat, just show student profile
+      setSelectedChat(null);
+    }
   };
 
   // Handle starting chat
-  const handleStartChat = (student: CoachingStudent) => {
-    const chat = getChatForStudent(student);
-    if (chat) {
-      setSelectedChat(chat);
+  const handleStartChat = async (student: CoachingStudent) => {
+    const existingChat = getChatForStudent(student);
+    
+    if (existingChat) {
+      setSelectedChat(existingChat);
+      return;
+    }
+
+    // Create a new coaching chat
+    if (student.enrollments.length > 0) {
+      const enrollment = student.enrollments[0];
+      const newChat = await createCoachingChat(
+        userProfile?.id || '', 
+        enrollment.program_title,
+        enrollment.id
+      );
+      
+      if (newChat) {
+        // Add participants info to the chat for display
+        const chatWithParticipants = {
+          ...newChat,
+          participants: [
+            { user_id: userProfile?.id, user: { id: userProfile?.id, name: userProfile?.name, email: userProfile?.email } },
+            { user_id: student.id, user: { id: student.id, name: student.name, email: student.email } }
+          ]
+        };
+        setSelectedChat(chatWithParticipants);
+      }
+    } else {
+      // Create a direct chat if no enrollments
+      const newChat = await createDirectChat(student.id);
+      if (newChat) {
+        const chatWithParticipants = {
+          ...newChat,
+          participants: [
+            { user_id: userProfile?.id, user: { id: userProfile?.id, name: userProfile?.name, email: userProfile?.email } },
+            { user_id: student.id, user: { id: student.id, name: student.name, email: student.email } }
+          ]
+        };
+        setSelectedChat(chatWithParticipants);
+      }
     }
   };
 

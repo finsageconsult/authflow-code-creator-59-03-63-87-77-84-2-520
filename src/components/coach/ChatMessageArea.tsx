@@ -153,12 +153,11 @@ export const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
                 </Button>
               ) : (
                 <Button 
-                  variant="outline" 
-                  disabled
+                  onClick={() => onStartChat(selectedStudent)}
                   className="flex items-center gap-2"
                 >
                   <MessageSquare className="h-4 w-4" />
-                  Chat Unavailable
+                  Start Chat
                 </Button>
               )}
               
