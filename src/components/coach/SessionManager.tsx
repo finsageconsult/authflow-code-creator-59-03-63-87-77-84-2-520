@@ -74,39 +74,16 @@ export const SessionManager = () => {
     try {
       setLoading(true);
       
-      // Get enrollments for this coach
-      const { data: enrollments, error: enrollmentsError } = await supabase
-        .from('enrollments')
-        .select('*')
-        .eq('coach_id', userProfile.id)
-        .order('scheduled_at', { ascending: true });
+      // Use the same RPC function as the chat interface
+      const { data: studentsData, error } = await supabase
+        .rpc('get_students_for_current_coach');
 
-      if (enrollmentsError) throw enrollmentsError;
+      if (error) throw error;
 
-      if (!enrollments || enrollments.length === 0) {
+      if (!studentsData || studentsData.length === 0) {
         setCourseEnrollments([]);
         return;
       }
-
-      // Get user IDs and course IDs
-      const userIds = [...new Set(enrollments.map(e => e.user_id))];
-      const courseIds = [...new Set(enrollments.map(e => e.course_id))];
-
-      // Fetch user data
-      const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('id, name, email')
-        .in('id', userIds);
-
-      if (usersError) throw usersError;
-
-      // Fetch course data
-      const { data: programs, error: programsError } = await supabase
-        .from('individual_programs')
-        .select('id, title, category, duration')
-        .in('id', courseIds);
-
-      if (programsError) throw programsError;
 
       // Get coaching sessions for meeting links
       const { data: sessions } = await supabase
@@ -114,55 +91,58 @@ export const SessionManager = () => {
         .select('*')
         .eq('coach_id', userProfile.id);
 
-      // Create lookup maps
-      const usersMap = new Map(users?.map(u => [u.id, u]) || []);
-      const programsMap = new Map(programs?.map(p => [p.id, p]) || []);
-
       // Group enrollments by course
       const courseMap = new Map();
       
-      enrollments.forEach((enrollment: any) => {
-        const courseId = enrollment.course_id;
-        const course = programsMap.get(courseId);
-        const user = usersMap.get(enrollment.user_id);
+      studentsData.forEach((student: any) => {
+        if (!student.enrollments || student.enrollments.length === 0) return;
         
-        if (!course || !user) return; // Skip if course or user not found
+        student.enrollments.forEach((enrollment: any) => {
+          const courseId = enrollment.id; // Using enrollment ID as course grouping
+          const courseTitle = enrollment.program_title;
+          
+          // Find matching coaching session
+          const session = sessions?.find(s => 
+            s.client_id === student.id && 
+            enrollment.scheduled_at && new Date(s.scheduled_at).getTime() === new Date(enrollment.scheduled_at).getTime()
+          );
 
-        // Find matching coaching session
-        const session = sessions?.find(s => 
-          s.client_id === enrollment.user_id && 
-          new Date(s.scheduled_at).getTime() === new Date(enrollment.scheduled_at).getTime()
-        );
-
-        const enrollmentData = {
-          id: enrollment.id,
-          user: user,
-          scheduledAt: enrollment.scheduled_at,
-          status: enrollment.status,
-          paymentStatus: enrollment.payment_status,
-          notes: enrollment.notes || '',
-          outcomeTags: session?.outcome_tags || [],
-          meetingLink: session?.meeting_link,
-          linkGeneratedAt: session?.created_at,
-          linkActiveAt: session?.scheduled_at ? new Date(new Date(session.scheduled_at).getTime() - 30 * 60 * 1000).toISOString() : null,
-          linkExpiresAt: session?.scheduled_at ? new Date(new Date(session.scheduled_at).getTime() + 2 * 60 * 60 * 1000).toISOString() : null,
-          isLinkActive: session?.meeting_link && checkLinkActive(session.scheduled_at)
-        };
-
-        if (!courseMap.has(courseId)) {
-          courseMap.set(courseId, {
-            id: courseId,
-            course: {
-              id: course.id,
-              title: course.title,
-              category: course.category,
-              duration: course.duration
+          const enrollmentData = {
+            id: enrollment.id,
+            user: {
+              id: student.id,
+              name: student.name,
+              email: student.email
             },
-            enrollments: []
-          });
-        }
-        
-        courseMap.get(courseId).enrollments.push(enrollmentData);
+            scheduledAt: enrollment.scheduled_at,
+            status: enrollment.status,
+            paymentStatus: enrollment.payment_status,
+            notes: '',
+            outcomeTags: session?.outcome_tags || [],
+            meetingLink: session?.meeting_link,
+            linkGeneratedAt: session?.created_at,
+            linkActiveAt: enrollment.scheduled_at ? new Date(new Date(enrollment.scheduled_at).getTime() - 30 * 60 * 1000).toISOString() : null,
+            linkExpiresAt: enrollment.scheduled_at ? new Date(new Date(enrollment.scheduled_at).getTime() + 2 * 60 * 60 * 1000).toISOString() : null,
+            isLinkActive: session?.meeting_link && enrollment.scheduled_at && checkLinkActive(enrollment.scheduled_at)
+          };
+
+          const courseKey = `${courseTitle}-${enrollment.program_category}`;
+          
+          if (!courseMap.has(courseKey)) {
+            courseMap.set(courseKey, {
+              id: courseKey,
+              course: {
+                id: courseId,
+                title: courseTitle,
+                category: enrollment.program_category || 'coaching',
+                duration: '60 minutes' // Default duration
+              },
+              enrollments: []
+            });
+          }
+          
+          courseMap.get(courseKey).enrollments.push(enrollmentData);
+        });
       });
 
       setCourseEnrollments(Array.from(courseMap.values()));
