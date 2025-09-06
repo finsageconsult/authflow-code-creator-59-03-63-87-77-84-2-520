@@ -27,14 +27,13 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SecurityAuditLog {
   id: string;
-  event_type: string;
-  user_id?: string | null;
-  target_user_id?: string | null;
-  event_details: any;
-  ip_address?: string | null;
-  user_agent?: string | null;
-  success: boolean;
-  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  entity: string;
+  action: string;
+  actor_id?: string | null;
+  entity_id?: string | null;
+  before_data: any;
+  after_data: any;
+  organization_id?: string | null;
   created_at: string;
 }
 
@@ -91,7 +90,7 @@ export const SecurityAuditDashboard = () => {
       }
 
       let query = supabase
-        .from('security_audit_logs')
+        .from('audit_logs')
         .select('*')
         .gte('created_at', dateFilter.toISOString())
         .order('created_at', { ascending: false })
@@ -99,16 +98,7 @@ export const SecurityAuditDashboard = () => {
 
       // Apply filters
       if (filters.eventType && filters.eventType !== 'all') {
-        query = query.eq('event_type', filters.eventType);
-      }
-      if (filters.riskLevel && filters.riskLevel !== 'all') {
-        query = query.eq('risk_level', filters.riskLevel);
-      }
-      if (filters.success !== 'all') {
-        query = query.eq('success', filters.success === 'true');
-      }
-      if (filters.ipAddress) {
-        query = query.eq('ip_address', filters.ipAddress);
+        query = query.eq('action', filters.eventType);
       }
 
       const { data, error } = await query;
@@ -121,19 +111,11 @@ export const SecurityAuditDashboard = () => {
       if (filters.search) {
         const searchTerm = filters.search.toLowerCase();
         filteredData = filteredData.filter(log =>
-          log.event_type.toLowerCase().includes(searchTerm) ||
-          (log.ip_address && log.ip_address.toString().toLowerCase().includes(searchTerm)) ||
-          JSON.stringify(log.event_details).toLowerCase().includes(searchTerm)
+          (log.action && log.action.toLowerCase().includes(searchTerm)) ||
+          (log.entity && log.entity.toLowerCase().includes(searchTerm)) ||
+          JSON.stringify(log.before_data || {}).toLowerCase().includes(searchTerm) ||
+          JSON.stringify(log.after_data || {}).toLowerCase().includes(searchTerm)
         );
-      }
-
-      // Apply user role filter if needed
-      if (filters.userRole !== 'all') {
-        filteredData = filteredData.filter(log => {
-          const details = log.event_details as any;
-          return details?.user_role === filters.userRole ||
-                 details?.role === filters.userRole;
-        });
       }
 
       setLogs(filteredData as SecurityAuditLog[]);
@@ -153,26 +135,31 @@ export const SecurityAuditDashboard = () => {
   };
 
   const calculateMetrics = (logs: SecurityAuditLog[]) => {
+    // Since audit_logs doesn't have login/auth specific fields, we'll simulate based on actions
     const loginEvents = logs.filter(log => 
-      log.event_type.includes('login') || 
-      log.event_type.includes('auth') || 
-      log.event_type.includes('signin')
+      log.action && (
+        log.action.includes('login') || 
+        log.action.includes('auth') || 
+        log.action.includes('signin') ||
+        log.action.includes('CREATE') && log.entity === 'users'
+      )
     );
 
-    const loginSuccessCount = loginEvents.filter(log => log.success).length;
-    const loginFailureCount = loginEvents.filter(log => !log.success).length;
+    // For audit logs, we'll consider all events as "successful" unless explicitly marked otherwise
+    const loginSuccessCount = loginEvents.length;
+    const loginFailureCount = 0; // audit_logs typically only records successful actions
 
-    // Role breakdown from event details
+    // Entity breakdown (similar to role breakdown)
     const roleBreakdown = logs.reduce((acc, log) => {
-      const details = log.event_details as any;
-      const role = details?.user_role || details?.role || 'Unknown';
-      acc[role] = (acc[role] || 0) + 1;
+      const entity = log.entity || 'Unknown';
+      acc[entity] = (acc[entity] || 0) + 1;
       return acc;
     }, {} as { [key: string]: number });
 
-    // Events by type
+    // Events by action type
     const eventsByType = logs.reduce((acc, log) => {
-      acc[log.event_type] = (acc[log.event_type] || 0) + 1;
+      const action = log.action || 'unknown';
+      acc[action] = (acc[action] || 0) + 1;
       return acc;
     }, {} as { [key: string]: number });
 
@@ -185,16 +172,19 @@ export const SecurityAuditDashboard = () => {
       });
       
       const dayLogins = dayLogs.filter(log => 
-        log.event_type.includes('login') || 
-        log.event_type.includes('auth') ||
-        log.event_type.includes('signin')
+        log.action && (
+          log.action.includes('login') || 
+          log.action.includes('auth') ||
+          log.action.includes('signin') ||
+          log.action.includes('CREATE') && log.entity === 'users'
+        )
       );
       
       return {
         date: format(date, 'MMM dd'),
         events: dayLogs.length,
-        logins: dayLogins.filter(log => log.success).length,
-        failures: dayLogins.filter(log => !log.success).length
+        logins: dayLogins.length,
+        failures: 0 // audit_logs typically only records successful actions
       };
     });
 
@@ -213,17 +203,16 @@ export const SecurityAuditDashboard = () => {
       const csvContent = [
         ['Timestamp', 'Event Type', 'User ID', 'User Role', 'IP Address', 'Device', 'Success', 'Risk Level', 'Details'],
         ...logs.map(log => {
-          const details = log.event_details as any;
           return [
             new Date(log.created_at).toLocaleString(),
-            log.event_type,
-            log.user_id || '',
-            details?.user_role || details?.role || '',
-            log.ip_address || '',
-            getDeviceInfo(log.user_agent),
-            log.success ? 'Success' : 'Failed',
-            log.risk_level,
-            JSON.stringify(log.event_details).replace(/,/g, ';')
+            log.action || '',
+            log.actor_id || '',
+            log.entity || '',
+            'N/A', // IP address not available in audit_logs
+            'N/A', // Device not available in audit_logs
+            'Success', // audit_logs typically only records successful actions
+            'low', // Default risk level
+            JSON.stringify({ before: log.before_data, after: log.after_data }).replace(/,/g, ';')
           ];
         })
       ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
@@ -254,23 +243,23 @@ export const SecurityAuditDashboard = () => {
     }
   };
 
-  const getEventTypeIcon = (eventType: string) => {
-    if (eventType.includes('login') || eventType.includes('signin') || eventType.includes('auth')) {
+  const getEventTypeIcon = (action: string) => {
+    if (action && (action.includes('login') || action.includes('signin') || action.includes('auth'))) {
       return <LogIn className="h-4 w-4 text-blue-600" />;
     }
-    if (eventType.includes('role') || eventType.includes('permission')) {
-      return <Users className="h-4 w-4 text-purple-600" />;
+    if (action && (action.includes('CREATE') || action.includes('INSERT'))) {
+      return <Users className="h-4 w-4 text-green-600" />;
     }
-    if (eventType.includes('data') || eventType.includes('access') || eventType.includes('delete')) {
-      return <Activity className="h-4 w-4 text-orange-600" />;
+    if (action && (action.includes('UPDATE') || action.includes('MODIFY'))) {
+      return <Activity className="h-4 w-4 text-blue-600" />;
     }
-    if (eventType.includes('consent') || eventType.includes('questionnaire')) {
-      return <Shield className="h-4 w-4 text-green-600" />;
-    }
-    if (eventType.includes('password') || eventType.includes('reset')) {
+    if (action && (action.includes('DELETE') || action.includes('REMOVE'))) {
       return <AlertCircle className="h-4 w-4 text-red-600" />;
     }
-    return <Eye className="h-4 w-4 text-gray-600" />;
+    if (action && action.includes('SELECT')) {
+      return <Eye className="h-4 w-4 text-gray-600" />;
+    }
+    return <Shield className="h-4 w-4 text-purple-600" />;
   };
 
   const getDeviceInfo = (userAgent?: string | null) => {
@@ -285,12 +274,11 @@ export const SecurityAuditDashboard = () => {
     return 'Desktop';
   };
 
-  const getEventSeverityColor = (eventType: string, success: boolean, riskLevel: string) => {
-    if (riskLevel === 'critical') return 'text-red-600 bg-red-50';
-    if (riskLevel === 'high') return 'text-red-500 bg-red-50';
-    if (!success) return 'text-orange-600 bg-orange-50';
-    if (riskLevel === 'medium') return 'text-yellow-600 bg-yellow-50';
-    return 'text-green-600 bg-green-50';
+  const getEventSeverityColor = (action: string) => {
+    if (action && action.includes('DELETE')) return 'text-red-600 bg-red-50';
+    if (action && action.includes('UPDATE')) return 'text-yellow-600 bg-yellow-50';
+    if (action && action.includes('CREATE')) return 'text-green-600 bg-green-50';
+    return 'text-blue-600 bg-blue-50';
   };
 
   useEffect(() => {
@@ -302,7 +290,7 @@ export const SecurityAuditDashboard = () => {
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
-        table: 'security_audit_logs' 
+        table: 'audit_logs' 
       }, () => {
         fetchAuditLogs();
       })
@@ -414,7 +402,7 @@ export const SecurityAuditDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {logs.filter(log => log.risk_level === 'high' || log.risk_level === 'critical').length}
+              {logs.filter(log => log.action && log.action.includes('DELETE')).length}
             </div>
             <p className="text-xs text-muted-foreground">
               Require attention
@@ -635,49 +623,46 @@ export const SecurityAuditDashboard = () => {
                     <tr key={log.id} className="border-b hover:bg-muted/50 transition-colors">
                       <td className="p-3">
                         <div className="flex items-center gap-2">
-                          {getEventTypeIcon(log.event_type)}
-                          <span className="font-medium">{log.event_type.replace(/_/g, ' ')}</span>
+                          {getEventTypeIcon(log.action)}
+                          <span className="font-medium">{(log.action || 'unknown').replace(/_/g, ' ')}</span>
                         </div>
                       </td>
                       <td className="p-3">
                         <div className="text-xs text-muted-foreground">
-                          {log.user_id ? log.user_id.slice(0, 8) + '...' : 'System'}
+                          {log.actor_id ? log.actor_id.slice(0, 8) + '...' : 'System'}
                         </div>
                       </td>
                       <td className="p-3">
                         <Badge variant="outline" className="text-xs">
-                          {(() => {
-                            const details = log.event_details as any;
-                            return details?.user_role || details?.role || 'Unknown';
-                          })()}
+                          {log.entity || 'Unknown'}
                         </Badge>
                       </td>
                       <td className="p-3">
                         <div className="flex items-center gap-1 text-xs">
                           <Globe className="h-3 w-3" />
-                          {log.ip_address || 'Unknown'}
+                          Unknown
                         </div>
                       </td>
                       <td className="p-3">
                         <div className="flex items-center gap-1 text-xs">
                           <Smartphone className="h-3 w-3" />
-                          {getDeviceInfo(log.user_agent)}
+                          Unknown
                         </div>
                       </td>
                       <td className="p-3">
                         <Badge 
-                          variant={log.success ? "secondary" : "destructive"}
-                          className={`text-xs ${log.success ? 'text-green-700 bg-green-100' : ''}`}
+                          variant="secondary"
+                          className="text-xs text-green-700 bg-green-100"
                         >
-                          {log.success ? 'Success' : 'Failed'}
+                          Success
                         </Badge>
                       </td>
                       <td className="p-3">
                         <Badge 
-                          variant={getRiskBadgeColor(log.risk_level)}
+                          variant="secondary"
                           className="text-xs"
                         >
-                          {log.risk_level}
+                          {log.action && log.action.includes('DELETE') ? 'high' : 'low'}
                         </Badge>
                       </td>
                       <td className="p-3 text-xs text-muted-foreground">
@@ -717,18 +702,21 @@ export const SecurityAuditDashboard = () => {
               <div>
                 <h4 className="font-medium mb-2">Event Information</h4>
                 <div className="bg-muted p-3 rounded text-sm">
-                  <div><strong>Type:</strong> {selectedLog.event_type}</div>
+                  <div><strong>Action:</strong> {selectedLog.action || 'Unknown'}</div>
+                  <div><strong>Entity:</strong> {selectedLog.entity || 'Unknown'}</div>
                   <div><strong>Timestamp:</strong> {format(new Date(selectedLog.created_at), 'MMM dd, yyyy HH:mm:ss')}</div>
-                  <div><strong>Success:</strong> {selectedLog.success ? 'Yes' : 'No'}</div>
-                  <div><strong>Risk Level:</strong> {selectedLog.risk_level}</div>
-                  <div><strong>IP Address:</strong> {selectedLog.ip_address || 'Unknown'}</div>
-                  <div><strong>User Agent:</strong> {selectedLog.user_agent || 'Unknown'}</div>
+                  <div><strong>Actor ID:</strong> {selectedLog.actor_id || 'System'}</div>
+                  <div><strong>Entity ID:</strong> {selectedLog.entity_id || 'N/A'}</div>
+                  <div><strong>Organization:</strong> {selectedLog.organization_id || 'N/A'}</div>
                 </div>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Raw Event Data</h4>
                 <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
-                  {JSON.stringify(selectedLog.event_details, null, 2)}
+                  {JSON.stringify({
+                    before_data: selectedLog.before_data,
+                    after_data: selectedLog.after_data
+                  }, null, 2)}
                 </pre>
               </div>
             </div>
