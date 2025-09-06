@@ -176,12 +176,25 @@ export const EmployeePrograms = () => {
     
     if (userSessions.length === 0) return { link: null, scheduledAt: null };
     
-    // Get the next upcoming session
-    const now = Date.now();
-    const upcomingSessions = userSessions.filter(s => new Date(s.scheduled_at).getTime() >= now);
-    const session = upcomingSessions.length > 0 
-      ? upcomingSessions.sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
-      : userSessions.sort((a, b) => new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime())[0];
+    // Sort sessions by scheduled time for consistency
+    const sortedSessions = userSessions.sort((a, b) => 
+      new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+    );
+    
+    // Get all enrolled program IDs and sort them for consistency
+    const enrolledProgramIds = Array.from(enrolledPrograms).sort();
+    
+    // Find index of current program in sorted list
+    const programIndex = enrolledProgramIds.indexOf(programId);
+    
+    // Map programs to sessions cyclically
+    const sessionIndex = programIndex % sortedSessions.length;
+    const session = sortedSessions[sessionIndex];
+    
+    console.log(`Program: ${programId}, Index: ${programIndex}, Session Index: ${sessionIndex}`, {
+      link: session.meeting_link,
+      scheduledAt: session.scheduled_at
+    });
     
     return { link: session.meeting_link, scheduledAt: session.scheduled_at };
   };
