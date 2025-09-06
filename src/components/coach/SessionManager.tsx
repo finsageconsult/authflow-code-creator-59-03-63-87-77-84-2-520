@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,23 +7,37 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar, Clock, FileText, Tags, Video, Send, Paperclip } from 'lucide-react';
+import { Calendar, Clock, FileText, Tags, Video, Send, Paperclip, BookOpen, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
-interface Session {
+interface CourseEnrollment {
   id: string;
-  clientName: string;
-  scheduledAt: string;
-  duration: number;
-  sessionType: string;
-  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
-  notes?: string;
-  outcomeTags: string[];
-  resources: string[];
-  meetingLink?: string;
-  linkGeneratedAt?: string;
-  linkExpiresAt?: string;
-  isLinkActive?: boolean;
+  course: {
+    id: string;
+    title: string;
+    category: string;
+    duration: string;
+  };
+  enrollments: {
+    id: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    scheduledAt: string;
+    status: string;
+    paymentStatus: string;
+    meetingLink?: string;
+    linkGeneratedAt?: string;
+    linkActiveAt?: string;
+    linkExpiresAt?: string;
+    isLinkActive?: boolean;
+    notes?: string;
+    outcomeTags: string[];
+  }[];
 }
 
 const OUTCOME_TAGS = [
@@ -45,42 +59,115 @@ const OUTCOME_TAGS = [
 
 export const SessionManager = () => {
   const { toast } = useToast();
-  const [sessions, setSessions] = useState<Session[]>([
-    {
-      id: '1',
-      clientName: 'Sarah M.',
-      scheduledAt: '2024-01-15T19:30:00Z',
-      duration: 60,
-      sessionType: 'Investment Planning',
-      status: 'scheduled',
-      notes: '',
-      outcomeTags: [],
-      resources: [],
-      meetingLink: 'https://meet.google.com/abc-def-ghi',
-      linkGeneratedAt: '2024-01-15T14:00:00Z',
-      linkExpiresAt: '2024-01-15T19:00:00Z',
-      isLinkActive: false
-    },
-    {
-      id: '2',
-      clientName: 'John D.',
-      scheduledAt: '2024-01-15T21:30:00Z',
-      duration: 45,
-      sessionType: 'Debt Management',
-      status: 'completed',
-      notes: 'Client showed great progress in debt reduction strategy. Needs follow-up on consolidation loan application.',
-      outcomeTags: ['DEBT_PLAN', 'FINANCIAL_GOAL_SET'],
-      resources: ['debt-consolidation-guide.pdf'],
-      meetingLink: 'https://meet.google.com/xyz-uvw-rst',
-      linkGeneratedAt: '2024-01-15T16:00:00Z',
-      linkExpiresAt: '2024-01-15T21:00:00Z',
-      isLinkActive: false
-    }
-  ]);
-
-  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const { userProfile } = useAuth();
+  const [courseEnrollments, setCourseEnrollments] = useState<CourseEnrollment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
   const [noteText, setNoteText] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [meetingLinkInput, setMeetingLinkInput] = useState('');
+
+  // Fetch courses and enrollments for current coach
+  const fetchCourseEnrollments = async () => {
+    if (!userProfile?.id) return;
+
+    try {
+      setLoading(true);
+      
+      // Get enrollments for this coach
+      const { data: enrollments, error } = await supabase
+        .from('enrollments')
+        .select(`
+          id,
+          scheduled_at,
+          status,
+          payment_status,
+          notes,
+          user_id,
+          course_id,
+          users!inner(id, name, email),
+          individual_programs!inner(id, title, category, duration)
+        `)
+        .eq('coach_id', userProfile.id)
+        .order('scheduled_at', { ascending: true });
+
+      if (error) throw error;
+
+      // Get coaching sessions for meeting links
+      const { data: sessions } = await supabase
+        .from('coaching_sessions')
+        .select('*')
+        .eq('coach_id', userProfile.id);
+
+      // Group by course
+      const courseMap = new Map();
+      
+      enrollments?.forEach((enrollment: any) => {
+        const courseId = enrollment.course_id;
+        const course = enrollment.individual_programs;
+        
+        // Find matching coaching session
+        const session = sessions?.find(s => 
+          s.client_id === enrollment.user_id && 
+          new Date(s.scheduled_at).getTime() === new Date(enrollment.scheduled_at).getTime()
+        );
+
+        const enrollmentData = {
+          id: enrollment.id,
+          user: enrollment.users,
+          scheduledAt: enrollment.scheduled_at,
+          status: enrollment.status,
+          paymentStatus: enrollment.payment_status,
+          notes: enrollment.notes || '',
+          outcomeTags: session?.outcome_tags || [],
+          meetingLink: session?.meeting_link,
+          linkGeneratedAt: session?.created_at,
+          linkActiveAt: session?.scheduled_at ? new Date(new Date(session.scheduled_at).getTime() - 30 * 60 * 1000).toISOString() : null,
+          linkExpiresAt: session?.scheduled_at ? new Date(new Date(session.scheduled_at).getTime() + 2 * 60 * 60 * 1000).toISOString() : null,
+          isLinkActive: session?.meeting_link && checkLinkActive(session.scheduled_at)
+        };
+
+        if (!courseMap.has(courseId)) {
+          courseMap.set(courseId, {
+            id: courseId,
+            course: {
+              id: course.id,
+              title: course.title,
+              category: course.category,
+              duration: course.duration
+            },
+            enrollments: []
+          });
+        }
+        
+        courseMap.get(courseId).enrollments.push(enrollmentData);
+      });
+
+      setCourseEnrollments(Array.from(courseMap.values()));
+    } catch (error) {
+      console.error('Error fetching course enrollments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load course enrollments",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkLinkActive = (scheduledAt: string) => {
+    const now = new Date();
+    const sessionTime = new Date(scheduledAt);
+    const linkActiveTime = new Date(sessionTime.getTime() - 30 * 60 * 1000); // 30 minutes before
+    const linkExpireTime = new Date(sessionTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours after
+    
+    return now >= linkActiveTime && now <= linkExpireTime;
+  };
+
+  useEffect(() => {
+    fetchCourseEnrollments();
+  }, [userProfile]);
 
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -90,80 +177,158 @@ export const SessionManager = () => {
     };
   };
 
-  const handleSaveSession = () => {
-    if (!selectedSession) return;
+  const handleSaveSession = async () => {
+    if (!selectedEnrollment) return;
     
-    setSessions(prev => prev.map(session => 
-      session.id === selectedSession.id 
-        ? { 
-            ...session, 
-            notes: noteText, 
-            outcomeTags: selectedTags,
-            status: session.status === 'scheduled' ? 'completed' : session.status
-          }
-        : session
-    ));
+    try {
+      // Update enrollment notes
+      const { error: enrollmentError } = await supabase
+        .from('enrollments')
+        .update({ notes: noteText })
+        .eq('id', selectedEnrollment.id);
 
-    toast({
-      title: "Session Updated",
-      description: "Session notes and outcome tags have been saved successfully.",
-    });
+      if (enrollmentError) throw enrollmentError;
+
+      // Update or create coaching session with outcome tags
+      const { error: sessionError } = await supabase
+        .from('coaching_sessions')
+        .upsert({
+          coach_id: userProfile?.id,
+          client_id: selectedEnrollment.user.id,
+          scheduled_at: selectedEnrollment.scheduledAt,
+          session_type: selectedEnrollment.course?.title || 'Coaching Session',
+          status: 'completed',
+          notes: noteText,
+          outcome_tags: selectedTags,
+          organization_id: userProfile?.organization_id,
+          duration_minutes: 60
+        });
+
+      if (sessionError) throw sessionError;
+
+      toast({
+        title: "Session Updated",
+        description: "Session notes and outcome tags have been saved successfully.",
+      });
+
+      fetchCourseEnrollments(); // Refresh data
+    } catch (error) {
+      console.error('Error saving session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save session data",
+        variant: "destructive"
+      });
+    }
   };
 
-  const generateJoinLink = (session: Session) => {
-    const now = new Date();
-    const sessionTime = new Date(session.scheduledAt);
-    const linkActiveTime = new Date(sessionTime.getTime() - 30 * 60 * 1000); // 30 minutes before session
-    
-    setSessions(prev => prev.map(s => 
-      s.id === session.id 
-        ? { 
-            ...s, 
-            linkGeneratedAt: now.toISOString(),
-            linkExpiresAt: linkActiveTime.toISOString(),
-            isLinkActive: false,
-            meetingLink: `https://meet.google.com/${Math.random().toString(36).substr(2, 12)}`
-          }
-        : s
-    ));
+  const generateJoinLink = async (enrollment: any) => {
+    if (!meetingLinkInput.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a meeting link",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    toast({
-      title: "Join Link Generated",
-      description: `Join link will be active 30 minutes before the session`,
-    });
+    try {
+      // Create or update coaching session with meeting link
+      const { error } = await supabase
+        .from('coaching_sessions')
+        .upsert({
+          coach_id: userProfile?.id,
+          client_id: enrollment.user.id,
+          scheduled_at: enrollment.scheduledAt,
+          session_type: enrollment.course?.title || 'Coaching Session',
+          meeting_link: meetingLinkInput,
+          status: 'scheduled',
+          organization_id: userProfile?.organization_id,
+          duration_minutes: 60
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Join Link Generated",
+        description: "Meeting link has been set and will be active 30 minutes before the session",
+      });
+
+      setMeetingLinkInput('');
+      fetchCourseEnrollments(); // Refresh data
+    } catch (error) {
+      console.error('Error generating join link:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate join link",
+        variant: "destructive"
+      });
+    }
   };
 
-  const activateJoinLink = (session: Session) => {
-    setSessions(prev => prev.map(s => 
-      s.id === session.id 
-        ? { ...s, isLinkActive: true }
-        : s
-    ));
+  const sendReminder = async (enrollment: any) => {
+    try {
+      // Call edge function to send session reminder
+      const { error } = await supabase.functions.invoke('send-session-reminder', {
+        body: {
+          userEmail: enrollment.user.email,
+          userName: enrollment.user.name,
+          sessionDate: enrollment.scheduledAt,
+          sessionType: enrollment.course?.title || 'Coaching Session',
+          meetingLink: enrollment.meetingLink
+        }
+      });
 
-    toast({
-      title: "Join Link Activated",
-      description: `Join link is now active for ${session.clientName}`,
-    });
+      if (error) throw error;
+
+      toast({
+        title: "Reminder Sent",
+        description: `Session reminder sent to ${enrollment.user.name}`,
+      });
+    } catch (error) {
+      console.error('Error sending reminder:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send reminder",
+        variant: "destructive"
+      });
+    }
   };
 
-  const sendReminder = (session: Session) => {
-    // TODO: Call Supabase edge function for session reminders
-    toast({
-      title: "Reminder Sent",
-      description: `Session reminder sent to ${session.clientName}`,
-    });
-  };
-
-  const getStatusColor = (status: Session['status']) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'confirmed': return 'bg-green-100 text-green-800';
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
       case 'completed': return 'bg-gray-100 text-gray-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-blue-100 text-blue-800';
+    }
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'skipped': return 'bg-blue-100 text-blue-800';
+      case 'free': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="w-5 h-5" />
+            Session Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">Loading course enrollments...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -172,173 +337,221 @@ export const SessionManager = () => {
           <Calendar className="w-5 h-5" />
           Session Management
         </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Manage your courses, enrollments, and session links with auto-expire system
+        </p>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {sessions.map((session) => {
-            const { date, time } = formatDateTime(session.scheduledAt);
-            
-            return (
-              <div key={session.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border rounded-lg">
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="p-2 rounded-full bg-blue-100 flex-shrink-0">
-                    <Clock className="w-4 h-4 text-blue-600" />
+        <div className="space-y-6">
+          {courseEnrollments.length === 0 ? (
+            <div className="text-center py-8">
+              <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No course enrollments found</p>
+            </div>
+          ) : (
+            courseEnrollments.map((courseEnrollment) => (
+              <div key={courseEnrollment.id} className="border rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <BookOpen className="w-5 h-5 text-primary" />
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
-                      <h4 className="font-medium">{session.clientName}</h4>
-                      <Badge variant="outline" className={getStatusColor(session.status)}>
-                        {session.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{session.sessionType}</p>
-                    <p className="text-sm text-muted-foreground">{date} • {time} • {session.duration}min</p>
-                    
-                    {session.linkExpiresAt && (
-                      <p className="text-xs text-muted-foreground">
-                        Join link active: {new Date(session.linkExpiresAt).toLocaleString()} 
-                        {session.isLinkActive ? " (Active)" : " (Pending)"}
-                      </p>
-                    )}
-                    
-                    {session.outcomeTags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {session.outcomeTags.map(tag => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag.replace('_', ' ')}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
+                  <div>
+                    <h3 className="font-semibold">{courseEnrollment.course.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {courseEnrollment.course.category} • {courseEnrollment.course.duration}
+                    </p>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    <span className="text-sm font-medium">{courseEnrollment.enrollments.length} enrolled</span>
                   </div>
                 </div>
-                
-                <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
-                  {session.meetingLink && session.isLinkActive && (
-                    <Button size="sm" variant="outline" className="flex-1 sm:flex-none" asChild>
-                      <a href={session.meetingLink} target="_blank" rel="noopener noreferrer">
-                        <Video className="w-4 h-4 mr-1" />
-                        <span className="hidden xs:inline">Join</span>
-                      </a>
-                    </Button>
-                  )}
-                  
-                  {session.meetingLink && !session.isLinkActive && (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="flex-1 sm:flex-none"
-                      onClick={() => activateJoinLink(session)}
-                    >
-                      <Video className="w-4 h-4 mr-1" />
-                      <span className="hidden xs:inline">Activate Link</span>
-                    </Button>
-                  )}
-                  
-                  {!session.meetingLink && (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="flex-1 sm:flex-none"
-                      onClick={() => generateJoinLink(session)}
-                    >
-                      <Video className="w-4 h-4 mr-1" />
-                      <span className="hidden xs:inline">Generate Link</span>
-                    </Button>
-                  )}
-                  
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="flex-1 sm:flex-none"
-                    onClick={() => sendReminder(session)}
-                  >
-                    <Send className="w-4 h-4 mr-1" />
-                    <span className="hidden xs:inline">Remind</span>
-                  </Button>
-                  
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="flex-1 sm:flex-none"
-                        onClick={() => {
-                          setSelectedSession(session);
-                          setNoteText(session.notes || '');
-                          setSelectedTags(session.outcomeTags);
-                        }}
-                      >
-                        <FileText className="w-4 h-4 mr-1" />
-                        <span className="hidden xs:inline">Notes</span>
-                      </Button>
-                    </DialogTrigger>
-                    
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Session Notes - {session.clientName}</DialogTitle>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="notes">Session Notes</Label>
-                          <Textarea
-                            id="notes"
-                            placeholder="Add your session notes here..."
-                            value={noteText}
-                            onChange={(e) => setNoteText(e.target.value)}
-                            rows={6}
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label>Outcome Tags</Label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
-                            {OUTCOME_TAGS.map(tag => (
-                              <label key={tag} className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedTags.includes(tag)}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setSelectedTags(prev => [...prev, tag]);
-                                    } else {
-                                      setSelectedTags(prev => prev.filter(t => t !== tag));
-                                    }
-                                  }}
-                                />
-                                <span className="text-sm">{tag.replace(/_/g, ' ')}</span>
-                              </label>
-                            ))}
+
+                <div className="space-y-3">
+                  {courseEnrollment.enrollments.map((enrollment) => {
+                    const { date, time } = formatDateTime(enrollment.scheduledAt);
+                    const now = new Date();
+                    const sessionTime = new Date(enrollment.scheduledAt);
+                    const linkActiveTime = new Date(sessionTime.getTime() - 30 * 60 * 1000);
+                    const linkExpireTime = new Date(sessionTime.getTime() + 2 * 60 * 60 * 1000);
+                    const isLinkActive = enrollment.meetingLink && now >= linkActiveTime && now <= linkExpireTime;
+                    const isLinkExpired = enrollment.meetingLink && now > linkExpireTime;
+
+                    return (
+                      <div key={enrollment.id} className="flex flex-col lg:flex-row lg:items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="p-2 rounded-full bg-background">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                              <h4 className="font-medium">{enrollment.user.name}</h4>
+                              <div className="flex gap-2">
+                                <Badge variant="outline" className={getStatusColor(enrollment.status)}>
+                                  {enrollment.status}
+                                </Badge>
+                                <Badge variant="outline" className={getPaymentStatusColor(enrollment.paymentStatus)}>
+                                  {enrollment.paymentStatus}
+                                </Badge>
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{enrollment.user.email}</p>
+                            <p className="text-sm text-muted-foreground">{date} • {time}</p>
+                            
+                            {enrollment.meetingLink && (
+                              <div className="mt-1">
+                                <p className="text-xs text-muted-foreground">
+                                  Link active: {linkActiveTime.toLocaleString()} - {linkExpireTime.toLocaleString()}
+                                </p>
+                                <p className="text-xs font-medium">
+                                  Status: {isLinkExpired ? '🔴 Expired' : isLinkActive ? '🟢 Active' : '🟡 Pending'}
+                                </p>
+                              </div>
+                            )}
+                            
+                            {enrollment.outcomeTags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {enrollment.outcomeTags.map(tag => (
+                                  <Badge key={tag} variant="secondary" className="text-xs">
+                                    {tag.replace('_', ' ')}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                         
-                        <div>
-                          <Label htmlFor="resources">Resources</Label>
-                          <div className="flex flex-col sm:flex-row gap-2 mt-2">
-                            <Input placeholder="Add resource URL or file..." className="flex-1" />
-                            <Button size="sm" variant="outline" className="w-full sm:w-auto">
-                              <Paperclip className="w-4 h-4 mr-1" />
-                              Attach
+                        <div className="flex flex-wrap gap-2 w-full lg:w-auto">
+                          {enrollment.meetingLink && isLinkActive && (
+                            <Button size="sm" variant="outline" className="flex-1 lg:flex-none" asChild>
+                              <a href={enrollment.meetingLink} target="_blank" rel="noopener noreferrer">
+                                <Video className="w-4 h-4 mr-1" />
+                                Join Session
+                              </a>
                             </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-col sm:flex-row gap-2 sm:justify-end pt-4">
-                          <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
-                          <Button onClick={handleSaveSession} className="w-full sm:w-auto">
-                            <Tags className="w-4 h-4 mr-1" />
-                            Save Session
+                          )}
+                          
+                          {!enrollment.meetingLink && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="flex-1 lg:flex-none">
+                                  <Video className="w-4 h-4 mr-1" />
+                                  Set Link
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Set Meeting Link - {enrollment.user.name}</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  <div>
+                                    <Label htmlFor="meetingLink">Meeting Link</Label>
+                                    <Input
+                                      id="meetingLink"
+                                      placeholder="https://meet.google.com/... or https://zoom.us/..."
+                                      value={meetingLinkInput}
+                                      onChange={(e) => setMeetingLinkInput(e.target.value)}
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Link will be active 30 minutes before session and expire 2 hours after
+                                    </p>
+                                  </div>
+                                  <div className="flex gap-2 justify-end">
+                                    <Button variant="outline">Cancel</Button>
+                                    <Button onClick={() => generateJoinLink(enrollment)}>
+                                      Set Link
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="flex-1 lg:flex-none"
+                            onClick={() => sendReminder(enrollment)}
+                          >
+                            <Send className="w-4 h-4 mr-1" />
+                            Remind
                           </Button>
+                          
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="flex-1 lg:flex-none"
+                                onClick={() => {
+                                  setSelectedEnrollment(enrollment);
+                                  setNoteText(enrollment.notes || '');
+                                  setSelectedTags(enrollment.outcomeTags || []);
+                                }}
+                              >
+                                <FileText className="w-4 h-4 mr-1" />
+                                Notes
+                              </Button>
+                            </DialogTrigger>
+                            
+                            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>Session Notes - {enrollment.user.name}</DialogTitle>
+                              </DialogHeader>
+                              
+                              <div className="space-y-4">
+                                <div>
+                                  <Label htmlFor="notes">Session Notes</Label>
+                                  <Textarea
+                                    id="notes"
+                                    placeholder="Add your session notes here..."
+                                    value={noteText}
+                                    onChange={(e) => setNoteText(e.target.value)}
+                                    rows={6}
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <Label>Outcome Tags</Label>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+                                    {OUTCOME_TAGS.map(tag => (
+                                      <label key={tag} className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedTags.includes(tag)}
+                                          onChange={(e) => {
+                                            if (e.target.checked) {
+                                              setSelectedTags(prev => [...prev, tag]);
+                                            } else {
+                                              setSelectedTags(prev => prev.filter(t => t !== tag));
+                                            }
+                                          }}
+                                        />
+                                        <span className="text-sm">{tag.replace(/_/g, ' ')}</span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                                
+                                <div className="flex flex-col sm:flex-row gap-2 sm:justify-end pt-4">
+                                  <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
+                                  <Button onClick={handleSaveSession} className="w-full sm:w-auto">
+                                    <Tags className="w-4 h-4 mr-1" />
+                                    Save Session
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </div>
                       </div>
-                    </DialogContent>
-                  </Dialog>
+                    );
+                  })}
                 </div>
               </div>
-            );
-          })}
+            ))
+          )}
         </div>
       </CardContent>
     </Card>
