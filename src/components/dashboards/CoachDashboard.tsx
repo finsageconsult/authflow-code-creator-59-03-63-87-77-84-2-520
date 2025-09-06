@@ -37,12 +37,12 @@ export const CoachDashboard = () => {
   
   console.log('CoachDashboard loaded with activeTab:', activeTab);
   
-  const [stats] = useState<CoachStats>({
+  const stats = {
     totalClients: 23,
     upcomingSessions: 8,
     completedSessions: 156,
     avgRating: 4.8
-  });
+  };
 
   const recentClients = [
     {
