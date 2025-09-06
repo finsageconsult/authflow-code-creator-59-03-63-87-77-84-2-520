@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -49,9 +49,9 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   open,
   onOpenChange,
 }) => {
-  // Always call hooks at the top level
   const { userProfile } = useAuth();
   const { toast } = useToast();
+  
   const form = useForm({
     defaultValues: {
       title: '',
@@ -68,7 +68,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   const [creating, setCreating] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
-  const fetchStudents = useCallback(async () => {
+  const fetchStudents = async () => {
     if (!userProfile?.id) return;
 
     try {
@@ -82,34 +82,34 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [userProfile?.id]);
+  };
 
-  const handleStudentToggle = useCallback((studentId: string) => {
+  const handleStudentToggle = (studentId: string) => {
     setSelectedStudents(prev => 
       prev.includes(studentId) 
         ? prev.filter(id => id !== studentId)
         : [...prev, studentId]
     );
-  }, []);
+  };
 
-  const handleSelectAll = useCallback(() => {
+  const handleSelectAll = () => {
     setSelectedStudents(prev => 
       prev.length === students.length ? [] : students.map(s => s.id)
     );
-  }, [students]);
+  };
 
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const newFiles = Array.from(event.target.files);
       setSelectedFiles(prev => [...prev, ...newFiles]);
     }
-  }, []);
+  };
 
-  const removeFile = useCallback((index: number) => {
+  const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-  }, []);
+  };
 
-  const uploadFiles = useCallback(async (assignmentId: string) => {
+  const uploadFiles = async (assignmentId: string) => {
     if (selectedFiles.length === 0) return [];
 
     const uploadPromises = selectedFiles.map(async (file) => {
@@ -142,9 +142,9 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
     });
 
     return Promise.all(uploadPromises);
-  }, [selectedFiles, userProfile?.id]);
+  };
 
-  const onSubmit = useCallback(async (data: any) => {
+  const onSubmit = async (data: any) => {
     if (selectedStudents.length === 0) {
       return;
     }
@@ -183,22 +183,35 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
       setSelectedStudents([]);
       setSelectedFiles([]);
       onOpenChange(false);
+      
+      toast({
+        title: "Success",
+        description: `Created ${selectedStudents.length} assignment${selectedStudents.length > 1 ? 's' : ''}`,
+      });
     } catch (error) {
       console.error('Error creating bulk assignments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create assignments",
+        variant: "destructive",
+      });
     } finally {
       setCreating(false);
     }
-  }, [selectedStudents, selectedFiles, userProfile?.id, userProfile?.organization_id, form, onOpenChange, uploadFiles]);
+  };
 
+  // Effect to fetch students when dialog opens
   useEffect(() => {
     if (open && userProfile?.id) {
       fetchStudents();
-      // Reset form when dialog opens
+      // Reset form state
       form.reset();
       setSelectedStudents([]);
       setSelectedFiles([]);
     }
   }, [open]);
+
+  if (!open) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
