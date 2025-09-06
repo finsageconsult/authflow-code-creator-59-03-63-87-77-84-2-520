@@ -434,11 +434,18 @@ export const useChatMessages = (chatId: string) => {
     if (!userProfile || !chatId) return null;
 
     try {
+      // Get auth user data for RLS compatibility
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('Authentication required');
+      }
+
       // Sanitize the filename to ensure it's valid for Supabase storage
       const sanitizedFileName = sanitizeFileName(file.name);
-      const fileName = `${userProfile.id}/${chatId}/${Date.now()}-${sanitizedFileName}`;
+      // Use auth.uid() for the folder path to match RLS policy
+      const fileName = `${user.id}/${chatId}/${Date.now()}-${sanitizedFileName}`;
       
-      console.log('Uploading file with sanitized name:', fileName);
+      console.log('Uploading file with auth uid:', fileName);
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('chat-files')
@@ -446,19 +453,21 @@ export const useChatMessages = (chatId: string) => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL for private bucket access
+      const { data: signedUrlData, error: urlError } = await supabase.storage
         .from('chat-files')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 7); // 7 days expiry
 
-      // Send file message
+      if (urlError) throw urlError;
+
+      // Send file message with signed URL
       const { data, error } = await supabase
         .from('chat_messages')
         .insert({
           chat_id: chatId,
           sender_id: userProfile.id,
           message_type: file.type.startsWith('image/') ? 'image' : 'file',
-          file_url: publicUrl,
+          file_url: signedUrlData.signedUrl,
           file_name: file.name,
           file_size: file.size,
           mime_type: file.type,
