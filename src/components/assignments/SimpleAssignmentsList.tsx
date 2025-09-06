@@ -3,11 +3,23 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Users, Plus, Send, X } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const SimpleAssignmentsList: React.FC = () => {
   const { userProfile } = useAuth();
-  const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const { toast } = useToast();
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    assignedTo: '',
+    dueDate: '',
+    priority: 'medium'
+  });
 
   const mockAssignments = [
     {
@@ -39,6 +51,14 @@ const SimpleAssignmentsList: React.FC = () => {
     }
   ];
 
+  const mockStudents = [
+    { id: '1', name: 'John Doe', email: 'john@example.com' },
+    { id: '2', name: 'Jane Smith', email: 'jane@example.com' },
+    { id: '3', name: 'Bob Johnson', email: 'bob@example.com' },
+    { id: '4', name: 'Alice Brown', email: 'alice@example.com' },
+    { id: '5', name: 'Charlie Davis', email: 'charlie@example.com' }
+  ];
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -65,6 +85,46 @@ const SimpleAssignmentsList: React.FC = () => {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.title || !formData.assignedTo) {
+      toast({
+        title: "Error",
+        description: "Please fill in the title and select a student",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Here you would normally save to database
+    toast({
+      title: "Success",
+      description: "Assignment created successfully",
+    });
+
+    // Reset form
+    setFormData({
+      title: '',
+      description: '',
+      assignedTo: '',
+      dueDate: '',
+      priority: 'medium'
+    });
+    setShowCreateForm(false);
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      title: '',
+      description: '',
+      assignedTo: '',
+      dueDate: '',
+      priority: 'medium'
+    });
+    setShowCreateForm(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -72,9 +132,9 @@ const SimpleAssignmentsList: React.FC = () => {
           <h1 className="text-3xl font-bold text-foreground">Assignment Center</h1>
           <p className="text-muted-foreground">Manage and track student assignments</p>
         </div>
-        <Button onClick={() => setShowBulkDialog(true)} className="gap-2" disabled>
+        <Button onClick={() => setShowCreateForm(true)} className="gap-2">
           <Plus className="h-4 w-4" />
-          Create Bulk Assignment (Coming Soon)
+          Create Assignment
         </Button>
       </div>
 
@@ -118,6 +178,94 @@ const SimpleAssignmentsList: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Create Assignment Form */}
+      {showCreateForm && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Create New Assignment</CardTitle>
+              <Button variant="ghost" size="sm" onClick={handleCancel}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Assignment Title *</label>
+                <Input
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Enter assignment title"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Description</label>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Enter assignment description"
+                  className="resize-none h-24"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Assign to Student *</label>
+                  <Select value={formData.assignedTo} onValueChange={(value) => setFormData({ ...formData, assignedTo: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a student" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockStudents.map((student) => (
+                        <SelectItem key={student.id} value={student.name}>
+                          {student.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Priority</label>
+                  <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low Priority</SelectItem>
+                      <SelectItem value="medium">Medium Priority</SelectItem>
+                      <SelectItem value="high">High Priority</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Due Date</label>
+                  <Input
+                    type="datetime-local"
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button type="button" variant="outline" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="gap-2">
+                  <Send className="h-4 w-4" />
+                  Send Assignment
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent Assignments */}
       <Card>
