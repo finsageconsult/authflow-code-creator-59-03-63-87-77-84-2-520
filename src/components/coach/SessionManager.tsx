@@ -75,23 +75,38 @@ export const SessionManager = () => {
       setLoading(true);
       
       // Get enrollments for this coach
-      const { data: enrollments, error } = await supabase
+      const { data: enrollments, error: enrollmentsError } = await supabase
         .from('enrollments')
-        .select(`
-          id,
-          scheduled_at,
-          status,
-          payment_status,
-          notes,
-          user_id,
-          course_id,
-          users!enrollments_user_id_fkey(id, name, email),
-          individual_programs!enrollments_course_id_fkey(id, title, category, duration)
-        `)
+        .select('*')
         .eq('coach_id', userProfile.id)
         .order('scheduled_at', { ascending: true });
 
-      if (error) throw error;
+      if (enrollmentsError) throw enrollmentsError;
+
+      if (!enrollments || enrollments.length === 0) {
+        setCourseEnrollments([]);
+        return;
+      }
+
+      // Get user IDs and course IDs
+      const userIds = [...new Set(enrollments.map(e => e.user_id))];
+      const courseIds = [...new Set(enrollments.map(e => e.course_id))];
+
+      // Fetch user data
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .in('id', userIds);
+
+      if (usersError) throw usersError;
+
+      // Fetch course data
+      const { data: programs, error: programsError } = await supabase
+        .from('individual_programs')
+        .select('id, title, category, duration')
+        .in('id', courseIds);
+
+      if (programsError) throw programsError;
 
       // Get coaching sessions for meeting links
       const { data: sessions } = await supabase
@@ -99,13 +114,20 @@ export const SessionManager = () => {
         .select('*')
         .eq('coach_id', userProfile.id);
 
-      // Group by course
+      // Create lookup maps
+      const usersMap = new Map(users?.map(u => [u.id, u]) || []);
+      const programsMap = new Map(programs?.map(p => [p.id, p]) || []);
+
+      // Group enrollments by course
       const courseMap = new Map();
       
-      enrollments?.forEach((enrollment: any) => {
+      enrollments.forEach((enrollment: any) => {
         const courseId = enrollment.course_id;
-        const course = enrollment.individual_programs;
+        const course = programsMap.get(courseId);
+        const user = usersMap.get(enrollment.user_id);
         
+        if (!course || !user) return; // Skip if course or user not found
+
         // Find matching coaching session
         const session = sessions?.find(s => 
           s.client_id === enrollment.user_id && 
@@ -114,7 +136,7 @@ export const SessionManager = () => {
 
         const enrollmentData = {
           id: enrollment.id,
-          user: enrollment.users,
+          user: user,
           scheduledAt: enrollment.scheduled_at,
           status: enrollment.status,
           paymentStatus: enrollment.payment_status,
