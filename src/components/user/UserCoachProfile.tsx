@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { CoachingCourse } from '@/hooks/useCoachingChats';
+import { useChats } from '@/hooks/useChat';
+import { useToast } from '@/components/ui/use-toast';
 
 interface UserCoachProfileProps {
   course: CoachingCourse;
@@ -23,6 +25,30 @@ export const UserCoachProfile: React.FC<UserCoachProfileProps> = ({
   course,
   onStartChat
 }) => {
+  const { createCoachingChat } = useChats();
+  const { toast } = useToast();
+
+  const handleCreateChat = async () => {
+    const newChat = await createCoachingChat(
+      course.coach.id,
+      course.title,
+      course.id
+    );
+    
+    if (newChat) {
+      onStartChat(newChat.id);
+      toast({
+        title: "Chat created",
+        description: "Successfully connected with your coach",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to create chat with coach",
+        variant: "destructive",
+      });
+    }
+  };
   return (
     <Card className="w-full">
       <CardHeader>
@@ -110,12 +136,11 @@ export const UserCoachProfile: React.FC<UserCoachProfileProps> = ({
             </Button>
           ) : (
             <Button 
-              variant="outline" 
-              disabled
+              onClick={handleCreateChat}
               className="flex items-center gap-2"
             >
               <MessageSquare className="h-4 w-4" />
-              Chat Unavailable
+              Start Chat with Coach
             </Button>
           )}
           
