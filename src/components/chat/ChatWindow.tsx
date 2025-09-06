@@ -17,7 +17,7 @@ import {
   Image as ImageIcon,
   File,
   Circle,
-  Phone,
+  
   Video,
   MoreVertical,
   
@@ -266,9 +266,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, onBack }) => {
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              <Phone className="h-4 w-4" />
-            </Button>
             <Button variant="ghost" size="sm">
               <Video className="h-4 w-4" />
             </Button>
