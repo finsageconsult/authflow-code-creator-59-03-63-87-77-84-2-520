@@ -1,8 +1,24 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
+import { Assignment } from '@/hooks/useAssignments';
+import StudentsProfileView from './StudentsProfileView';
+import AssignmentChat from './AssignmentChat';
 
 const AssignmentsList: React.FC = () => {
-  console.log('Simple AssignmentsList rendering');
-  
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+
+  const handleBackFromChat = useCallback(() => {
+    setSelectedAssignment(null);
+  }, []);
+
+  if (selectedAssignment) {
+    return (
+      <AssignmentChat
+        assignment={selectedAssignment}
+        onBack={handleBackFromChat}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -12,9 +28,7 @@ const AssignmentsList: React.FC = () => {
         </div>
       </div>
 
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">Assignment system is loading...</p>
-      </div>
+      <StudentsProfileView />
     </div>
   );
 };

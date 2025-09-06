@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +29,6 @@ interface Student {
 }
 
 const StudentsProfileView: React.FC = () => {
-  console.log('StudentsProfileView rendering');
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
@@ -309,15 +307,10 @@ const StudentsProfileView: React.FC = () => {
         </div>
       )}
 
-      {/* Simple test dialog */}
-      <Dialog open={showBulkDialog} onOpenChange={setShowBulkDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Test Dialog</DialogTitle>
-          </DialogHeader>
-          <div>This is a test</div>
-        </DialogContent>
-      </Dialog>
+      <BulkAssignmentDialog
+        open={showBulkDialog}
+        onOpenChange={setShowBulkDialog}
+      />
     </div>
   );
 };

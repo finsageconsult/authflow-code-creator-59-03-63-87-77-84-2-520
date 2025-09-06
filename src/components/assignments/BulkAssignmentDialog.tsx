@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useAssignments } from '@/hooks/useAssignments';
 import {
   Dialog,
   DialogContent,
@@ -50,7 +49,6 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   open,
   onOpenChange,
 }) => {
-  console.log('BulkAssignmentDialog render', { open });
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
@@ -58,7 +56,6 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -91,34 +88,32 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
     }
   }, [userProfile?.id, toast]);
 
-  const handleStudentToggle = (studentId: string) => {
+  const handleStudentToggle = useCallback((studentId: string) => {
     setSelectedStudents(prev => 
       prev.includes(studentId) 
         ? prev.filter(id => id !== studentId)
         : [...prev, studentId]
     );
-  };
+  }, []);
 
-  const handleSelectAll = () => {
-    if (selectedStudents.length === students.length) {
-      setSelectedStudents([]);
-    } else {
-      setSelectedStudents(students.map(s => s.id));
-    }
-  };
+  const handleSelectAll = useCallback(() => {
+    setSelectedStudents(prev => 
+      prev.length === students.length ? [] : students.map(s => s.id)
+    );
+  }, [students]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const newFiles = Array.from(event.target.files);
       setSelectedFiles(prev => [...prev, ...newFiles]);
     }
-  };
+  }, []);
 
-  const removeFile = (index: number) => {
+  const removeFile = useCallback((index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const uploadFiles = async (assignmentId: string) => {
+  const uploadFiles = useCallback(async (assignmentId: string) => {
     if (selectedFiles.length === 0) return [];
 
     const uploadPromises = selectedFiles.map(async (file) => {
@@ -131,12 +126,10 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
 
       if (error) throw error;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('assignments')
         .getPublicUrl(fileName);
 
-      // Save file record
       const { error: dbError } = await supabase
         .from('assignment_files')
         .insert({
@@ -149,14 +142,13 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
         });
 
       if (dbError) throw dbError;
-
       return { fileName, publicUrl };
     });
 
     return Promise.all(uploadPromises);
-  };
+  }, [selectedFiles, userProfile?.id]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = useCallback(async (data: any) => {
     if (selectedStudents.length === 0) {
       toast({
         title: "No students selected",
@@ -168,7 +160,6 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
 
     setCreating(true);
     try {
-      // Create assignments for each selected student
       const assignmentPromises = selectedStudents.map(async (studentId) => {
         const { data: assignment, error } = await supabase
           .from('assignments')
@@ -188,7 +179,6 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
 
         if (error) throw error;
 
-        // Upload files for this assignment if any
         if (selectedFiles.length > 0) {
           await uploadFiles(assignment.id);
         }
@@ -217,13 +207,17 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
     } finally {
       setCreating(false);
     }
-  };
+  }, [selectedStudents, selectedFiles, userProfile?.id, userProfile?.organization_id, toast, form, onOpenChange, uploadFiles]);
 
   useEffect(() => {
     if (open) {
       fetchStudents();
+      // Reset form when dialog opens
+      form.reset();
+      setSelectedStudents([]);
+      setSelectedFiles([]);
     }
-  }, [open, fetchStudents]);
+  }, [open, fetchStudents, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -388,7 +382,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
                             <X className="h-3 w-3" />
                           </Button>
                         </div>
-                       ))}
+                      ))}
                     </div>
                   </div>
                 )}
