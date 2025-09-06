@@ -16,6 +16,7 @@ import { ConsentManager } from '@/components/privacy/ConsentManager';
 import { EnrollmentWorkflow } from '@/components/enrollment/EnrollmentWorkflow';
 import { UserChat } from '@/components/user/UserChat';
 import { UserAssignments } from '@/components/user/UserAssignments';
+import { SupportQuery } from '@/components/support/SupportQuery';
 import { IndividualSidebar } from './IndividualSidebar';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -390,6 +391,8 @@ export const IndividualDashboard = () => {
         return <SecureQuestionnaireForm />;
         case 'privacy':
           return <ConsentManager />;
+        case 'support':
+          return <SupportQuery />;
         case 'chat':
           return <UserChat />;
         case 'assignments':

@@ -22,7 +22,8 @@ import {
   Shield,
   Home,
   MessageSquare,
-  ClipboardList
+  ClipboardList,
+  HelpCircle
 } from 'lucide-react'
 
 const menuItems = [
@@ -61,6 +62,12 @@ const menuItems = [
     url: "/individual-dashboard", 
     icon: Shield,
     param: "privacy"
+  },
+  { 
+    title: "Support", 
+    url: "/individual-dashboard", 
+    icon: HelpCircle,
+    param: "support"
   },
 ]
 
