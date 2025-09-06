@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -115,33 +115,85 @@ export const IndividualDashboard = () => {
     }
   ];
 
-  // Get purchased programs for "My Learning" section
-  const myLearning = purchases
-    .filter(purchase => purchase.status === 'completed')
-    .map(purchase => {
-      // Map to static programs for proper title display
-      let displayTitle = purchase.individual_programs?.title || 'Unknown Program';
-      let displayCategory = purchase.individual_programs?.category || 'course';
-      
-      // Find matching static program
-      const staticProgram = staticIndividualPrograms.find(p => p.id === purchase.program_id);
-      if (staticProgram) {
-        displayTitle = staticProgram.title;
-        displayCategory = staticProgram.category;
+  // Get purchased programs for "My Learning" section - check both purchases and enrollments
+  const myLearning = React.useMemo(() => {
+    const purchasedPrograms = [];
+    
+    // Check database purchases
+    const dbPurchases = purchases
+      .filter(purchase => purchase.status === 'completed')
+      .map(purchase => {
+        let displayTitle = purchase.individual_programs?.title || 'Unknown Program';
+        let displayCategory = purchase.individual_programs?.category || 'course';
+        
+        const staticProgram = staticIndividualPrograms.find(p => p.id === purchase.program_id);
+        if (staticProgram) {
+          displayTitle = staticProgram.title;
+          displayCategory = staticProgram.category;
+        }
+        
+        return {
+          id: purchase.id,
+          title: displayTitle,
+          progress: purchase.progress || 0,
+          lastWatched: purchase.last_accessed_at 
+            ? `${Math.floor((Date.now() - new Date(purchase.last_accessed_at).getTime()) / (1000 * 60 * 60 * 24))} days ago`
+            : 'Never',
+          nextLesson: (purchase.progress || 0) === 100 ? 'Completed! ✅' : 'Continue learning',
+          category: displayCategory,
+          programId: purchase.program_id
+        };
+      });
+    
+    purchasedPrograms.push(...dbPurchases);
+    
+    // Check enrollments as well for purchased programs
+    const enrollmentPrograms = enrollments
+      .filter(enrollment => ['completed', 'active', 'enrolled', 'confirmed'].includes(enrollment.status))
+      .map(enrollment => {
+        const staticProgram = staticIndividualPrograms.find(p => p.id === enrollment.course_id);
+        const displayTitle = staticProgram?.title || 'Unknown Program';
+        
+        return {
+          id: enrollment.id,
+          title: displayTitle,
+          progress: enrollment.progress || 0,
+          lastWatched: enrollment.last_accessed_at 
+            ? `${Math.floor((Date.now() - new Date(enrollment.last_accessed_at).getTime()) / (1000 * 60 * 60 * 24))} days ago`
+            : 'Never',
+          nextLesson: (enrollment.progress || 0) === 100 ? 'Completed! ✅' : 'Continue learning',
+          category: staticProgram?.category || 'course',
+          programId: enrollment.course_id
+        };
+      });
+    
+    // Add enrollment programs that aren't already in purchases
+    enrollmentPrograms.forEach(enrollmentProgram => {
+      if (!purchasedPrograms.some(p => p.programId === enrollmentProgram.programId)) {
+        purchasedPrograms.push(enrollmentProgram);
       }
-      
-      return {
-        id: purchase.id,
-        title: displayTitle,
-        progress: purchase.progress,
-        lastWatched: purchase.last_accessed_at 
-          ? `${Math.floor((Date.now() - new Date(purchase.last_accessed_at).getTime()) / (1000 * 60 * 60 * 24))} days ago`
-          : 'Never',
-        nextLesson: purchase.progress === 100 ? 'Completed! ✅' : 'Continue learning',
-        category: displayCategory,
-        programId: purchase.program_id
-      };
     });
+    
+    // Check with isItemPurchased for additional purchased items
+    staticIndividualPrograms.forEach(staticProgram => {
+      if (isItemPurchased('program', staticProgram.id)) {
+        const existing = purchasedPrograms.find(p => p.programId === staticProgram.id);
+        if (!existing) {
+          purchasedPrograms.push({
+            id: `static-${staticProgram.id}`,
+            title: staticProgram.title,
+            progress: 0,
+            lastWatched: 'Never',
+            nextLesson: 'Start learning',
+            category: staticProgram.category,
+            programId: staticProgram.id
+          });
+        }
+      }
+    });
+    
+    return purchasedPrograms;
+  }, [purchases, enrollments, isItemPurchased, staticIndividualPrograms]);
 
   const allContent = getFilteredPrograms(selectedCategory);
 
