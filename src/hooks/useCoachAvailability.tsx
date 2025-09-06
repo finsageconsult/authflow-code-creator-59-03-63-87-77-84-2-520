@@ -37,7 +37,6 @@ export const useCoachAvailability = (coachId?: string) => {
         .eq('is_available', true)
         .gte('start_time', now.toISOString())
         .lte('start_time', twoWeeksFromNow.toISOString())
-        .lt('current_bookings', 'max_bookings')
         .order('start_time');
 
       if (error) throw error;
