@@ -19,7 +19,7 @@ import {
   Circle,
   
   
-  MoreVertical,
+  
   
 } from 'lucide-react';
 
@@ -263,12 +263,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, onBack }) => {
                 )}
               </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </CardHeader>
