@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Users, Plus, Calendar, Send, FileText, Clock } from 'lucide-react';
+import { Users, Plus, Calendar, Send, FileText, Clock, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Student {
@@ -47,6 +47,7 @@ export const CoachAssignments = () => {
     due_date: '',
     assignment_type: 'general'
   });
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
     fetchStudents();
@@ -145,6 +146,7 @@ export const CoachAssignments = () => {
         due_date: '',
         assignment_type: 'general'
       });
+      setSelectedFiles([]);
       setSelectedStudent(null);
       setShowCreateForm(false);
       
@@ -205,12 +207,12 @@ export const CoachAssignments = () => {
               Create Assignment
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle>Create New Assignment</DialogTitle>
             </DialogHeader>
             
-            <div className="space-y-4">
+            <div className="overflow-y-auto max-h-[calc(90vh-120px)] space-y-4 pr-2">
               {/* Student Selection */}
               <div className="space-y-2">
                 <Label>Select Student</Label>
@@ -286,12 +288,64 @@ export const CoachAssignments = () => {
                     </div>
                   </div>
 
+                  {/* File Upload Section */}
+                  <div className="space-y-2">
+                    <Label>Attach Files</Label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                      <input
+                        type="file"
+                        multiple
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            setSelectedFiles(Array.from(e.target.files));
+                          }
+                        }}
+                        className="hidden"
+                        id="file-upload"
+                        accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.zip"
+                      />
+                      <label htmlFor="file-upload" className="cursor-pointer">
+                        <div className="text-center">
+                          <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-600">Click to upload files or drag and drop</p>
+                          <p className="text-xs text-gray-400">PDF, DOC, TXT, Images, ZIP up to 10MB</p>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    {/* Selected Files Display */}
+                    {selectedFiles.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Selected Files:</Label>
+                        {selectedFiles.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm">{file.name}</span>
+                              <span className="text-xs text-gray-400">({(file.size / 1024).toFixed(1)} KB)</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex gap-2 justify-end">
                     <Button
                       variant="outline"
                       onClick={() => {
                         setShowCreateForm(false);
                         setSelectedStudent(null);
+                        setSelectedFiles([]);
                         setFormData({
                           title: '',
                           description: '',
