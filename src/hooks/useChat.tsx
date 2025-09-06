@@ -185,10 +185,15 @@ export const useChats = () => {
     }
   };
 
-  const createCoachingChat = async (coachId: string, programTitle: string, enrollmentId: string) => {
-    if (!userProfile) return null;
+  const createCoachingChat = async (participantId: string, programTitle: string, enrollmentId: string) => {
+    if (!userProfile) {
+      console.error('No user profile available for chat creation');
+      return null;
+    }
 
     try {
+      console.log('Creating coaching chat:', { participantId, programTitle, userProfile: userProfile.id, role: userProfile.role });
+
       // Check if coaching chat already exists for this enrollment
       const { data: existingChat, error: checkError } = await supabase
         .from('chats')
@@ -199,19 +204,25 @@ export const useChats = () => {
         .eq('chat_type', 'coaching')
         .ilike('name', `%${programTitle}%`);
 
-      if (checkError) throw checkError;
+      if (checkError) {
+        console.error('Error checking existing chats:', checkError);
+        throw checkError;
+      }
 
-      // Find existing coaching chat between this user and coach for this program
+      // Find existing coaching chat between this user and participant for this program
       const coachingChat = existingChat?.find(chat => {
         const participants = (chat as any).participants || [];
         const userIds = participants.map((p: any) => p.user_id) || [];
-        return userIds.includes(userProfile.id) && userIds.includes(coachId);
+        return userIds.includes(userProfile.id) && userIds.includes(participantId);
       });
 
       if (coachingChat) {
+        console.log('Found existing coaching chat:', coachingChat.id);
         return coachingChat;
       }
 
+      console.log('Creating new coaching chat with user:', userProfile.id);
+      
       // Create new coaching chat
       const { data: newChat, error: chatError } = await supabase
         .from('chats')
@@ -224,33 +235,52 @@ export const useChats = () => {
         .select('*')
         .single();
 
-      if (chatError) throw chatError;
+      if (chatError) {
+        console.error('Error creating chat:', chatError);
+        throw chatError;
+      }
+
+      console.log('Chat created successfully:', newChat.id);
 
       // Add participants (determine roles based on current user)
       const isCoach = userProfile.role === 'COACH';
+      const participantsToAdd = [
+        {
+          chat_id: newChat.id,
+          user_id: userProfile.id,
+          role: isCoach ? 'coach' : 'student',
+        },
+        {
+          chat_id: newChat.id,
+          user_id: participantId,
+          role: isCoach ? 'student' : 'coach',
+        },
+      ];
+
+      console.log('Adding participants:', participantsToAdd);
+
       const { error: participantsError } = await supabase
         .from('chat_participants')
-        .insert([
-          {
-            chat_id: newChat.id,
-            user_id: userProfile.id,
-            role: isCoach ? 'coach' : 'student',
-          },
-          {
-            chat_id: newChat.id,
-            user_id: coachId,
-            role: isCoach ? 'student' : 'coach',
-          },
-        ]);
+        .insert(participantsToAdd);
 
-      if (participantsError) throw participantsError;
+      if (participantsError) {
+        console.error('Error adding participants:', participantsError);
+        throw participantsError;
+      }
+
+      console.log('Participants added successfully');
+
+      toast({
+        title: "Success",
+        description: "Chat created successfully",
+      });
 
       return newChat;
     } catch (error) {
       console.error('Error creating coaching chat:', error);
       toast({
         title: "Error",
-        description: "Failed to create coaching chat",
+        description: "Failed to create coaching chat. Please try again.",
         variant: "destructive",
       });
       return null;
