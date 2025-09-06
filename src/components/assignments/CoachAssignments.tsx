@@ -117,7 +117,8 @@ export const CoachAssignments = () => {
     }
 
     try {
-      const { data, error } = await supabase
+      // First create the assignment
+      const { data: assignment, error } = await supabase
         .from('assignments')
         .insert({
           title: formData.title,
@@ -134,6 +135,50 @@ export const CoachAssignments = () => {
         .single();
 
       if (error) throw error;
+
+      // Upload files if any were selected
+      if (selectedFiles.length > 0 && userProfile) {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+          throw new Error('Authentication required for file upload');
+        }
+
+        for (const file of selectedFiles) {
+          try {
+            // Upload file to storage using auth.uid() for RLS compatibility
+            const fileName = `${user.id}/${Date.now()}-${file.name}`;
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('assignments')
+              .upload(fileName, file);
+
+            if (uploadError) throw uploadError;
+
+            // Get signed URL for private bucket access
+            const { data: signedUrlData, error: urlError } = await supabase.storage
+              .from('assignments')
+              .createSignedUrl(fileName, 60 * 60 * 24 * 30); // 30 days expiry
+
+            if (urlError) throw urlError;
+
+            // Save file record with signed URL
+            const { error: fileError } = await supabase
+              .from('assignment_files')
+              .insert({
+                assignment_id: assignment.id,
+                file_name: file.name,
+                file_url: signedUrlData.signedUrl,
+                file_size: file.size,
+                mime_type: file.type,
+                uploaded_by: userProfile.id,
+              });
+
+            if (fileError) throw fileError;
+          } catch (fileError) {
+            console.error('Error uploading file:', file.name, fileError);
+            // Continue with other files even if one fails
+          }
+        }
+      }
 
       toast({
         title: "Success",
