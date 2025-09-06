@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Loader2, Users, Search } from 'lucide-react';
+import { Loader2, Users } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface BulkAssignmentDialogProps {
@@ -28,12 +28,13 @@ interface BulkAssignmentDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface Student {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
+const MOCK_STUDENTS = [
+  { id: '1', name: 'John Doe', email: 'john@example.com', role: 'EMPLOYEE' },
+  { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'EMPLOYEE' },
+  { id: '3', name: 'Bob Johnson', email: 'bob@example.com', role: 'EMPLOYEE' },
+  { id: '4', name: 'Alice Brown', email: 'alice@example.com', role: 'EMPLOYEE' },
+  { id: '5', name: 'Charlie Davis', email: 'charlie@example.com', role: 'EMPLOYEE' }
+];
 
 const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   open,
@@ -42,80 +43,46 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   const { userProfile } = useAuth();
   const { toast } = useToast();
   
-  // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('medium');
   const [assignmentType, setAssignmentType] = useState('general');
-  
-  // Component state
-  const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
 
-  // Reset form when dialog closes
-  const resetForm = () => {
+  const handleClose = () => {
     setTitle('');
     setDescription('');
     setDueDate('');
     setPriority('medium');
     setAssignmentType('general');
     setSelectedStudents([]);
-    setSearchTerm('');
+    onOpenChange(false);
   };
 
-  // Fetch students function
-  const fetchStudents = async () => {
-    if (!userProfile?.id) return;
-
-    try {
-      setLoading(true);
-      // Mock data for now to avoid database issues
-      const mockStudents = [
-        { id: '1', name: 'John Doe', email: 'john@example.com', role: 'EMPLOYEE' },
-        { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'EMPLOYEE' },
-        { id: '3', name: 'Bob Johnson', email: 'bob@example.com', role: 'EMPLOYEE' }
-      ];
-      setStudents(mockStudents);
-      
-    } catch (error) {
-      console.error('Error fetching students:', error);
-      setStudents([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle student selection
   const handleStudentToggle = (studentId: string) => {
-    setSelectedStudents(prev => 
-      prev.includes(studentId) 
-        ? prev.filter(id => id !== studentId)
-        : [...prev, studentId]
-    );
-  };
-
-  // Handle select all
-  const handleSelectAll = () => {
-    const filteredStudentIds = filteredStudents.map(s => s.id);
     setSelectedStudents(prev => {
-      const allSelected = filteredStudentIds.every(id => prev.includes(id));
-      if (allSelected) {
-        return prev.filter(id => !filteredStudentIds.includes(id));
+      if (prev.includes(studentId)) {
+        return prev.filter(id => id !== studentId);
       } else {
-        return [...new Set([...prev, ...filteredStudentIds])];
+        return [...prev, studentId];
       }
     });
   };
 
-  // Handle form submission
+  const handleSelectAll = () => {
+    if (selectedStudents.length === MOCK_STUDENTS.length) {
+      setSelectedStudents([]);
+    } else {
+      setSelectedStudents(MOCK_STUDENTS.map(s => s.id));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title || selectedStudents.length === 0) {
+    if (!title.trim() || selectedStudents.length === 0) {
       toast({
         title: "Error",
         description: "Please fill in the title and select at least one student",
@@ -124,27 +91,33 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
       return;
     }
 
+    if (!userProfile?.id) {
+      toast({
+        title: "Error",
+        description: "User profile not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setCreating(true);
     try {
       const assignmentPromises = selectedStudents.map(async (studentId) => {
-        const { data: assignment, error } = await supabase
+        const { error } = await supabase
           .from('assignments')
           .insert({
-            title,
-            description,
-            created_by: userProfile?.id,
+            title: title.trim(),
+            description: description.trim() || null,
+            created_by: userProfile.id,
             assigned_to: studentId,
-            organization_id: userProfile?.organization_id,
+            organization_id: userProfile.organization_id,
             due_date: dueDate || null,
             priority,
             assignment_type: assignmentType,
             status: 'pending',
-          })
-          .select()
-          .single();
+          });
 
         if (error) throw error;
-        return assignment;
       });
 
       await Promise.all(assignmentPromises);
@@ -154,8 +127,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
         description: `Created ${selectedStudents.length} assignment${selectedStudents.length > 1 ? 's' : ''}`,
       });
 
-      resetForm();
-      onOpenChange(false);
+      handleClose();
     } catch (error) {
       console.error('Error creating bulk assignments:', error);
       toast({
@@ -167,21 +139,6 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
       setCreating(false);
     }
   };
-
-  // Filtered students based on search
-  const filteredStudents = (students || []).filter(student => 
-    student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Load students only when dialog opens
-  useEffect(() => {
-    if (open) {
-      fetchStudents();
-    } else {
-      resetForm();
-    }
-  }, [open]);
 
   if (!open) return null;
 
@@ -269,73 +226,50 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
               <h3 className="text-lg font-semibold">Select Students</h3>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
-                  {selectedStudents.length} of {filteredStudents.length} selected
+                  {selectedStudents.length} of {MOCK_STUDENTS.length} selected
                 </span>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={handleSelectAll}
-                  disabled={filteredStudents.length === 0}
                 >
-                  {filteredStudents.every(s => selectedStudents.includes(s.id)) ? 'Deselect All' : 'Select All'}
+                  {selectedStudents.length === MOCK_STUDENTS.length ? 'Deselect All' : 'Select All'}
                 </Button>
               </div>
             </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search students..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
             {/* Students List */}
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin" />
-                <span className="ml-2 text-muted-foreground">Loading students...</span>
-              </div>
-            ) : filteredStudents.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {students.length === 0 ? 'No students found' : 'No students match your search'}
-              </div>
-            ) : (
-              <div className="max-h-80 overflow-y-auto border rounded-lg p-4 space-y-2">
-                {filteredStudents.map((student) => (
-                  <div
-                    key={student.id}
-                    className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => handleStudentToggle(student.id)}
-                  >
-                    <Checkbox
-                      checked={selectedStudents.includes(student.id)}
-                      onCheckedChange={() => handleStudentToggle(student.id)}
-                    />
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback>
-                        {student.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium truncate">{student?.name || 'Unknown'}</p>
-                        <Badge variant="outline" className="text-xs">
-                          {student?.role || 'employee'}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {student?.email || 'No email'}
-                      </p>
+            <div className="max-h-80 overflow-y-auto border rounded-lg p-4 space-y-2">
+              {MOCK_STUDENTS.map((student) => (
+                <div
+                  key={student.id}
+                  className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
+                  onClick={() => handleStudentToggle(student.id)}
+                >
+                  <Checkbox
+                    checked={selectedStudents.includes(student.id)}
+                    onCheckedChange={() => handleStudentToggle(student.id)}
+                  />
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>
+                      {student.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium truncate">{student.name}</p>
+                      <Badge variant="outline" className="text-xs">
+                        {student.role}
+                      </Badge>
                     </div>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {student.email}
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Actions */}
@@ -343,14 +277,14 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
               disabled={creating}
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
-              disabled={creating || selectedStudents.length === 0 || !title}
+              disabled={creating || selectedStudents.length === 0 || !title.trim()}
               className="min-w-[160px]"
             >
               {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
