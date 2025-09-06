@@ -1,8 +1,6 @@
 import React from 'react';
 
-const AssignmentsList: React.FC = () => {
-  console.log('Simple AssignmentsList rendering');
-  
+const SimpleAssignmentsList: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -13,10 +11,10 @@ const AssignmentsList: React.FC = () => {
       </div>
 
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Assignment system is loading...</p>
+        <p className="text-muted-foreground">Assignment system is being fixed...</p>
       </div>
     </div>
   );
 };
 
-export default AssignmentsList;
+export default SimpleAssignmentsList;
