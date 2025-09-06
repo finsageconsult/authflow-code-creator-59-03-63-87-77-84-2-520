@@ -19,7 +19,6 @@ import {
   Calendar,
   CreditCard,
   Heart,
-  Shield,
   Home,
   MessageSquare,
   ClipboardList,
@@ -56,12 +55,6 @@ const menuItems = [
     url: "/individual-dashboard", 
     icon: ClipboardList,
     param: "assignments"
-  },
-  { 
-    title: "Privacy", 
-    url: "/individual-dashboard", 
-    icon: Shield,
-    param: "privacy"
   },
   { 
     title: "Support", 

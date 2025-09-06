@@ -389,8 +389,6 @@ export const IndividualDashboard = () => {
         return <MoodCheckIn />;
       case 'questionnaire':
         return <SecureQuestionnaireForm />;
-        case 'privacy':
-          return <ConsentManager />;
         case 'support':
           return <SupportQuery />;
         case 'chat':
