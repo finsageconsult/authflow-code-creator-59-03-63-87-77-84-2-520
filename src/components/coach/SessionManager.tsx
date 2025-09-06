@@ -66,6 +66,8 @@ export const SessionManager = () => {
   const [noteText, setNoteText] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [meetingLinkInput, setMeetingLinkInput] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentEnrollment, setCurrentEnrollment] = useState<any>(null);
 
   // Fetch courses and enrollments for current coach
   const fetchCourseEnrollments = async () => {
@@ -325,7 +327,10 @@ export const SessionManager = () => {
         description: "Meeting link has been set successfully",
       });
 
+      // Close dialog and clear state
+      setIsDialogOpen(false);
       setMeetingLinkInput('');
+      setCurrentEnrollment(null);
       fetchCourseEnrollments(); // Refresh data
     } catch (error: any) {
       console.error('Error generating join link:', error);
@@ -335,6 +340,18 @@ export const SessionManager = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleOpenDialog = (enrollment: any) => {
+    setCurrentEnrollment(enrollment);
+    setMeetingLinkInput(enrollment.meetingLink || '');
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setMeetingLinkInput('');
+    setCurrentEnrollment(null);
   };
 
   const sendReminder = async (enrollment: any) => {
@@ -503,16 +520,23 @@ export const SessionManager = () => {
                             </Button>
                           )}
                           
-                          <Dialog>
+                          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                             <DialogTrigger asChild>
-                              <Button size="sm" variant="outline" className="flex-1 lg:flex-none">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="flex-1 lg:flex-none"
+                                onClick={() => handleOpenDialog(enrollment)}
+                              >
                                 <Video className="w-4 h-4 mr-1" />
                                 {enrollment.meetingLink ? 'Update Link' : 'Set Link'}
                               </Button>
                             </DialogTrigger>
                             <DialogContent>
                               <DialogHeader>
-                                <DialogTitle>{enrollment.meetingLink ? 'Update' : 'Set'} Meeting Link - {enrollment.user.name}</DialogTitle>
+                                <DialogTitle>
+                                  {currentEnrollment?.meetingLink ? 'Update' : 'Set'} Meeting Link - {currentEnrollment?.user.name}
+                                </DialogTitle>
                               </DialogHeader>
                               <div className="space-y-4">
                                 <div>
@@ -520,7 +544,7 @@ export const SessionManager = () => {
                                   <Input
                                     id="meetingLink"
                                     placeholder="https://meet.google.com/... or https://zoom.us/..."
-                                    value={meetingLinkInput || enrollment.meetingLink || ''}
+                                    value={meetingLinkInput}
                                     onChange={(e) => setMeetingLinkInput(e.target.value)}
                                   />
                                   <p className="text-xs text-muted-foreground mt-1">
@@ -528,9 +552,11 @@ export const SessionManager = () => {
                                   </p>
                                 </div>
                                 <div className="flex gap-2 justify-end">
-                                  <Button variant="outline">Cancel</Button>
-                                  <Button onClick={() => generateJoinLink(enrollment)}>
-                                    {enrollment.meetingLink ? 'Update Link' : 'Set Link'}
+                                  <Button variant="outline" onClick={handleCloseDialog}>
+                                    Cancel
+                                  </Button>
+                                  <Button onClick={() => currentEnrollment && generateJoinLink(currentEnrollment)}>
+                                    {currentEnrollment?.meetingLink ? 'Update Link' : 'Set Link'}
                                   </Button>
                                 </div>
                               </div>
