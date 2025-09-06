@@ -176,30 +176,41 @@ export const EmployeePrograms = () => {
     
     if (userSessions.length === 0) return { link: null, scheduledAt: null };
     
-    // Sort sessions by scheduled time for consistency
-    const sortedSessions = userSessions.sort((a, b) => 
-      new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
-    );
+    // Get the next upcoming session
+    const now = Date.now();
+    const upcomingSessions = userSessions.filter(s => new Date(s.scheduled_at).getTime() >= now);
+    const session = upcomingSessions.length > 0 
+      ? upcomingSessions.sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
+      : userSessions.sort((a, b) => new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime())[0];
     
-    // Create a simple hash from program ID to determine which session to use
-    // This ensures different programs get different sessions consistently
-    const programHash = programId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const sessionIndex = programHash % sortedSessions.length;
-    
-    const session = sortedSessions[sessionIndex];
     return { link: session.meeting_link, scheduledAt: session.scheduled_at };
   };
 
   const isMeetingActive = (scheduledAt?: string | null, meetingLink?: string | null) => {
-    if (!scheduledAt || !meetingLink) return false;
+    console.log('isMeetingActive called with:', { scheduledAt, meetingLink });
+    
+    if (!scheduledAt || !meetingLink) {
+      console.log('Missing scheduledAt or meetingLink');
+      return false;
+    }
+    
     const sessionTime = new Date(scheduledAt).getTime();
     const now = Date.now();
     
-    // Show join button if session is within 7 days and has a meeting link
-    const sevenDaysBeforeSession = sessionTime - (7 * 24 * 60 * 60 * 1000); // 7 days before
-    const twoHoursAfterSession = sessionTime + (2 * 60 * 60 * 1000); // 2 hours after
+    // Show join button for upcoming sessions (within 2 weeks)
+    const twoWeeksFromNow = now + (14 * 24 * 60 * 60 * 1000);
+    const twoHoursAfterSession = sessionTime + (2 * 60 * 60 * 1000);
     
-    return now >= sevenDaysBeforeSession && now <= twoHoursAfterSession;
+    const isActive = sessionTime <= twoWeeksFromNow && now <= twoHoursAfterSession;
+    console.log('Meeting active check:', { 
+      now: new Date(now), 
+      sessionTime: new Date(sessionTime),
+      twoWeeksFromNow: new Date(twoWeeksFromNow),
+      twoHoursAfterSession: new Date(twoHoursAfterSession),
+      isActive 
+    });
+    
+    return isActive;
   };
 
   const handleProgramClick = (program: Program) => {
@@ -352,8 +363,10 @@ export const EmployeePrograms = () => {
                          
                           {(() => {
                             const { link, scheduledAt } = getMeetingInfo(program.id);
+                            console.log(`Program: ${program.title}`, { link, scheduledAt, programId: program.id });
                             
                             if (isMeetingActive(scheduledAt, link)) {
+                              console.log(`Showing join button for ${program.title}`);
                               return (
                                 <Button 
                                   className="w-full" 
