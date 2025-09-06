@@ -136,6 +136,10 @@ export default function CoachProfile() {
       const uniqueTags = [...new Set(allTags)].filter(tag => tag && tag.trim() !== '');
       setAvailableTags(uniqueTags);
 
+      // Add debugging for coach ID
+      console.log('Fetching data for coach ID:', coachId);
+      console.log('Coach data:', coachData);
+
       // Fetch comprehensive data for coach analytics
       const [
         sessionsResult,
@@ -163,12 +167,10 @@ export default function CoachProfile() {
           .select('id, status, enrollment_date, scheduled_at, amount_paid, payment_status, user_id, course_id')
           .eq('coach_id', coachId),
         
-        // Fetch access codes - check both by email and by role
+        // Fetch access codes - try multiple approaches
         supabase
           .from('access_codes')
-          .select('*')
-          .or(`email.eq.${coachData.email},role.eq.COACH`)
-          .order('created_at', { ascending: false }),
+          .select('*'),
         
         // Fetch all users to map names and emails
         supabase
@@ -180,6 +182,18 @@ export default function CoachProfile() {
           .from('individual_programs')
           .select('id, title, price')
       ]);
+
+      // Log detailed results for debugging
+      console.log('Query results:', {
+        sessionsError: sessionsResult.error,
+        sessionsData: sessionsResult.data?.length,
+        bookingsError: bookingsResult.error,
+        bookingsData: bookingsResult.data?.length,
+        enrollmentsError: enrollmentsResult.error,
+        enrollmentsData: enrollmentsResult.data?.length,
+        accessCodesError: accessCodesResult.error,
+        accessCodesData: accessCodesResult.data?.length
+      });
 
       const sessions = sessionsResult.data || [];
       const bookings = bookingsResult.data || [];
