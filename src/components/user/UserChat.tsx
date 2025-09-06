@@ -6,8 +6,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserPurchases } from '@/hooks/useUserPurchases';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Send, 
   MessageSquare, 
@@ -47,8 +47,10 @@ interface PurchasedCourse {
 export const UserChat: React.FC = () => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
-  const { isPurchased } = useUserPurchases();
-  const [chatsLoading, setChatsLoading] = useState(false);
+  const [chatsLoading, setChatsLoading] = useState(true);
+  const [enrollments, setEnrollments] = useState<any[]>([]);
+  const [coaches, setCoaches] = useState<{ [key: string]: any }>({});
+  const [programs, setPrograms] = useState<{ [key: string]: any }>({});
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<PurchasedCourse | null>(null);
@@ -71,135 +73,106 @@ export const UserChat: React.FC = () => {
     setMessages(prev => [...prev, newMessage]);
   };
 
-  // Static programs with assigned coaches
-  const staticPrograms = [
-    {
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      title: 'Financial Fitness Bootcamp (Flagship)',
-      description: '7-day program covering budgeting, saving, investing, and debt control.',
-      category: 'short-program' as const,
-    },
-    {
-      id: '550e8400-e29b-41d4-a716-446655440001',
-      title: 'Investment Mastery Series',
-      description: '14-day deep dive into equity, mutual funds, and alternative assets.',
-      category: 'short-program' as const,
-    },
-    {
-      id: '550e8400-e29b-41d4-a716-446655440002',
-      title: 'Smart Tax Planning',
-      description: '1:1 session for tax optimization strategies tailored to your situation',
-      category: 'short-program' as const,
-    },
-    {
-      id: '550e8400-e29b-41d4-a716-446655440003',
-      title: 'Financial Blueprint Session',
-      description: 'Personalized financial roadmap with expert coach - one-on-one session',
-      category: '1-1-sessions' as const,
-    },
-    {
-      id: '550e8400-e29b-41d4-a716-446655440004',
-      title: 'Debt-Free Journey',
-      description: 'Personal debt elimination strategy session with actionable plan',
-      category: '1-1-sessions' as const,
-    },
-    {
-      id: '550e8400-e29b-41d4-a716-446655440005',
-      title: 'Investing in 3 Hours',
-      description: 'Complete beginner guide to smart investing - learn fundamentals, risk management, and portfolio building',
-      category: '1-1-sessions' as const,
-    }
-  ];
+  // Fetch enrollments and related data
+  const fetchEnrollmentsData = async () => {
+    if (!userProfile) return;
 
-  // Coach profiles  
-  const coachProfiles: { [key: string]: CoachProfile } = {
-    'coach_sarah': {
-      id: 'coach_sarah',
-      name: 'Sarah Johnson',
-      bio: 'Certified Financial Planner with 8+ years experience in debt management and financial planning.',
-      rating: 4.9,
-      specialties: ['Debt Management', 'Financial Planning', 'Budgeting'],
-      experience: '8+ years'
-    },
-    'coach_michael': {
-      id: 'coach_michael', 
-      name: 'Michael Chen',
-      bio: 'Investment specialist focusing on equity markets, mutual funds, and portfolio optimization.',
-      rating: 4.8,
-      specialties: ['Equity Investing', 'Portfolio Management', 'Risk Assessment'],
-      experience: '12+ years'
-    },
-    'coach_emma': {
-      id: 'coach_emma',
-      name: 'Emma Davis', 
-      bio: 'Tax planning expert and financial advisor specializing in comprehensive financial blueprints.',
-      rating: 4.9,
-      specialties: ['Tax Planning', 'Financial Strategy', 'Retirement Planning'],
-      experience: '10+ years'
-    },
-    'coach_raj': {
-      id: 'coach_raj',
-      name: 'Raj Patel',
-      bio: 'Financial wellness coach with expertise in behavioral finance and debt elimination.',
-      rating: 4.7,
-      specialties: ['Behavioral Finance', 'Debt Elimination', 'Financial Psychology'],
-      experience: '6+ years'
-    },
-    'coach_priya': {
-      id: 'coach_priya',
-      name: 'Priya Sharma',
-      bio: 'Certified investment advisor specializing in beginner-friendly investment strategies.',
-      rating: 4.8,
-      specialties: ['Beginner Investing', 'SIP Planning', 'Risk Management'],
-      experience: '7+ years'
-    },
-    'coach_david': {
-      id: 'coach_david',
-      name: 'David Wilson',
-      bio: 'Comprehensive financial planner with expertise in budgeting and wealth creation.',
-      rating: 4.9,
-      specialties: ['Budgeting', 'Wealth Creation', 'Financial Control'],
-      experience: '15+ years'
+    try {
+      setChatsLoading(true);
+      
+      // Fetch user's enrollments
+      const { data: enrollmentData, error: enrollmentError } = await supabase
+        .from('enrollments')
+        .select('*')
+        .eq('user_id', userProfile.id)
+        .eq('status', 'confirmed');
+
+      if (enrollmentError) throw enrollmentError;
+
+      // Fetch coach data for enrolled coaches
+      if (enrollmentData && enrollmentData.length > 0) {
+        const coachIds = [...new Set(enrollmentData.map(e => e.coach_id).filter(Boolean))];
+        
+        if (coachIds.length > 0) {
+          const { data: coachData, error: coachError } = await supabase
+            .from('users')
+            .select('id, name, email, specialties')
+            .in('id', coachIds)
+            .eq('role', 'COACH');
+
+          if (coachError) throw coachError;
+
+          const coachMap = (coachData || []).reduce((acc, coach) => {
+            acc[coach.id] = {
+              id: coach.id,
+              name: coach.name,
+              bio: `Expert coach specializing in financial guidance`,
+              rating: 4.8,
+              specialties: coach.specialties || ['Financial Planning'],
+              experience: '5+ years'
+            };
+            return acc;
+          }, {} as { [key: string]: CoachProfile });
+
+          setCoaches(coachMap);
+        }
+
+        // Fetch program data for enrolled courses
+        const courseIds = [...new Set(enrollmentData.map(e => e.course_id).filter(Boolean))];
+        
+        if (courseIds.length > 0) {
+          const { data: programData, error: programError } = await supabase
+            .from('individual_programs')
+            .select('*')
+            .in('id', courseIds);
+
+          if (programError) throw programError;
+
+          const programMap = (programData || []).reduce((acc, program) => {
+            acc[program.id] = program;
+            return acc;
+          }, {} as { [key: string]: any });
+
+          setPrograms(programMap);
+        }
+      }
+
+      setEnrollments(enrollmentData || []);
+    } catch (error) {
+      console.error('Error fetching enrollment data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load your courses",
+        variant: "destructive",
+      });
+    } finally {
+      setChatsLoading(false);
     }
   };
 
-  // Map programs to coaches - ensuring correct mappings
-  const programCoachMapping: { [key: string]: string } = {
-    '550e8400-e29b-41d4-a716-446655440000': 'coach_david', // Financial Fitness Bootcamp - David Wilson
-    '550e8400-e29b-41d4-a716-446655440001': 'coach_michael', // Investment Mastery Series - Michael Chen  
-    '550e8400-e29b-41d4-a716-446655440002': 'coach_emma', // Smart Tax Planning - Emma Davis
-    '550e8400-e29b-41d4-a716-446655440003': 'coach_emma', // Financial Blueprint Session - Emma Davis
-    '550e8400-e29b-41d4-a716-446655440004': 'coach_raj', // Debt-Free Journey - Raj Patel
-    '550e8400-e29b-41d4-a716-446655440005': 'coach_priya', // Investing in 3 Hours - Priya Sharma
-  };
-
-  // Get purchased courses
-  const purchasedCourses: PurchasedCourse[] = staticPrograms
-    .filter(program => isPurchased('program', program.id))
-    .map(program => {
-      const coachId = programCoachMapping[program.id];
-      const coach = coachProfiles[coachId];
-      
-      console.log('Program:', program.title, 'CoachId:', coachId, 'Coach:', coach?.name);
-      
-      return {
-        id: program.id,
-        programId: program.id,
-        title: program.title,
-        category: program.category,
-        description: program.description,
-        coach: coach || {
-          id: 'fallback',
-          name: 'Unassigned Coach',
-          bio: 'No coach profile available',
-          rating: 4.5,
-          specialties: ['General'],
-          experience: 'N/A'
-        },
-        purchaseDate: new Date().toISOString(),
-        progress: Math.floor(Math.random() * 100) // Mock progress
-      };
-    });
+  // Convert enrollments to purchased courses format
+  const purchasedCourses: PurchasedCourse[] = enrollments.map(enrollment => {
+    const program = programs[enrollment.course_id];
+    const coach = coaches[enrollment.coach_id];
+    
+    return {
+      id: enrollment.id,
+      programId: enrollment.course_id,
+      title: program?.title || 'Unknown Program',
+      category: program?.category || 'course',
+      description: program?.description || 'Program description not available',
+      coach: coach || {
+        id: 'unknown',
+        name: 'Coach Not Assigned',
+        bio: 'Coach information not available',
+        rating: 4.5,
+        specialties: ['General'],
+        experience: 'N/A'
+      },
+      purchaseDate: enrollment.created_at,
+      progress: enrollment.progress || 0
+    };
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -214,6 +187,10 @@ export const UserChat: React.FC = () => {
       findOrCreateCoachChat();
     }
   }, [selectedCourse, userProfile]);
+
+  useEffect(() => {
+    fetchEnrollmentsData();
+  }, [userProfile]);
 
   const findOrCreateCoachChat = async () => {
     if (!selectedCourse || !userProfile) return;
