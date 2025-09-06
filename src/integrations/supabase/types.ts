@@ -557,7 +557,7 @@ export type Database = {
           id: string
           meeting_link: string | null
           notes: string | null
-          organization_id: string
+          organization_id: string | null
           outcome_tags: string[] | null
           resources: Json | null
           scheduled_at: string
@@ -573,7 +573,7 @@ export type Database = {
           id?: string
           meeting_link?: string | null
           notes?: string | null
-          organization_id: string
+          organization_id?: string | null
           outcome_tags?: string[] | null
           resources?: Json | null
           scheduled_at: string
@@ -589,7 +589,7 @@ export type Database = {
           id?: string
           meeting_link?: string | null
           notes?: string | null
-          organization_id?: string
+          organization_id?: string | null
           outcome_tags?: string[] | null
           resources?: Json | null
           scheduled_at?: string
