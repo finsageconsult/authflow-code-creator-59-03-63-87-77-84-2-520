@@ -52,7 +52,7 @@ export const CoachChatInterface: React.FC = () => {
         .from('enrollments')
         .select(`
           *,
-          user:users(id, name, email)
+          user:users!enrollments_user_id_fkey(id, name, email)
         `)
         .eq('coach_id', userProfile.id)
         .eq('status', 'confirmed');

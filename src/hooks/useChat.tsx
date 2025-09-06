@@ -76,9 +76,9 @@ export const useChats = () => {
         .from('chats')
         .select(`
           *,
-          participants:chat_participants(
+          participants:chat_participants!chat_participants_chat_id_fkey(
             *,
-            user:users(id, name, email, role)
+            user:users!chat_participants_user_id_fkey(id, name, email, role)
           )
         `);
 
@@ -118,7 +118,7 @@ export const useChats = () => {
         .from('chats')
         .select(`
           *,
-          participants:chat_participants(user_id)
+          participants:chat_participants!chat_participants_chat_id_fkey(user_id)
         `)
         .eq('chat_type', 'direct');
 
@@ -194,7 +194,7 @@ export const useChats = () => {
         .from('chats')
         .select(`
           *,
-          participants:chat_participants(user_id)
+          participants:chat_participants!chat_participants_chat_id_fkey(user_id)
         `)
         .eq('chat_type', 'coaching')
         .ilike('name', `%${programTitle}%`);
@@ -331,7 +331,7 @@ export const useChatMessages = (chatId: string) => {
         .from('chat_messages')
         .select(`
           *,
-          sender:users(id, name, email)
+          sender:users!chat_messages_sender_id_fkey(id, name, email)
         `)
         .eq('chat_id', chatId)
         .eq('is_deleted', false)
@@ -360,7 +360,7 @@ export const useChatMessages = (chatId: string) => {
         })
         .select(`
           *,
-          sender:users(id, name, email)
+          sender:users!chat_messages_sender_id_fkey(id, name, email)
         `)
         .single();
 
@@ -408,7 +408,7 @@ export const useChatMessages = (chatId: string) => {
         })
         .select(`
           *,
-          sender:users(id, name, email)
+          sender:users!chat_messages_sender_id_fkey(id, name, email)
         `)
         .single();
 

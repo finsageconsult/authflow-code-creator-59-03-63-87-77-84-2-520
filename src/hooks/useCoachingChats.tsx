@@ -112,7 +112,7 @@ export const useCoachingChats = () => {
         .from('chats')
         .select(`
           *,
-          participants:chat_participants(user_id)
+          participants:chat_participants!chat_participants_chat_id_fkey(user_id)
         `)
         .eq('chat_type', 'coaching');
 
