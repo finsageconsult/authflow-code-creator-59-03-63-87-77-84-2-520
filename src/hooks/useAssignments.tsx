@@ -311,7 +311,8 @@ export const useAssignmentFiles = (assignmentId: string) => {
       }
 
       // Upload file to storage using auth.uid() for RLS compatibility
-      const fileName = `${user.id}/${Date.now()}-${file.name}`;
+      const cleanFileName = file.name.replace(/[{}[\]]/g, '');
+      const fileName = `${user.id}/${Date.now()}-${cleanFileName}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('assignments')
         .upload(fileName, file);

@@ -46,6 +46,7 @@ export const CoachAssignments = () => {
   const [deletingAssignment, setDeletingAssignment] = useState<Assignment | null>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [viewingAssignment, setViewingAssignment] = useState<Assignment | null>(null);
+  const [assignmentFiles, setAssignmentFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [formData, setFormData] = useState({
@@ -154,8 +155,9 @@ export const CoachAssignments = () => {
 
         for (const file of selectedFiles) {
           try {
-            // Upload file to storage using auth.uid() for RLS compatibility
-            const fileName = `${user.id}/${Date.now()}-${file.name}`;
+            // Clean filename to remove invalid characters
+            const cleanFileName = file.name.replace(/[{}[\]]/g, '');
+            const fileName = `${user.id}/${Date.now()}-${cleanFileName}`;
             const { data: uploadData, error: uploadError } = await supabase.storage
               .from('assignments')
               .upload(fileName, file);
@@ -318,9 +320,23 @@ export const CoachAssignments = () => {
     setShowDeleteDialog(true);
   };
 
-  const openViewDialog = (assignment: Assignment) => {
+  const openViewDialog = async (assignment: Assignment) => {
     setViewingAssignment(assignment);
     setShowViewDialog(true);
+    
+    // Fetch assignment files
+    try {
+      const { data: files, error } = await supabase
+        .from('assignment_files')
+        .select('*')
+        .eq('assignment_id', assignment.id);
+      
+      if (error) throw error;
+      setAssignmentFiles(files || []);
+    } catch (error) {
+      console.error('Error fetching assignment files:', error);
+      setAssignmentFiles([]);
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -754,6 +770,35 @@ export const CoachAssignments = () => {
               <div>
                 <Label className="text-sm font-medium">Created:</Label>
                 <p className="text-sm">{new Date(viewingAssignment.created_at).toLocaleString()}</p>
+              </div>
+
+              {/* Assignment Files */}
+              <div>
+                <Label className="text-sm font-medium">Attached Files:</Label>
+                {assignmentFiles.length > 0 ? (
+                  <div className="mt-2 space-y-2">
+                    {assignmentFiles.map((file) => (
+                      <div key={file.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm">{file.file_name}</span>
+                          <span className="text-xs text-gray-400">
+                            ({(file.file_size / 1024).toFixed(1)} KB)
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(file.file_url, '_blank')}
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-1">No files attached</p>
+                )}
               </div>
 
               <div className="flex justify-end">
