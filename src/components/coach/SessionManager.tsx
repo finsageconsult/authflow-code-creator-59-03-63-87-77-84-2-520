@@ -258,36 +258,25 @@ export const SessionManager = () => {
         organization_id: userProfile?.organization_id
       });
 
-      // Find most relevant existing session for this coach+client
+      // Always update the most recent session for this coach+client; insert if none
       const { data: existingSessions, error: listErr } = await supabase
         .from('coaching_sessions')
-        .select('id, scheduled_at, updated_at')
+        .select('id')
         .eq('coach_id', userProfile?.id)
         .eq('client_id', enrollment.user.id)
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1);
 
       if (listErr) {
         console.error('List sessions error:', listErr);
         throw listErr;
       }
 
-      // Choose the nearest by scheduled time within 24h; else take the latest
-      const targetTime = enrollment.scheduledAt ? new Date(enrollment.scheduledAt).getTime() : null;
-      let best = existingSessions?.[0] || null;
-      let bestDiff = Number.POSITIVE_INFINITY;
-      if (targetTime && existingSessions) {
-        for (const s of existingSessions) {
-          if (!s.scheduled_at) continue;
-          const diff = Math.abs(new Date(s.scheduled_at).getTime() - targetTime);
-          if (diff < bestDiff) {
-            best = s;
-            bestDiff = diff;
-          }
-        }
-      }
-
+      const existing = existingSessions?.[0] || null;
       let writeError: any = null;
-      if (best?.id && (!targetTime || bestDiff <= 24 * 60 * 60 * 1000)) {
+
+      if (existing?.id) {
         const { error: updateErr } = await supabase
           .from('coaching_sessions')
           .update({
@@ -296,9 +285,9 @@ export const SessionManager = () => {
             session_type: enrollment.course?.title || 'Coaching Session',
             organization_id: userProfile?.organization_id || null,
             duration_minutes: 60,
-            scheduled_at: enrollment.scheduledAt, // keep in sync
+            scheduled_at: enrollment.scheduledAt,
           })
-          .eq('id', best.id);
+          .eq('id', existing.id);
         writeError = updateErr;
       } else {
         const { error: insertErr } = await supabase

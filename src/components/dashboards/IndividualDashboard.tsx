@@ -229,23 +229,14 @@ export const IndividualDashboard = () => {
         .eq('client_id', userProfile.id);
 
       const mapped = (enrolls || []).map((e) => {
-        // Find the best matching session by same coach and closest time
-        const candidates = (sessions || []).filter((s) => !e.coach_id || s.coach_id === e.coach_id);
-        let best: any = null;
-        let bestDiff = Number.POSITIVE_INFINITY;
-        for (const s of candidates) {
-          if (!s.scheduled_at || !e.scheduled_at) continue;
-          const diff = Math.abs(new Date(s.scheduled_at).getTime() - new Date(e.scheduled_at).getTime());
-          if (diff < bestDiff) {
-            best = s;
-            bestDiff = diff;
-          }
-        }
-        // Accept match if within 24 hours; else fall back to the most recently updated session with a link
-        const fallback = (sessions || [])
+        // Prefer most recent session with a link for the same coach; else any latest with a link
+        const sameCoachLatest = (sessions || [])
+          .filter((s) => (!e.coach_id || s.coach_id === e.coach_id) && s.meeting_link)
+          .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0];
+        const anyLatest = (sessions || [])
           .filter((s) => s.meeting_link)
           .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0];
-        const match = bestDiff <= 24 * 60 * 60 * 1000 ? best : fallback;
+        const match = sameCoachLatest || anyLatest || null;
         return { ...e, meeting_link: match?.meeting_link || null };
       });
 
