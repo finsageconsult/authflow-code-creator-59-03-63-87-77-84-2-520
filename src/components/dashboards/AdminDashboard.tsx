@@ -251,13 +251,33 @@ export const AdminDashboard = () => {
         const currentMonth = new Date();
         const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
         
-        const { data: monthlyPayments } = await supabase
+        const { data: monthlyPayments, error: paymentsError } = await supabase
           .from('payments')
-          .select('amount')
+          .select('amount, status')
           .eq('status', 'captured')
           .gte('created_at', firstDayOfMonth.toISOString());
 
+        if (paymentsError) {
+          console.error('Error fetching payments:', paymentsError);
+        }
+
         const monthlyRevenue = monthlyPayments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
+
+        // Also check for any payments at all to show in debug
+        const { data: allPayments } = await supabase
+          .from('payments')
+          .select('amount, status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        console.log('Payment status breakdown:', {
+          monthlyPayments: monthlyPayments?.length || 0,
+          allPayments: allPayments?.length || 0,
+          statusBreakdown: allPayments?.reduce((acc, p) => {
+            acc[p.status] = (acc[p.status] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>)
+        });
 
         setStats({
           totalOrganizations: orgCount || 0,
@@ -299,8 +319,8 @@ export const AdminDashboard = () => {
     },
     {
       title: 'Monthly Revenue',
-      value: `₹${stats.monthlyRevenue.toLocaleString('en-IN')}`,
-      change: '+15%',
+      value: stats.monthlyRevenue > 0 ? `₹${stats.monthlyRevenue.toLocaleString('en-IN')}` : 'No payments yet',
+      change: stats.monthlyRevenue > 0 ? '+15%' : 'Waiting for first payment',
       icon: IndianRupee,
       color: 'text-orange-600'
     }
