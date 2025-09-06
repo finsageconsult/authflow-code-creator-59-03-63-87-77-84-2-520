@@ -201,7 +201,7 @@ export const SessionManager = () => {
           coach_id: userProfile?.id,
           client_id: selectedEnrollment.user.id,
           scheduled_at: selectedEnrollment.scheduledAt,
-          session_type: selectedEnrollment.course?.title || 'Coaching Session',
+          session_type: selectedEnrollment.course?.title || 'Financial Coaching',
           status: 'completed',
           notes: noteText,
           outcome_tags: selectedTags,
@@ -267,7 +267,7 @@ export const SessionManager = () => {
         .select('id')
         .eq('coach_id', userProfile?.id)
         .eq('client_id', enrollment.user.id)
-        .eq('session_type', enrollment.course?.title || 'Coaching Session')
+        .eq('session_type', enrollment.course?.title || 'Financial Coaching')
         .eq('scheduled_at', enrollment.scheduledAt)
         .limit(1);
 
@@ -285,7 +285,7 @@ export const SessionManager = () => {
           .update({
             meeting_link: linkToUse,
             status: 'scheduled',
-            session_type: enrollment.course?.title || 'Coaching Session',
+            session_type: enrollment.course?.title || 'Financial Coaching',
             organization_id: userProfile?.organization_id || null,
             duration_minutes: 60,
             scheduled_at: enrollment.scheduledAt,
@@ -299,7 +299,7 @@ export const SessionManager = () => {
             coach_id: userProfile?.id,
             client_id: enrollment.user.id,
             scheduled_at: enrollment.scheduledAt,
-            session_type: enrollment.course?.title || 'Coaching Session',
+            session_type: enrollment.course?.title || 'Financial Coaching',
             meeting_link: linkToUse,
             status: 'scheduled',
             organization_id: userProfile?.organization_id || null,
@@ -363,7 +363,7 @@ export const SessionManager = () => {
           userEmail: enrollment.user.email,
           userName: enrollment.user.name,
           sessionDate: enrollment.scheduledAt,
-          sessionType: enrollment.course?.title || 'Coaching Session',
+          sessionType: enrollment.course?.title || 'Financial Coaching',
           meetingLink: enrollment.meetingLink
         }
       });
