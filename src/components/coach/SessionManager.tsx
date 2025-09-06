@@ -251,11 +251,13 @@ export const SessionManager = () => {
     }
 
     try {
+      // Get the actual course title from the enrollment data for proper session matching
+      const actualCourseTitle = enrollment.course?.title;
       console.log('Generating join link for:', {
         coach_id: userProfile?.id,
         client_id: enrollment.user.id,
         scheduled_at: enrollment.scheduledAt,
-        session_type: enrollment.course?.title || 'Coaching Session',
+        session_type: actualCourseTitle,
         meeting_link: linkToUse,
         organization_id: userProfile?.organization_id
       });
@@ -266,7 +268,7 @@ export const SessionManager = () => {
         .select('id')
         .eq('coach_id', userProfile?.id)
         .eq('client_id', enrollment.user.id)
-        .eq('session_type', enrollment.course?.title || 'Coaching Session')
+        .eq('session_type', actualCourseTitle)
         .order('updated_at', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(1);
@@ -285,7 +287,7 @@ export const SessionManager = () => {
           .update({
             meeting_link: linkToUse,
             status: 'scheduled',
-            session_type: enrollment.course?.title || 'Coaching Session',
+            session_type: actualCourseTitle,
             organization_id: userProfile?.organization_id || null,
             duration_minutes: 60,
             scheduled_at: enrollment.scheduledAt,
@@ -299,7 +301,7 @@ export const SessionManager = () => {
             coach_id: userProfile?.id,
             client_id: enrollment.user.id,
             scheduled_at: enrollment.scheduledAt,
-            session_type: enrollment.course?.title || 'Coaching Session',
+            session_type: actualCourseTitle,
             meeting_link: linkToUse,
             status: 'scheduled',
             organization_id: userProfile?.organization_id || null,
