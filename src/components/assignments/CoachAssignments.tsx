@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Users, Plus, Calendar, Send, FileText, Clock, Upload, X } from 'lucide-react';
+import { Users, Plus, Calendar, Send, FileText, Clock, Upload, X, Eye, Edit, Trash2, MoreVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Student {
@@ -38,6 +40,12 @@ export const CoachAssignments = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingAssignment, setDeletingAssignment] = useState<Assignment | null>(null);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [viewingAssignment, setViewingAssignment] = useState<Assignment | null>(null);
   const [loading, setLoading] = useState(true);
   
   const [formData, setFormData] = useState({
@@ -45,7 +53,8 @@ export const CoachAssignments = () => {
     description: '',
     priority: 'medium' as 'low' | 'medium' | 'high',
     due_date: '',
-    assignment_type: 'general'
+    assignment_type: 'general',
+    status: 'pending'
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
@@ -191,7 +200,8 @@ export const CoachAssignments = () => {
         description: '',
         priority: 'medium',
         due_date: '',
-        assignment_type: 'general'
+        assignment_type: 'general',
+        status: 'pending'
       });
       setSelectedFiles([]);
       setSelectedStudent(null);
@@ -208,6 +218,109 @@ export const CoachAssignments = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleEditAssignment = async () => {
+    if (!editingAssignment) return;
+
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .update({
+          title: formData.title,
+          description: formData.description,
+          priority: formData.priority,
+          due_date: formData.due_date || null,
+          status: formData.status || editingAssignment.status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingAssignment.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Assignment updated successfully"
+      });
+
+      // Reset form and close dialog
+      setFormData({
+        title: '',
+        description: '',
+        priority: 'medium',
+        due_date: '',
+        assignment_type: 'general',
+        status: 'pending'
+      });
+      setEditingAssignment(null);
+      setShowEditForm(false);
+      
+      // Refresh assignments
+      fetchAssignments();
+
+    } catch (error) {
+      console.error('Error updating assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update assignment",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteAssignment = async () => {
+    if (!deletingAssignment) return;
+
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .delete()
+        .eq('id', deletingAssignment.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Assignment deleted successfully"
+      });
+
+      setDeletingAssignment(null);
+      setShowDeleteDialog(false);
+      
+      // Refresh assignments
+      fetchAssignments();
+
+    } catch (error) {
+      console.error('Error deleting assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete assignment",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const openEditDialog = (assignment: Assignment) => {
+    setEditingAssignment(assignment);
+    setFormData({
+      title: assignment.title,
+      description: assignment.description || '',
+      priority: assignment.priority as 'low' | 'medium' | 'high',
+      due_date: assignment.due_date ? new Date(assignment.due_date).toISOString().slice(0, 16) : '',
+      assignment_type: 'general', // assignment_type not in Assignment interface
+      status: assignment.status
+    });
+    setShowEditForm(true);
+  };
+
+  const openDeleteDialog = (assignment: Assignment) => {
+    setDeletingAssignment(assignment);
+    setShowDeleteDialog(true);
+  };
+
+  const openViewDialog = (assignment: Assignment) => {
+    setViewingAssignment(assignment);
+    setShowViewDialog(true);
   };
 
   const getPriorityColor = (priority: string) => {
@@ -393,13 +506,14 @@ export const CoachAssignments = () => {
                         setShowCreateForm(false);
                         setSelectedStudent(null);
                         setSelectedFiles([]);
-                        setFormData({
-                          title: '',
-                          description: '',
-                          priority: 'medium',
-                          due_date: '',
-                          assignment_type: 'general'
-                        });
+                         setFormData({
+                           title: '',
+                           description: '',
+                           priority: 'medium',
+                           due_date: '',
+                           assignment_type: 'general',
+                           status: 'pending'
+                         });
                       }}
                     >
                       Cancel
@@ -455,29 +569,53 @@ export const CoachAssignments = () => {
           <div className="space-y-4">
             {assignments.length > 0 ? (
               assignments.map((assignment) => (
-                <div key={assignment.id} className="p-4 border rounded-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <h3 className="font-medium">{assignment.title}</h3>
-                      <p className="text-sm text-muted-foreground">{assignment.description}</p>
-                      <p className="text-sm text-muted-foreground">Assigned to: {assignment.student_name}</p>
-                      {assignment.due_date && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Due: {new Date(assignment.due_date).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge variant={getPriorityColor(assignment.priority)}>
-                        {assignment.priority}
-                      </Badge>
-                      <Badge className={getStatusColor(assignment.status)}>
-                        {assignment.status}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
+                 <div key={assignment.id} className="p-4 border rounded-lg">
+                   <div className="flex items-start justify-between">
+                     <div className="space-y-1 flex-1">
+                       <h3 className="font-medium">{assignment.title}</h3>
+                       <p className="text-sm text-muted-foreground">{assignment.description}</p>
+                       <p className="text-sm text-muted-foreground">Assigned to: {assignment.student_name}</p>
+                       {assignment.due_date && (
+                         <p className="text-sm text-muted-foreground flex items-center gap-1">
+                           <Calendar className="h-3 w-3" />
+                           Due: {new Date(assignment.due_date).toLocaleDateString()}
+                         </p>
+                       )}
+                     </div>
+                     <div className="flex items-center gap-2">
+                       <Badge variant={getPriorityColor(assignment.priority)}>
+                         {assignment.priority}
+                       </Badge>
+                       <Badge className={getStatusColor(assignment.status)}>
+                         {assignment.status}
+                       </Badge>
+                       <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                           <Button variant="ghost" size="sm">
+                             <MoreVertical className="h-4 w-4" />
+                           </Button>
+                         </DropdownMenuTrigger>
+                         <DropdownMenuContent align="end">
+                           <DropdownMenuItem onClick={() => openViewDialog(assignment)}>
+                             <Eye className="h-4 w-4 mr-2" />
+                             View Details
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => openEditDialog(assignment)}>
+                             <Edit className="h-4 w-4 mr-2" />
+                             Edit Assignment
+                           </DropdownMenuItem>
+                           <DropdownMenuItem 
+                             onClick={() => openDeleteDialog(assignment)}
+                             className="text-destructive focus:text-destructive"
+                           >
+                             <Trash2 className="h-4 w-4 mr-2" />
+                             Delete Assignment
+                           </DropdownMenuItem>
+                         </DropdownMenuContent>
+                       </DropdownMenu>
+                     </div>
+                   </div>
+                 </div>
               ))
             ) : (
               <div className="text-center py-8">
@@ -489,6 +627,162 @@ export const CoachAssignments = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Assignment Dialog */}
+      <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Assignment</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Assignment Title *</Label>
+              <Input
+                id="edit-title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Enter assignment title"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Describe the assignment details"
+                rows={4}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-priority">Priority</Label>
+                <select
+                  id="edit-priority"
+                  value={formData.priority}
+                  onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'low' | 'medium' | 'high' })}
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-status">Status</Label>
+                <select
+                  id="edit-status"
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-due_date">Due Date</Label>
+                <Input
+                  id="edit-due_date"
+                  type="datetime-local"
+                  value={formData.due_date}
+                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowEditForm(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleEditAssignment}>
+                Update Assignment
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Assignment Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Assignment Details</DialogTitle>
+          </DialogHeader>
+          
+          {viewingAssignment && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-lg">{viewingAssignment.title}</h3>
+                <p className="text-muted-foreground mt-1">{viewingAssignment.description}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Assigned to:</Label>
+                  <p className="text-sm">{viewingAssignment.student_name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Priority:</Label>
+                  <Badge variant={getPriorityColor(viewingAssignment.priority)} className="ml-2">
+                    {viewingAssignment.priority}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status:</Label>
+                  <Badge className={`ml-2 ${getStatusColor(viewingAssignment.status)}`}>
+                    {viewingAssignment.status}
+                  </Badge>
+                </div>
+                {viewingAssignment.due_date && (
+                  <div>
+                    <Label className="text-sm font-medium">Due Date:</Label>
+                    <p className="text-sm">{new Date(viewingAssignment.due_date).toLocaleString()}</p>
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium">Created:</Label>
+                <p className="text-sm">{new Date(viewingAssignment.created_at).toLocaleString()}</p>
+              </div>
+
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Assignment Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Assignment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingAssignment?.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAssignment} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete Assignment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
