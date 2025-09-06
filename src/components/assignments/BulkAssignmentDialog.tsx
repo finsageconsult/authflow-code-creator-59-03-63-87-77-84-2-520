@@ -49,14 +49,9 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   open,
   onOpenChange,
 }) => {
+  // Always call hooks at the top level
   const { userProfile } = useAuth();
   const { toast } = useToast();
-  const [students, setStudents] = useState<Student[]>([]);
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-
   const form = useForm({
     defaultValues: {
       title: '',
@@ -66,6 +61,12 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
       assignment_type: 'general',
     },
   });
+  
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const fetchStudents = useCallback(async () => {
     if (!userProfile?.id) return;
