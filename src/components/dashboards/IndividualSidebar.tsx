@@ -114,13 +114,13 @@ export function IndividualSidebar() {
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="pt-1 bg-background/95">
-        <SidebarGroup>
-          <SidebarGroupLabel className={`px-2 py-1 text-sm font-medium ${isCollapsed ? "sr-only" : ""}`}>
+      <SidebarContent className="flex-1 overflow-auto">
+        <SidebarGroup className="px-2">
+          <SidebarGroupLabel className={`px-2 py-2 text-sm font-medium ${isCollapsed ? "sr-only" : ""}`}>
             Individual Learning
           </SidebarGroupLabel>
           
-          <SidebarGroupContent className="px-1">
+          <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {menuItems.map((item) => {
                 const active = isActive(item.param)
