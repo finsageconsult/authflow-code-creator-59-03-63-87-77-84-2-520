@@ -18,13 +18,15 @@ interface CoachingStudent {
   id: string;
   name: string;
   email: string;
+  user_type: 'Individual' | 'Employee' | 'User';
   enrollments: Array<{
     id: string;
-    course_id: string;
     program_title: string;
+    program_category: string;
     enrollment_date: string;
     scheduled_at?: string;
-    source?: string;
+    status: string;
+    payment_status: string;
   }>;
 }
 
@@ -120,18 +122,46 @@ export const ChatProfileSidebar: React.FC<ChatProfileSidebarProps> = ({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <h4 className="font-medium text-sm truncate">{student.name}</h4>
-                            <Badge variant="outline" className="text-xs">
-                              {student.enrollments.length}
-                            </Badge>
+                            <div className="flex items-center gap-1">
+                              <Badge 
+                                variant={student.user_type === 'Individual' ? 'default' : 'secondary'} 
+                                className="text-xs"
+                              >
+                                {student.user_type}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {student.enrollments.length}
+                              </Badge>
+                            </div>
                           </div>
                           
                           <p className="text-xs text-muted-foreground truncate mb-2">{student.email}</p>
                           
                           {/* Latest Program */}
-                          {student.enrollments.length > 0 && (
+                          {student.enrollments.length > 0 ? (
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <BookOpen className="h-3 w-3" />
+                                <span className="truncate">{student.enrollments[0].program_title}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant={student.enrollments[0].status === 'confirmed' ? 'default' : 'outline'} 
+                                  className="text-xs"
+                                >
+                                  {student.enrollments[0].status}
+                                </Badge>
+                                {student.enrollments[0].scheduled_at && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(student.enrollments[0].scheduled_at), 'MMM d, yyyy')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
                               <BookOpen className="h-3 w-3" />
-                              <span className="truncate">{student.enrollments[0].program_title}</span>
+                              <span>No enrollments</span>
                             </div>
                           )}
                           

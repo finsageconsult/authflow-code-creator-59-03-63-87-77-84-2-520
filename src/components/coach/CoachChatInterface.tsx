@@ -11,13 +11,15 @@ interface CoachingStudent {
   id: string;
   name: string;
   email: string;
+  user_type: 'Individual' | 'Employee' | 'User';
   enrollments: Array<{
     id: string;
-    course_id: string;
     program_title: string;
+    program_category: string;
     enrollment_date: string;
     scheduled_at?: string;
-    source?: string;
+    status: string;
+    payment_status: string;
   }>;
 }
 
@@ -60,15 +62,8 @@ export const CoachChatInterface: React.FC = () => {
         id: student.id,
         name: student.name || 'Unknown User',
         email: student.email || 'No email',
-        enrollments: [
-          {
-            id: `enrollment-${student.id}`,
-            course_id: 'general',
-            program_title: 'Financial Coaching Program',
-            enrollment_date: new Date().toISOString(),
-            source: 'enrollment'
-          }
-        ]
+        user_type: student.user_type || 'User',
+        enrollments: student.enrollments || []
       }));
 
       console.log('Transformed students:', transformedStudents);
@@ -117,6 +112,7 @@ export const CoachChatInterface: React.FC = () => {
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.user_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
     student.enrollments.some(e => e.program_title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 

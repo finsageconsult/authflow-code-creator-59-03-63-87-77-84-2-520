@@ -16,13 +16,15 @@ interface CoachingStudent {
   id: string;
   name: string;
   email: string;
+  user_type: 'Individual' | 'Employee' | 'User';
   enrollments: Array<{
     id: string;
-    course_id: string;
     program_title: string;
+    program_category: string;
     enrollment_date: string;
     scheduled_at?: string;
-    source?: string;
+    status: string;
+    payment_status: string;
   }>;
 }
 
@@ -75,7 +77,15 @@ export const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-lg">{selectedStudent.name}</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg">{selectedStudent.name}</CardTitle>
+                <Badge 
+                  variant={selectedStudent.user_type === 'Individual' ? 'default' : 'secondary'} 
+                  className="text-xs"
+                >
+                  {selectedStudent.user_type}
+                </Badge>
+              </div>
               <p className="text-sm text-muted-foreground">{selectedStudent.email}</p>
             </div>
           </div>
@@ -93,7 +103,20 @@ export const ChatMessageArea: React.FC<ChatMessageAreaProps> = ({
                 <div key={enrollment.id} className="p-3 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium">{enrollment.program_title}</h4>
-                    <Badge variant="outline">Active</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge 
+                        variant={enrollment.status === 'confirmed' ? 'default' : 'outline'}
+                        className="text-xs"
+                      >
+                        {enrollment.status}
+                      </Badge>
+                      <Badge 
+                        variant={enrollment.payment_status === 'paid' ? 'default' : 'secondary'} 
+                        className="text-xs"
+                      >
+                        {enrollment.payment_status}
+                      </Badge>
+                    </div>
                   </div>
                   <div className="text-sm text-muted-foreground space-y-1">
                     <div className="flex items-center gap-2">

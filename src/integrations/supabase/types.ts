@@ -2204,8 +2204,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           email: string
+          enrollments: Json
           id: string
           name: string
+          user_type: string
         }[]
       }
       get_user_chat_ids: {
