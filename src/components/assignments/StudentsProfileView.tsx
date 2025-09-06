@@ -56,7 +56,7 @@ const StudentsProfileView: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [userProfile?.id, toast]);
+  }, [userProfile?.id]);
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
