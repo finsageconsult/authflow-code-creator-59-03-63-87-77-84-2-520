@@ -150,7 +150,7 @@ export const CoachChatInterface: React.FC = () => {
     if (student.enrollments.length > 0) {
       const enrollment = student.enrollments[0];
       const newChat = await createCoachingChat(
-        userProfile?.id || '', 
+        student.id, 
         enrollment.program_title,
         enrollment.id
       );

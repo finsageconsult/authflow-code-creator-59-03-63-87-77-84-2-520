@@ -226,19 +226,20 @@ export const useChats = () => {
 
       if (chatError) throw chatError;
 
-      // Add participants
+      // Add participants (determine roles based on current user)
+      const isCoach = userProfile.role === 'COACH';
       const { error: participantsError } = await supabase
         .from('chat_participants')
         .insert([
           {
             chat_id: newChat.id,
             user_id: userProfile.id,
-            role: 'student',
+            role: isCoach ? 'coach' : 'student',
           },
           {
             chat_id: newChat.id,
             user_id: coachId,
-            role: 'coach',
+            role: isCoach ? 'student' : 'coach',
           },
         ]);
 
