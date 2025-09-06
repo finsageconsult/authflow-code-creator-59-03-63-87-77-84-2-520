@@ -30,7 +30,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useForm } from 'react-hook-form';
-import { Loader2, Users, Calendar } from 'lucide-react';
+import { Loader2, Users, Calendar, Upload, X, FileText } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface BulkAssignmentDialogProps {
@@ -56,6 +56,8 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -104,6 +106,55 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
     }
   };
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const newFiles = Array.from(event.target.files);
+      setSelectedFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async (assignmentId: string) => {
+    if (selectedFiles.length === 0) return [];
+
+    const uploadPromises = selectedFiles.map(async (file) => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${assignmentId}/${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('assignments')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('assignments')
+        .getPublicUrl(fileName);
+
+      // Save file record
+      const { error: dbError } = await supabase
+        .from('assignment_files')
+        .insert({
+          assignment_id: assignmentId,
+          file_name: file.name,
+          file_url: publicUrl,
+          file_size: file.size,
+          mime_type: file.type,
+          uploaded_by: userProfile?.id,
+        });
+
+      if (dbError) throw dbError;
+
+      return { fileName, publicUrl };
+    });
+
+    return Promise.all(uploadPromises);
+  };
+
   const onSubmit = async (data: any) => {
     if (selectedStudents.length === 0) {
       toast({
@@ -118,7 +169,7 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
     try {
       // Create assignments for each selected student
       const assignmentPromises = selectedStudents.map(async (studentId) => {
-        const { error } = await supabase
+        const { data: assignment, error } = await supabase
           .from('assignments')
           .insert({
             title: data.title,
@@ -130,20 +181,30 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
             priority: data.priority,
             assignment_type: data.assignment_type,
             status: 'pending',
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
+
+        // Upload files for this assignment if any
+        if (selectedFiles.length > 0) {
+          await uploadFiles(assignment.id);
+        }
+
+        return assignment;
       });
 
       await Promise.all(assignmentPromises);
 
       toast({
         title: "Success",
-        description: `Assignment sent to ${selectedStudents.length} student${selectedStudents.length > 1 ? 's' : ''}`,
+        description: `Assignment ${selectedFiles.length > 0 ? 'with files ' : ''}sent to ${selectedStudents.length} student${selectedStudents.length > 1 ? 's' : ''}`,
       });
 
       form.reset();
       setSelectedStudents([]);
+      setSelectedFiles([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating bulk assignments:', error);
@@ -272,6 +333,64 @@ const BulkAssignmentDialog: React.FC<BulkAssignmentDialogProps> = ({
                     </FormItem>
                   )}
                 />
+              </div>
+            </div>
+
+            {/* File Upload Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Attach Files (Optional)</h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    id="file-upload"
+                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                    className="gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Choose Files
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    PDF, DOC, images supported
+                  </span>
+                </div>
+
+                {selectedFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">{selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} selected:</p>
+                    <div className="max-h-32 overflow-y-auto space-y-1">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm truncate max-w-xs">{file.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                       ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
