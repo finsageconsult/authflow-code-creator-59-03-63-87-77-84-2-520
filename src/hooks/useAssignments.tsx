@@ -304,26 +304,34 @@ export const useAssignmentFiles = (assignmentId: string) => {
     if (!userProfile || !assignmentId) return null;
 
     try {
-      // Upload file to storage
-      const fileName = `${userProfile.id}/${Date.now()}-${file.name}`;
+      // Get auth user data for RLS compatibility
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('Authentication required');
+      }
+
+      // Upload file to storage using auth.uid() for RLS compatibility
+      const fileName = `${user.id}/${Date.now()}-${file.name}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('assignments')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL for private bucket access
+      const { data: signedUrlData, error: urlError } = await supabase.storage
         .from('assignments')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 30); // 30 days expiry
 
-      // Save file record
+      if (urlError) throw urlError;
+
+      // Save file record with signed URL
       const { data, error } = await supabase
         .from('assignment_files')
         .insert({
           assignment_id: assignmentId,
           file_name: file.name,
-          file_url: publicUrl,
+          file_url: signedUrlData.signedUrl,
           file_size: file.size,
           mime_type: file.type,
           uploaded_by: userProfile.id,
