@@ -483,19 +483,11 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                   <CardTitle className="text-lg leading-tight">{webinar.title}</CardTitle>
+                  <CardTitle className="text-lg leading-tight">{webinar.title}</CardTitle>
                   <div className="flex items-center gap-2 mt-2">
                     <Badge className={getStatusColor(webinar.status)}>
                       {webinar.status}
                     </Badge>
-                  </div>
-                  <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
-                    <div className="text-sm font-medium text-blue-900">
-                      Organization: {organizations.find(org => org.id === webinar.organization_id)?.name || 'Unknown'}
-                    </div>
-                    <div className="text-xs text-blue-700 mt-1">
-                      Target audience for this webinar
-                    </div>
                   </div>
                 </div>
               </div>
@@ -529,22 +521,6 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
                   <span className="font-medium">Instructor:</span> {webinar.instructor_name}
                 </div>
               )}
-
-              <div className="mt-3 p-3 bg-gray-50 rounded border">
-                <div className="text-xs font-medium text-gray-700 uppercase tracking-wider mb-1">
-                  Organization Details
-                </div>
-                <div className="text-sm text-gray-900">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Target:</span>
-                    <span>{organizations.find(org => org.id === webinar.organization_id)?.name || 'Unknown Organization'}</span>
-                  </div>
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="font-medium">Audience:</span>
-                    <span className="text-xs text-gray-600">HR & Employees</span>
-                  </div>
-                </div>
-              </div>
 
               <div className="flex flex-wrap gap-1">
                 {webinar.tags.slice(0, 3).map((tag) => (
