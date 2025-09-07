@@ -327,19 +327,23 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <Label htmlFor="organization">Organization *</Label>
+                <div className="col-span-2 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <Label htmlFor="organization" className="text-blue-900 font-semibold text-base">Target Organization *</Label>
+                  <p className="text-sm text-blue-700 mb-3 mt-1">Select which organization's HR and employees will see this webinar in their menu</p>
                   <Select
                     value={formData.organization_id}
                     onValueChange={(value) => setFormData({...formData, organization_id: value})}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an organization" />
+                    <SelectTrigger className="border-blue-300 focus:border-blue-500">
+                      <SelectValue placeholder="Choose organization to receive this webinar" />
                     </SelectTrigger>
                     <SelectContent>
                       {organizations.map((org) => (
                         <SelectItem key={org.id} value={org.id}>
-                          {org.name}
+                          <div className="flex flex-col items-start">
+                            <span className="font-medium">{org.name}</span>
+                            <span className="text-xs text-muted-foreground">ID: {org.id.slice(0, 8)}...</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
