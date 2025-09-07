@@ -95,14 +95,51 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
     e.preventDefault();
     
     try {
-      // Get current user's organization
+      // Get current user's data and role
       const { data: userData } = await supabase
         .from('users')
-        .select('id, organization_id')
+        .select('id, organization_id, role')
         .eq('auth_id', userProfile?.auth_id)
         .single();
 
-      if (!userData?.organization_id) {
+      if (!userData) {
+        toast({
+          title: 'Error',
+          description: 'User data not found',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // For admin users, allow creating global content or assign to a default organization
+      let organizationId = userData.organization_id;
+      
+      if (!organizationId && userData.role === 'ADMIN') {
+        // For admin users without organization, try to get the first available organization
+        const { data: defaultOrg } = await supabase
+          .from('organizations')
+          .select('id')
+          .limit(1)
+          .single();
+        
+        if (defaultOrg) {
+          organizationId = defaultOrg.id;
+          
+          // Optionally update the admin user with this organization for future use
+          await supabase
+            .from('users')
+            .update({ organization_id: defaultOrg.id })
+            .eq('id', userData.id);
+            
+          toast({
+            title: 'Info',
+            description: 'Admin user assigned to default organization',
+            variant: 'default'
+          });
+        }
+      }
+
+      if (!organizationId && userData.role !== 'ADMIN') {
         toast({
           title: 'Error',
           description: 'No organization found for current user',
@@ -114,7 +151,7 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
       const webinarData = {
         ...formData,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        organization_id: userData.organization_id,
+        organization_id: organizationId,
         created_by: userData.id,
         status: 'scheduled'
       };
