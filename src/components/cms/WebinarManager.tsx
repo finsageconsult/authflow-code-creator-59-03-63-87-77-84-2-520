@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { 
@@ -48,6 +49,7 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const [webinars, setWebinars] = useState<Webinar[]>([]);
+  const [organizations, setOrganizations] = useState<Array<{id: string, name: string}>>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingWebinar, setEditingWebinar] = useState<Webinar | null>(null);
@@ -61,12 +63,28 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
     instructor_name: '',
     instructor_bio: '',
     meeting_link: '',
-    tags: ''
+    tags: '',
+    organization_id: ''
   });
 
   useEffect(() => {
     fetchWebinars();
+    fetchOrganizations();
   }, []);
+
+  const fetchOrganizations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('id, name')
+        .order('name');
+      
+      if (error) throw error;
+      setOrganizations(data || []);
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+    }
+  };
 
   const fetchWebinars = async () => {
     try {
@@ -148,10 +166,22 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
         return;
       }
 
+      // Use selected organization or fallback to user's organization
+      const finalOrganizationId = formData.organization_id || organizationId;
+      
+      if (!finalOrganizationId) {
+        toast({
+          title: 'Error',
+          description: 'Please select an organization for this webinar',
+          variant: 'destructive'
+        });
+        return;
+      }
+
       const webinarData = {
         ...formData,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        organization_id: organizationId,
+        organization_id: finalOrganizationId,
         created_by: userData.id,
         status: 'scheduled'
       };
@@ -191,7 +221,8 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
         instructor_name: '',
         instructor_bio: '',
         meeting_link: '',
-        tags: ''
+        tags: '',
+        organization_id: ''
       });
       setEditingWebinar(null);
       setIsCreateDialogOpen(false);
@@ -218,7 +249,8 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
       instructor_name: webinar.instructor_name || '',
       instructor_bio: webinar.instructor_bio || '',
       meeting_link: webinar.meeting_link || '',
-      tags: webinar.tags.join(', ')
+      tags: webinar.tags.join(', '),
+      organization_id: webinar.organization_id
     });
     setIsCreateDialogOpen(true);
   };
@@ -295,6 +327,25 @@ export const WebinarManager = ({ searchTerm, category }: WebinarManagerProps) =>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <Label htmlFor="organization">Organization *</Label>
+                  <Select
+                    value={formData.organization_id}
+                    onValueChange={(value) => setFormData({...formData, organization_id: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an organization" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizations.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <div className="col-span-2">
                   <Label htmlFor="title">Title *</Label>
                   <Input
