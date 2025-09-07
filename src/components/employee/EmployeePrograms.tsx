@@ -181,19 +181,31 @@ export const EmployeePrograms = () => {
       new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
     );
     
-    // Get all enrolled program IDs and sort them for consistency
-    const enrolledProgramIds = Array.from(enrolledPrograms).sort();
+    // Create explicit mapping based on program titles
+    const programTitleMap = {
+      '550e8400-e29b-41d4-a716-446655440000': 'Financial Fitness Bootcamp', // Should get https://rohitsaw.in/
+      '550e8400-e29b-41d4-a716-446655440002': 'Smart Tax Planning' // Should get https://sprakash.pro/
+    };
     
-    // Find index of current program in sorted list
-    const programIndex = enrolledProgramIds.indexOf(programId);
+    const programTitle = programTitleMap[programId as keyof typeof programTitleMap];
     
-    // Map programs to sessions cyclically
-    const sessionIndex = programIndex % sortedSessions.length;
-    const session = sortedSessions[sessionIndex];
+    // Map specific programs to specific session links
+    let session;
+    if (programTitle === 'Financial Fitness Bootcamp') {
+      // Find session with rohitsaw.in link
+      session = sortedSessions.find(s => s.meeting_link?.includes('rohitsaw.in')) || sortedSessions[0];
+    } else if (programTitle === 'Smart Tax Planning') {
+      // Find session with sprakash.pro link  
+      session = sortedSessions.find(s => s.meeting_link?.includes('sprakash.pro')) || sortedSessions[1] || sortedSessions[0];
+    } else {
+      // Fallback for other programs
+      session = sortedSessions[0];
+    }
     
-    console.log(`Program: ${programId}, Index: ${programIndex}, Session Index: ${sessionIndex}`, {
+    console.log(`Program: ${programTitle}`, {
       link: session.meeting_link,
-      scheduledAt: session.scheduled_at
+      scheduledAt: session.scheduled_at,
+      programId: programId
     });
     
     return { link: session.meeting_link, scheduledAt: session.scheduled_at };
