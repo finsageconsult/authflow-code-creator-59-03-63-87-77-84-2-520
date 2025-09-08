@@ -59,7 +59,6 @@ export const SubdomainRouter = () => {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
-      <Route path="/auth" element={<Auth />} />
       <Route path="/auth/individual" element={<Auth />} />
       <Route path="/auth/employee" element={<Auth />} />
       <Route path="/auth/employer" element={<Auth />} />
