@@ -634,7 +634,7 @@ export default function Auth() {
           variant="ghost"
           size="sm"
           onClick={() => navigate('/')}
-          className="absolute -top-12 sm:-top-14 left-0 text-muted-foreground hover:text-foreground"
+          className="absolute -top-16 left-0 text-muted-foreground hover:text-foreground z-10"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
