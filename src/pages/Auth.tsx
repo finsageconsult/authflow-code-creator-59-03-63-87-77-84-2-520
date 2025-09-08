@@ -392,19 +392,19 @@ export default function Auth() {
   if (showForgotAccessCode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
-        <div className="w-full max-w-md relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowForgotAccessCode(false)}
-            className="absolute -top-12 sm:-top-14 left-0 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+        <div className="w-full max-w-md">
           <Card className="w-full shadow-professional-lg border-0 sm:border">
-            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8">
-              <CardTitle className="text-xl sm:text-2xl font-bold">
+            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8 relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowForgotAccessCode(false)}
+                className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              <CardTitle className="text-xl sm:text-2xl font-bold mt-8">
                 Request Access Code
               </CardTitle>
               <p className="text-sm sm:text-base text-muted-foreground">
@@ -441,22 +441,22 @@ export default function Auth() {
   if (showOtpVerification) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
-        <div className="w-full max-w-md relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setShowOtpVerification(false);
-              setShowForgotPassword(true);
-            }}
-            className="absolute -top-12 sm:-top-14 left-0 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+        <div className="w-full max-w-md">
           <Card className="w-full shadow-professional-lg border-0 sm:border">
-            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8">
-              <CardTitle className="text-xl sm:text-2xl font-bold">
+            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8 relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowOtpVerification(false);
+                  setShowForgotPassword(true);
+                }}
+                className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              <CardTitle className="text-xl sm:text-2xl font-bold mt-8">
                 Verify OTP & Set New Password
               </CardTitle>
               <p className="text-sm sm:text-base text-muted-foreground">
@@ -584,19 +584,19 @@ export default function Auth() {
   if (showForgotPassword) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
-        <div className="w-full max-w-md relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowForgotPassword(false)}
-            className="absolute -top-12 sm:-top-14 left-0 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+        <div className="w-full max-w-md">
           <Card className="w-full shadow-professional-lg border-0 sm:border">
-            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8">
-              <CardTitle className="text-xl sm:text-2xl font-bold">
+            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8 relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowForgotPassword(false)}
+                className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              <CardTitle className="text-xl sm:text-2xl font-bold mt-8">
                 Reset Password
               </CardTitle>
               <p className="text-sm sm:text-base text-muted-foreground">
@@ -632,19 +632,19 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
-      <div className="w-full max-w-md relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/')}
-          className="absolute -top-16 left-0 text-muted-foreground hover:text-foreground z-10"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+      <div className="w-full max-w-md">
         <Card className="w-full shadow-professional-lg border-0 sm:border">
-          <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8">
-            <CardTitle className="text-xl sm:text-2xl font-bold">
+          <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8 relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <CardTitle className="text-xl sm:text-2xl font-bold mt-8">
               Welcome to Finsage
             </CardTitle>
             <p className="text-sm sm:text-base text-muted-foreground">
