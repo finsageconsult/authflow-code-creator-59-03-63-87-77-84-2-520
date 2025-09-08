@@ -31,7 +31,7 @@ const Header = () => {
           <Button 
             variant="ghost"
             className="text-foreground hover:text-primary transition-colors"
-            onClick={() => window.location.href = '/auth?role=individual'}
+            onClick={() => window.location.href = '/auth/individual'}
           >
             For Individuals
           </Button>
@@ -39,7 +39,7 @@ const Header = () => {
           <Button 
             variant="ghost"
             className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:text-accent-foreground transition-colors bg-transparent"
-            onClick={() => window.location.href = '/auth?role=employer'}
+            onClick={() => window.location.href = '/auth/employee'}
           >
             For Employers
           </Button>
@@ -65,7 +65,7 @@ const Header = () => {
               <Button 
                 variant="ghost"
                 className="py-2 text-foreground hover:text-primary transition-colors w-full justify-start"
-                onClick={() => window.location.href = '/auth?role=individual'}
+                onClick={() => window.location.href = '/auth/individual'}
               >
                 For Individuals
               </Button>
@@ -73,7 +73,7 @@ const Header = () => {
               <Button 
                 variant="outline"
                 className="px-4 py-2 rounded-full border-2 border-foreground text-foreground hover:bg-accent hover:text-accent-foreground transition-colors w-full justify-center"
-                onClick={() => window.location.href = '/auth?role=employer'}
+                onClick={() => window.location.href = '/auth/employee'}
               >
                 For Employers
               </Button>
