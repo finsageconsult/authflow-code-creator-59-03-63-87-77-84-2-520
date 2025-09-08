@@ -45,6 +45,9 @@ export default function Auth() {
   });
   
   useEffect(() => {
+    // Update activeTab when userType changes
+    setActiveTab(userType === 'employer' ? 'access-code' : 'email');
+    
     const codeFromUrl = searchParams.get('code') || searchParams.get('access_code');
     if (codeFromUrl) {
       setAccessCode(codeFromUrl);
