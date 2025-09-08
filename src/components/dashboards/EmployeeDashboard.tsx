@@ -423,7 +423,7 @@ export const EmployeeDashboard = () => {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold" role="heading" aria-level={1}>
-            Welcome back, {userProfile?.name?.split(' ')[0]}! 🌟
+            Welcome back, {userProfile?.name || userProfile?.email?.split('@')[0] || 'there'}! 🌟
           </h1>
           <Button 
             variant="outline" 
