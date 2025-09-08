@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
+import BookDemo from '@/pages/BookDemo';
 import { AdminDashboard } from '@/components/dashboards/AdminDashboard';
 import { HRDashboard } from '@/components/dashboards/HRDashboard';
 import { HROverview } from '@/components/hr/HROverview';
@@ -59,6 +60,7 @@ export const SubdomainRouter = () => {
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/book-demo" element={<BookDemo />} />
       <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><AdminDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/hr-dashboard" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HROverview /></AppLayout></ProtectedRoute>} />
       <Route path="/hr-dashboard/people" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRPeople /></AppLayout></ProtectedRoute>} />
