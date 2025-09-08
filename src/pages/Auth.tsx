@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,10 +15,21 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   
-  // Determine user type from URL parameters
-  const userType = searchParams.get('type') || 'individual'; // default to individual
+  // Determine user type from URL path or parameters
+  const getUserType = () => {
+    if (location.pathname.includes('/employee') || location.pathname.includes('/employer')) {
+      return 'employer';
+    }
+    if (location.pathname.includes('/individual')) {
+      return 'individual';
+    }
+    return searchParams.get('type') || 'individual'; // fallback to URL param or default
+  };
+  
+  const userType = getUserType();
   const [activeTab, setActiveTab] = useState(userType === 'employer' ? 'access-code' : 'email');
   const [accessCode, setAccessCode] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);

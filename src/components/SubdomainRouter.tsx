@@ -60,6 +60,9 @@ export const SubdomainRouter = () => {
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/auth/individual" element={<Auth />} />
+      <Route path="/auth/employee" element={<Auth />} />
+      <Route path="/auth/employer" element={<Auth />} />
       <Route path="/book-demo" element={<BookDemo />} />
       <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><AdminDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/hr-dashboard" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HROverview /></AppLayout></ProtectedRoute>} />
