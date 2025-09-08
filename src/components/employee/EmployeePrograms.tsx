@@ -183,7 +183,7 @@ export const EmployeePrograms = () => {
     
     // Create explicit mapping based on program titles
     const programTitleMap = {
-      '550e8400-e29b-41d4-a716-446655440000': 'Financial Fitness Bootcamp', // Should get https://rohitsaw.in/
+      '550e8400-e29b-41d4-a716-446655440000': 'Financial Fitness Bootcamp',
       '550e8400-e29b-41d4-a716-446655440002': 'Smart Tax Planning' // Should get https://sprakash.pro/
     };
     
@@ -191,14 +191,11 @@ export const EmployeePrograms = () => {
     
     // Map specific programs to specific session links
     let session;
-    if (programTitle === 'Financial Fitness Bootcamp') {
-      // Find session with rohitsaw.in link
-      session = sortedSessions.find(s => s.meeting_link?.includes('rohitsaw.in')) || sortedSessions[0];
-    } else if (programTitle === 'Smart Tax Planning') {
+    if (programTitle === 'Smart Tax Planning') {
       // Find session with sprakash.pro link  
       session = sortedSessions.find(s => s.meeting_link?.includes('sprakash.pro')) || sortedSessions[1] || sortedSessions[0];
     } else {
-      // Fallback for other programs
+      // Use first available session for all other programs
       session = sortedSessions[0];
     }
     
