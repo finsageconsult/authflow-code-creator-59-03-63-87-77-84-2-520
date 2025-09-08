@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const bookDemoSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -20,6 +22,7 @@ type BookDemoForm = z.infer<typeof bookDemoSchema>;
 
 const BookDemo = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const form = useForm<BookDemoForm>({
     resolver: zodResolver(bookDemoSchema),
     defaultValues: {
@@ -53,6 +56,16 @@ const BookDemo = () => {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-2xl mx-auto">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-6 p-2 hover:bg-accent/50"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back
+        </Button>
+        
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4">
             Book a Demo
