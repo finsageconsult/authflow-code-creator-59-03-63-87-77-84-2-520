@@ -87,16 +87,51 @@ export const ContentLibrary = () => {
 
   const fetchContent = async () => {
     try {
-      const { data, error } = await supabase
-        .from('content_library')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch both content_library and blog_library
+      const [contentResult, blogResult] = await Promise.all([
+        supabase
+          .from('content_library')
+          .select('*')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('blog_library')
+          .select('*')
+          .order('created_at', { ascending: false })
+      ]);
 
-      if (error) {
-        console.error('Database error, using mock data:', error);
+      const allContent: ContentItem[] = [];
+
+      // Add content from content_library
+      if (contentResult.data) {
+        allContent.push(...(contentResult.data as ContentItem[]));
+      }
+
+      // Add blogs from blog_library (convert to ContentItem format)
+      if (blogResult.data) {
+        const blogItems: ContentItem[] = blogResult.data.map((blog: any) => ({
+          id: blog.id,
+          title: blog.title,
+          description: blog.description,
+          thumbnail: blog.thumbnail,
+          duration: blog.duration,
+          category: blog.category,
+          tags: blog.tags,
+          type: 'blog' as const,
+          content_url: `/employee-dashboard/blog/${blog.id}`,
+          created_at: blog.created_at,
+          updated_at: blog.updated_at
+        }));
+        allContent.push(...blogItems);
+      }
+
+      // Sort by creation date
+      allContent.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      if (allContent.length === 0) {
+        console.log('No content found, using mock data');
         setContent(mockContent);
       } else {
-        setContent((data || []) as ContentItem[]);
+        setContent(allContent);
       }
     } catch (error) {
       console.error('Error fetching content:', error);
@@ -197,7 +232,13 @@ export const ContentLibrary = () => {
               <Card 
                 key={item.id} 
                 className="cursor-pointer hover:shadow-lg transition-all duration-200 border-0 bg-white overflow-hidden"
-                onClick={() => navigate(`/employee-dashboard/content/${item.id}`)}
+                onClick={() => {
+                  if (item.type === 'blog') {
+                    navigate(`/employee-dashboard/blog/${item.id}`);
+                  } else {
+                    navigate(`/employee-dashboard/content/${item.id}`);
+                  }
+                }}
               >
                 <CardContent className="p-0">
                   <div className={`${getIllustrationBg(item.type)} h-40 flex items-center justify-center relative`}>
