@@ -518,11 +518,11 @@ export const CalendarAvailabilitySettings = () => {
                               setSelectedSession(bookedSessionForThisHour);
                             }}
                           >
-                            <div className="bg-red-500/80 text-white rounded text-xs p-1 h-full flex items-center justify-center">
-                              <span className="font-medium truncate text-center">
-                                {bookedSessionForThisHour.clientName}
-                              </span>
-                            </div>
+                             <div className="bg-red-500/80 text-white rounded text-xs p-1 h-full flex items-center justify-center">
+                               <span className="font-medium truncate text-center">
+                                 Booked Session
+                               </span>
+                             </div>
                           </div>
                         )}
                       </div>
