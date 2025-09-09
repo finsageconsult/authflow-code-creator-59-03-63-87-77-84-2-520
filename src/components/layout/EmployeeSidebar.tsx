@@ -77,7 +77,7 @@ export const EmployeeSidebar = () => {
       className="border-r bg-background h-screen sticky top-0"
     >
       <SidebarContent className="overflow-y-auto">
-        <div className="px-2 pb-2">
+        <div className="p-2">
           <SidebarTrigger className="mb-2" />
         </div>
         <SidebarGroup>
