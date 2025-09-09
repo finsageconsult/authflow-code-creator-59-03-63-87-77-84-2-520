@@ -64,8 +64,23 @@ export const BlogManager = () => {
       if (error) throw error;
       setBlogs((data || []).map((item: any) => ({
         ...item,
-        paragraphs: Array.isArray(item.paragraphs) ? 
-          (item.paragraphs as BlogParagraph[]) : []
+        paragraphs: (() => {
+          try {
+            // If paragraphs is a string, parse it as JSON
+            if (typeof item.paragraphs === 'string') {
+              return JSON.parse(item.paragraphs) as BlogParagraph[];
+            }
+            // If it's already an array, use it directly
+            if (Array.isArray(item.paragraphs)) {
+              return item.paragraphs as BlogParagraph[];
+            }
+            // Default fallback
+            return [];
+          } catch (error) {
+            console.error('Error parsing paragraphs for blog:', item.id, error);
+            return [];
+          }
+        })()
       })) as BlogItem[]);
     } catch (error) {
       console.error('Error fetching blogs:', error);
@@ -182,7 +197,8 @@ export const BlogManager = () => {
       duration: blog.duration || '',
       category: blog.category || '',
       tags: blog.tags?.join(', ') || '',
-      paragraphs: blog.paragraphs.length > 0 ? blog.paragraphs : [{ heading: '', body: '' }]
+      paragraphs: blog.paragraphs && blog.paragraphs.length > 0 ? 
+        blog.paragraphs : [{ heading: '', body: '' }]
     });
     setIsDialogOpen(true);
   };
