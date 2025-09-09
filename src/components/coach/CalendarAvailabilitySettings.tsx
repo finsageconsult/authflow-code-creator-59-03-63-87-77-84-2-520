@@ -543,8 +543,8 @@ export const CalendarAvailabilitySettings = () => {
                                   setSelectedSession(session);
                                 }}
                               >
-                                <div className="bg-red-500 text-white rounded text-[9px] px-1 py-px h-full flex items-center justify-center border border-red-600">
-                                  <span className="font-normal truncate text-center leading-none">
+                                <div className="bg-green-50 border border-green-200 text-green-700 rounded text-[9px] px-1 py-px h-full flex items-center justify-center">
+                                  <span className="font-medium truncate text-center leading-none">
                                     {session.clientName}
                                   </span>
                                 </div>
@@ -552,8 +552,8 @@ export const CalendarAvailabilitySettings = () => {
                             ))}
                             {bookedSessionsForThisHour.length > 3 && (
                               <div className="flex-1 cursor-pointer">
-                                <div className="bg-red-600 text-white rounded text-[8px] px-1 py-px h-full flex items-center justify-center border border-red-700">
-                                  <span className="font-normal text-center leading-none">
+                                <div className="bg-green-100 border border-green-300 text-green-800 rounded text-[8px] px-1 py-px h-full flex items-center justify-center">
+                                  <span className="font-medium text-center leading-none">
                                     +{bookedSessionsForThisHour.length - 3}
                                   </span>
                                 </div>
