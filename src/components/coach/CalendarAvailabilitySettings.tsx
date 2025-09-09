@@ -257,29 +257,45 @@ export const CalendarAvailabilitySettings = () => {
       {/* Weekly View */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">
-            Week of {format(weekStart, 'MMMM d')} - {format(weekEnd, 'MMMM d, yyyy')}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">
+              Week of {format(weekStart, 'MMMM d')} - {format(weekEnd, 'MMMM d, yyyy')}
+            </CardTitle>
+            <div className="flex items-center gap-4 text-sm">
+              <Button variant="outline" size="sm">Today</Button>
+              <Button variant="outline" size="sm">Week</Button>
+              <Button variant="outline" size="sm" className="text-primary">Working Hours</Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
-            {generateWeekDays().map((day) => {
+          <div className="grid grid-cols-8 gap-0 border border-border rounded-lg overflow-hidden">
+            {/* Time column */}
+            <div className="bg-muted/20 border-r border-border">
+              <div className="h-12 border-b border-border flex items-center justify-center text-sm font-medium">
+                Time
+              </div>
+              {Array.from({ length: 12 }, (_, i) => (
+                <div key={i} className="h-12 border-b border-border flex items-center justify-center text-xs text-muted-foreground">
+                  {String(7 + i).padStart(2, '0')}:00
+                </div>
+              ))}
+            </div>
+
+            {/* Day columns */}
+            {generateWeekDays().map((day, dayIndex) => {
               const daySlots = getSlotsForDate(day);
               const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-              const isSelected = format(day, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
-
+              
               return (
-                <div
-                  key={day.toISOString()}
-                  className={cn(
-                    "p-3 border rounded-lg space-y-2 cursor-pointer transition-colors",
-                    isSelected && "ring-2 ring-primary border-primary",
-                    isToday && "bg-accent/50"
+                <div key={day.toISOString()} className="border-r border-border last:border-r-0">
+                  {/* Day header */}
+                  <div className={cn(
+                    "h-12 border-b border-border flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors",
+                    isToday && "bg-primary/10"
                   )}
-                  onClick={() => setSelectedDate(day)}
-                >
-                  <div className="text-center">
-                    <div className="text-xs text-muted-foreground">
+                  onClick={() => setSelectedDate(day)}>
+                    <div className="text-xs text-muted-foreground font-medium">
                       {format(day, 'EEE')}
                     </div>
                     <div className={cn(
@@ -290,45 +306,60 @@ export const CalendarAvailabilitySettings = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    {daySlots.length === 0 ? (
-                      <div className="text-xs text-muted-foreground text-center py-2">
-                        No slots
+                  {/* Time slots */}
+                  {Array.from({ length: 12 }, (_, hourIndex) => {
+                    const currentHour = 7 + hourIndex;
+                    const timeSlot = `${String(currentHour).padStart(2, '0')}:00`;
+                    
+                    // Check if there's a slot that covers this hour
+                    const hasSlot = daySlots.some(slot => {
+                      const slotStartHour = parseInt(slot.startTime.split(':')[0]);
+                      const slotEndHour = parseInt(slot.endTime.split(':')[0]);
+                      return currentHour >= slotStartHour && currentHour < slotEndHour;
+                    });
+                    
+                    const slotForThisHour = daySlots.find(slot => {
+                      const slotStartHour = parseInt(slot.startTime.split(':')[0]);
+                      return currentHour === slotStartHour;
+                    });
+
+                    return (
+                      <div
+                        key={hourIndex}
+                        className={cn(
+                          "h-12 border-b border-border relative group cursor-pointer transition-colors",
+                          hasSlot ? "bg-primary/20 hover:bg-primary/30" : "hover:bg-muted/30"
+                        )}
+                        onClick={() => setSelectedDate(day)}
+                      >
+                        {slotForThisHour && (
+                          <div className="absolute inset-0 p-1">
+                            <div className="bg-primary/80 text-primary-foreground rounded text-xs p-1 h-full flex flex-col justify-between">
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium truncate">
+                                  {slotForThisHour.startTime}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-primary-foreground hover:bg-primary-foreground/20"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteTimeSlot(slotForThisHour.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-2 w-2" />
+                                </Button>
+                              </div>
+                              <div className="text-xs opacity-80 truncate">
+                                {slotForThisHour.slotType}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      daySlots.map((slot) => (
-                        <div
-                          key={slot.id}
-                          className="bg-muted/50 p-2 rounded text-xs space-y-1 group hover:bg-muted transition-colors"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">
-                              {slot.startTime} - {slot.endTime}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteTimeSlot(slot.id);
-                              }}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Badge variant="secondary" className="text-xs">
-                              {slot.slotType}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {slot.currentBookings}/{slot.maxBookings}
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                    );
+                  })}
                 </div>
               );
             })}
