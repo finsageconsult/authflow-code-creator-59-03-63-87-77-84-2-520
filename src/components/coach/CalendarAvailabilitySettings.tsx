@@ -118,13 +118,17 @@ export const CalendarAvailabilitySettings = () => {
       const enrollmentUserIds = enrollmentsData?.map(e => e.user_id).filter(Boolean) || [];
       const allUserIds = [...new Set([...sessionClientIds, ...enrollmentUserIds])];
 
+      console.log('All user IDs to fetch:', allUserIds);
+
       // Fetch user details
       let clientsData = [];
       if (allUserIds.length > 0) {
-        const { data: usersData } = await supabase
+        const { data: usersData, error: usersError } = await supabase
           .from('users')
           .select('id, name, email')
           .in('id', allUserIds);
+        
+        console.log('Fetched users data:', usersData, 'Error:', usersError);
         clientsData = usersData || [];
       }
 
@@ -159,10 +163,20 @@ export const CalendarAvailabilitySettings = () => {
         const client = clientMap.get(enrollment.user_id);
         const program = programMap.get(enrollment.course_id);
         
+        // Debug log for each enrollment
+        console.log('Processing enrollment:', {
+          enrollmentId: enrollment.id,
+          userId: enrollment.user_id,
+          clientFound: !!client,
+          clientName: client?.name,
+          clientEmail: client?.email,
+          programTitle: program?.title
+        });
+        
         return {
           id: enrollment.id,
-          clientName: client?.name || 'Enrolled Student',
-          clientEmail: client?.email || '',
+          clientName: client?.name || `User ${enrollment.user_id?.slice(-8) || 'Unknown'}`,
+          clientEmail: client?.email || 'No email available',
           startTime: `${startHour}:${startMinute}`,
           endTime: `${endHour}:${endMinute}`,
           date: `${year}-${month}-${day}`,
@@ -189,18 +203,21 @@ export const CalendarAvailabilitySettings = () => {
         const client = clientMap.get(session.client_id);
         
         console.log('Processing session:', {
-          id: session.id,
+          sessionId: session.id,
+          clientId: session.client_id,
           originalTime: session.scheduled_at,
           parsedTime: sessionDate,
+          clientFound: !!client,
           clientName: client?.name,
+          clientEmail: client?.email,
           startTime: `${startHour}:${startMinute}`,
           date: `${year}-${month}-${day}`
         });
         
         return {
           id: session.id,
-          clientName: client?.name || 'Coaching Session',
-          clientEmail: client?.email || '',
+          clientName: client?.name || `Client ${session.client_id?.slice(-8) || 'Unknown'}`,
+          clientEmail: client?.email || 'No email available',
           startTime: `${startHour}:${startMinute}`,
           endTime: `${endHour}:${endMinute}`,
           date: `${year}-${month}-${day}`,
@@ -574,8 +591,8 @@ export const CalendarAvailabilitySettings = () => {
                   <span>{selectedSession?.clientName}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Client</span>
-                  <span>{selectedSession?.clientName}</span>
+                  <span className="text-muted-foreground">Email</span>
+                  <span className="text-xs">{selectedSession?.clientEmail || 'Not available'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Session status</span>
@@ -584,10 +601,8 @@ export const CalendarAvailabilitySettings = () => {
                   </Badge>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Presenting issue</span>
-                  <Badge variant="destructive" className="text-xs">
-                    PENDING
-                  </Badge>
+                  <span className="text-muted-foreground">Program/Notes</span>
+                  <span className="text-xs text-right max-w-32 truncate">{selectedSession?.notes || 'General coaching'}</span>
                 </div>
               </div>
             </div>
