@@ -94,13 +94,14 @@ export const CalendarAvailabilitySettings = () => {
         // Remove status filter to show all enrollments
         .order('scheduled_at');
 
-      // Also fetch coaching_sessions as backup
+      // Also fetch coaching_sessions as backup - only active/scheduled ones
       const { data: sessionsData, error: sessionsError } = await supabase
         .from('coaching_sessions')
         .select('*')
         .eq('coach_id', userProfile.id)
         .gte('scheduled_at', weekStart.toISOString())
         .lte('scheduled_at', weekEnd.toISOString())
+        .eq('status', 'scheduled') // Only show scheduled sessions
         .order('scheduled_at');
 
       if (enrollmentsError) {
@@ -187,8 +188,10 @@ export const CalendarAvailabilitySettings = () => {
         };
       }) || [];
 
-      // Process coaching sessions data
-      const coachingSessions: BookedSession[] = sessionsData?.map(session => {
+      // Process coaching sessions data - only if they have valid status and are not cancelled
+      const coachingSessions: BookedSession[] = sessionsData?.filter(session => 
+        session.status === 'scheduled' || session.status === 'confirmed'
+      ).map(session => {
         const sessionDate = new Date(session.scheduled_at);
         const endTime = new Date(sessionDate.getTime() + (session.duration_minutes * 60000));
         
@@ -212,7 +215,8 @@ export const CalendarAvailabilitySettings = () => {
           clientName: client?.name,
           clientEmail: client?.email,
           startTime: `${startHour}:${startMinute}`,
-          date: `${year}-${month}-${day}`
+          date: `${year}-${month}-${day}`,
+          status: session.status
         });
         
         return {
