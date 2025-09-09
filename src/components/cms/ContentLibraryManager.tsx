@@ -215,12 +215,7 @@ export const ContentLibraryManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Content Library Management</h2>
-          <p className="text-muted-foreground">Manage all learning content for employees</p>
-        </div>
-        
+      <div className="flex justify-end items-center">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
