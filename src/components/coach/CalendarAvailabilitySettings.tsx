@@ -84,7 +84,17 @@ export const CalendarAvailabilitySettings = () => {
 
       setAvailabilitySlots(slots);
 
-      // Fetch booked sessions from coaching_sessions table
+      // Fetch booked sessions from enrollments table (actual booking data)
+      const { data: enrollmentsData, error: enrollmentsError } = await supabase
+        .from('enrollments')
+        .select('*')
+        .eq('coach_id', userProfile.id)
+        .gte('scheduled_at', weekStart.toISOString())
+        .lte('scheduled_at', weekEnd.toISOString())
+        .eq('status', 'confirmed')
+        .order('scheduled_at');
+
+      // Also fetch coaching_sessions as backup
       const { data: sessionsData, error: sessionsError } = await supabase
         .from('coaching_sessions')
         .select('*')
@@ -93,33 +103,85 @@ export const CalendarAvailabilitySettings = () => {
         .lte('scheduled_at', weekEnd.toISOString())
         .order('scheduled_at');
 
+      if (enrollmentsError) {
+        console.error('Error fetching enrollments:', enrollmentsError);
+      }
       if (sessionsError) {
         console.error('Error fetching sessions:', sessionsError);
       }
 
+      console.log('Enrollments data for calendar:', enrollmentsData);
       console.log('Sessions data for calendar:', sessionsData);
 
-      // Get client names for sessions
-      const clientIds = sessionsData?.map(s => s.client_id).filter(Boolean) || [];
-      const { data: clientsData } = await supabase
-        .from('users')
-        .select('id, name, email')
-        .in('id', clientIds);
+      // Get client IDs from both sources
+      const sessionClientIds = sessionsData?.map(s => s.client_id).filter(Boolean) || [];
+      const enrollmentUserIds = enrollmentsData?.map(e => e.user_id).filter(Boolean) || [];
+      const allUserIds = [...new Set([...sessionClientIds, ...enrollmentUserIds])];
 
-      const clientMap = new Map(clientsData?.map(client => [client.id, client]) || []);
+      // Fetch user details
+      let clientsData = [];
+      if (allUserIds.length > 0) {
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .in('id', allUserIds);
+        clientsData = usersData || [];
+      }
 
-      const sessions: BookedSession[] = sessionsData?.map(session => {
-        // Parse the scheduled time as stored in database (already in IST context)
-        const sessionDate = new Date(session.scheduled_at);
-        const endTime = new Date(sessionDate.getTime() + (session.duration_minutes * 60000));
+      // Fetch program details for enrollments
+      const programIds = enrollmentsData?.map(e => e.course_id).filter(Boolean) || [];
+      let programsData = [];
+      if (programIds.length > 0) {
+        const { data: programs } = await supabase
+          .from('individual_programs')
+          .select('id, title')
+          .in('id', programIds);
+        programsData = programs || [];
+      }
+
+      const clientMap = new Map(clientsData.map(client => [client.id, client]));
+      const programMap = new Map(programsData.map(program => [program.id, program]));
+
+      // Process enrollments data
+      const enrollmentSessions: BookedSession[] = enrollmentsData?.map(enrollment => {
+        const sessionDate = new Date(enrollment.scheduled_at);
+        const endTime = new Date(sessionDate.getTime() + (60 * 60000)); // Default 60 minutes
         
-        // Format times in local timezone
         const startHour = sessionDate.getHours().toString().padStart(2, '0');
         const startMinute = sessionDate.getMinutes().toString().padStart(2, '0');
         const endHour = endTime.getHours().toString().padStart(2, '0');
         const endMinute = endTime.getMinutes().toString().padStart(2, '0');
         
-        // Format date
+        const year = sessionDate.getFullYear();
+        const month = (sessionDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = sessionDate.getDate().toString().padStart(2, '0');
+        
+        const client = clientMap.get(enrollment.user_id);
+        const program = programMap.get(enrollment.course_id);
+        
+        return {
+          id: enrollment.id,
+          clientName: client?.name || 'Enrolled Student',
+          clientEmail: client?.email || '',
+          startTime: `${startHour}:${startMinute}`,
+          endTime: `${endHour}:${endMinute}`,
+          date: `${year}-${month}-${day}`,
+          status: enrollment.status as 'scheduled' | 'completed' | 'cancelled',
+          notes: program?.title || 'Coaching Session',
+          isVirtual: true
+        };
+      }) || [];
+
+      // Process coaching sessions data
+      const coachingSessions: BookedSession[] = sessionsData?.map(session => {
+        const sessionDate = new Date(session.scheduled_at);
+        const endTime = new Date(sessionDate.getTime() + (session.duration_minutes * 60000));
+        
+        const startHour = sessionDate.getHours().toString().padStart(2, '0');
+        const startMinute = sessionDate.getMinutes().toString().padStart(2, '0');
+        const endHour = endTime.getHours().toString().padStart(2, '0');
+        const endMinute = endTime.getMinutes().toString().padStart(2, '0');
+        
         const year = sessionDate.getFullYear();
         const month = (sessionDate.getMonth() + 1).toString().padStart(2, '0');
         const day = sessionDate.getDate().toString().padStart(2, '0');
@@ -137,18 +199,21 @@ export const CalendarAvailabilitySettings = () => {
         
         return {
           id: session.id,
-          clientName: client?.name || 'Booked Session',
+          clientName: client?.name || 'Coaching Session',
           clientEmail: client?.email || '',
           startTime: `${startHour}:${startMinute}`,
           endTime: `${endHour}:${endMinute}`,
           date: `${year}-${month}-${day}`,
           status: session.status as 'scheduled' | 'completed' | 'cancelled',
-          notes: session.notes || '',
+          notes: session.notes || session.session_type || '',
           isVirtual: true
         };
       }) || [];
 
-      setBookedSessions(sessions);
+      // Combine all sessions
+      const allSessions = [...enrollmentSessions, ...coachingSessions];
+
+      setBookedSessions(allSessions);
     } catch (error) {
       console.error('Error fetching availability:', error);
       toast({
