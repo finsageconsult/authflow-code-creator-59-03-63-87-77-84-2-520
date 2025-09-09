@@ -91,7 +91,7 @@ export const CalendarAvailabilitySettings = () => {
         .eq('coach_id', userProfile.id)
         .gte('scheduled_at', weekStart.toISOString())
         .lte('scheduled_at', weekEnd.toISOString())
-        .eq('status', 'confirmed')
+        // Remove status filter to show all enrollments
         .order('scheduled_at');
 
       // Also fetch coaching_sessions as backup
