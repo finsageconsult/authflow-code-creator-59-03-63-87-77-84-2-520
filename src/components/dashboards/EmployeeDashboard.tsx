@@ -23,6 +23,7 @@ import { EmployeeAnalyticsDashboard } from '@/components/analytics/EmployeeAnaly
 import { SupportQuery } from '@/components/support/SupportQuery';
 import { EmployeeToolShortcuts } from '@/components/employee/EmployeeToolShortcuts';
 import { EmployeePrograms } from '@/components/employee/EmployeePrograms';
+import { ContentLibrary } from '@/components/employee/ContentLibrary';
 import { EnrollmentWorkflow } from '@/components/enrollment/EnrollmentWorkflow';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserChat } from '@/components/user/UserChat';
@@ -57,7 +58,7 @@ export const EmployeeDashboard = () => {
   // Set active tab based on URL parameter
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['dashboard', 'programs', 'credits', 'support', 'chat', 'assignments'].includes(tab)) {
+    if (tab && ['dashboard', 'programs', 'content-library', 'credits', 'support', 'chat', 'assignments'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -464,7 +465,7 @@ export const EmployeeDashboard = () => {
           <TabsList role="tablist" aria-label="Employee dashboard navigation" className="hidden">
             <TabsTrigger value="dashboard" role="tab" aria-controls="dashboard-panel">Dashboard</TabsTrigger>
             <TabsTrigger value="programs" role="tab" aria-controls="programs-panel">Programs</TabsTrigger>
-            <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>
+            <TabsTrigger value="content-library" role="tab" aria-controls="content-library-panel">Content Library</TabsTrigger>
             <TabsTrigger value="credits" role="tab" aria-controls="credits-panel">My Credits</TabsTrigger>
             <TabsTrigger value="chat" role="tab" aria-controls="chat-panel">Chat</TabsTrigger>
             <TabsTrigger value="assignments" role="tab" aria-controls="assignments-panel">Assignments</TabsTrigger>
@@ -602,6 +603,9 @@ export const EmployeeDashboard = () => {
         <EmployeePrograms />
       </TabsContent>
 
+      <TabsContent value="content-library" className="space-y-6" role="tabpanel" id="content-library-panel" aria-labelledby="content-library-tab">
+        <ContentLibrary />
+      </TabsContent>
 
       <TabsContent value="credits" className="space-y-6">
         <CreditWallet />
