@@ -20,6 +20,7 @@ import { ContentCatalog } from '@/components/cms/ContentCatalog';
 import { AdminAnalyticsDashboard } from '@/components/analytics/AdminAnalyticsDashboard';
 import { SecurityAuditDashboard } from '@/components/security/SecurityAuditDashboard';
 import { AdminSupportManager } from '@/components/support/AdminSupportManager';
+import { DemoRequestsManager } from '@/components/admin/DemoRequestsManager';
 
 interface PlatformStats {
   totalOrganizations: number;
@@ -380,6 +381,10 @@ export const AdminDashboard = () => {
 
   if (activeTab === 'support') {
     return <AdminSupportManager />;
+  }
+
+  if (activeTab === 'demo-requests') {
+    return <DemoRequestsManager />;
   }
 
   // Default overview content

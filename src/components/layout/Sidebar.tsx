@@ -77,6 +77,11 @@ const adminMenuItems = [{
   icon: UserCheck,
   roles: ['ADMIN']
 }, {
+  title: 'Demo Requests',
+  url: '/admin-dashboard?tab=demo-requests',
+  icon: MessageSquare,
+  roles: ['ADMIN']
+}, {
   title: 'Credits Engine',
   url: '/admin-dashboard?tab=credits',
   icon: Coins,

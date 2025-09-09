@@ -35,19 +35,37 @@ const BookDemo = () => {
 
   const onSubmit = async (data: BookDemoForm) => {
     try {
-      // TODO: Implement actual form submission logic
-      console.log('Form submitted:', data);
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Submit demo request via edge function
+      const { data: result, error } = await supabase.functions.invoke('submit-demo-request', {
+        body: {
+          name: data.name,
+          email: data.email,
+          company: data.company,
+          message: data.message,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!result?.success) {
+        throw new Error(result?.error || 'Failed to submit demo request');
+      }
       
       toast({
-        title: "Message sent successfully!",
-        description: "We'll get back to you within 24 hours.",
+        title: "Thank you! Your demo request has been received.",
+        description: "Our team will contact you soon.",
       });
       
       form.reset();
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error submitting demo request:', error);
       toast({
         title: "Error sending message",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     }
