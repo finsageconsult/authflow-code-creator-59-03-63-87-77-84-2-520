@@ -101,13 +101,24 @@ export const CalendarAvailabilitySettings = () => {
         const sessionDate = new Date(session.scheduled_at);
         const endTime = new Date(sessionDate.getTime() + (session.duration_minutes * 60000));
         
+        // Format time in local timezone
+        const startHour = sessionDate.getHours().toString().padStart(2, '0');
+        const startMinute = sessionDate.getMinutes().toString().padStart(2, '0');
+        const endHour = endTime.getHours().toString().padStart(2, '0');
+        const endMinute = endTime.getMinutes().toString().padStart(2, '0');
+        
+        // Format date in local timezone
+        const year = sessionDate.getFullYear();
+        const month = (sessionDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = sessionDate.getDate().toString().padStart(2, '0');
+        
         return {
           id: session.id,
           clientName: 'Booked Session', // Simplified for now
           clientEmail: '',
-          startTime: sessionDate.toTimeString().slice(0, 5),
-          endTime: endTime.toTimeString().slice(0, 5),
-          date: sessionDate.toISOString().split('T')[0],
+          startTime: `${startHour}:${startMinute}`,
+          endTime: `${endHour}:${endMinute}`,
+          date: `${year}-${month}-${day}`,
           status: session.status as 'scheduled' | 'completed' | 'cancelled',
           notes: session.notes || '',
           isVirtual: true
