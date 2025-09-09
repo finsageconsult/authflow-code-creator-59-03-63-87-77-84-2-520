@@ -369,45 +369,46 @@ export const CoachAssignments = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Assignment Center</h1>
-          <p className="text-muted-foreground">Manage and track student assignments</p>
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-xl md:text-2xl font-bold">Assignment Center</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Manage and track student assignments</p>
         </div>
         
         <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" />
-              Create Assignment
+              <span className="hidden sm:inline">Create Assignment</span>
+              <span className="sm:hidden">Create</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden mx-3 md:mx-0">
             <DialogHeader>
-              <DialogTitle>Create New Assignment</DialogTitle>
+              <DialogTitle className="text-lg">Create New Assignment</DialogTitle>
             </DialogHeader>
             
             <div className="overflow-y-auto max-h-[calc(90vh-120px)] space-y-4 pr-2">
               {/* Student Selection */}
               <div className="space-y-2">
-                <Label>Select Student</Label>
-                <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
+                <Label className="text-sm font-medium">Select Student</Label>
+                <div className="grid grid-cols-1 gap-2 max-h-32 md:max-h-40 overflow-y-auto">
                   {students.map((student) => (
                     <div
                       key={student.id}
                       onClick={() => setSelectedStudent(student)}
-                      className={`p-3 border rounded-lg cursor-pointer flex items-center gap-3 ${
+                      className={`p-2 md:p-3 border rounded-lg cursor-pointer flex items-center gap-2 md:gap-3 ${
                         selectedStudent?.id === student.id ? 'border-primary bg-primary/5' : 'hover:bg-gray-50'
                       }`}
                     >
-                      <Avatar>
-                        <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                      <Avatar className="h-8 w-8 md:h-10 md:w-10">
+                        <AvatarFallback className="text-xs md:text-sm">{student.name.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <div>
-                        <p className="font-medium">{student.name}</p>
-                        <p className="text-sm text-muted-foreground">{student.email}</p>
-                        <Badge variant="outline" className="text-xs">{student.user_type}</Badge>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm md:text-base truncate">{student.name}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground truncate">{student.email}</p>
+                        <Badge variant="outline" className="text-xs mt-1">{student.user_type}</Badge>
                       </div>
                     </div>
                   ))}
@@ -438,14 +439,14 @@ export const CoachAssignments = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="priority">Priority</Label>
+                      <Label htmlFor="priority" className="text-sm font-medium">Priority</Label>
                       <select
                         id="priority"
                         value={formData.priority}
                         onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'low' | 'medium' | 'high' })}
-                        className="w-full p-2 border rounded-md"
+                        className="w-full p-2 border rounded-md text-sm"
                       >
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
@@ -454,12 +455,13 @@ export const CoachAssignments = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="due_date">Due Date</Label>
+                      <Label htmlFor="due_date" className="text-sm font-medium">Due Date</Label>
                       <Input
                         id="due_date"
                         type="datetime-local"
                         value={formData.due_date}
                         onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                        className="text-sm"
                       />
                     </div>
                   </div>
@@ -515,9 +517,10 @@ export const CoachAssignments = () => {
                     )}
                   </div>
 
-                  <div className="flex gap-2 justify-end">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
                     <Button
                       variant="outline"
+                      className="w-full sm:w-auto"
                       onClick={() => {
                         setShowCreateForm(false);
                         setSelectedStudent(null);
@@ -534,7 +537,7 @@ export const CoachAssignments = () => {
                     >
                       Cancel
                     </Button>
-                    <Button onClick={handleCreateAssignment} className="flex items-center gap-2">
+                    <Button onClick={handleCreateAssignment} className="flex items-center gap-2 w-full sm:w-auto">
                       <Send className="h-4 w-4" />
                       Send Assignment
                     </Button>
@@ -548,23 +551,23 @@ export const CoachAssignments = () => {
 
       {/* Students Overview */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+            <Users className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
             Your Students ({students.length})
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <CardContent className="p-4 md:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {students.map((student) => (
-              <div key={student.id} className="p-3 border rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Avatar>
-                    <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+              <div key={student.id} className="p-3 border rounded-lg hover:shadow-sm transition-shadow">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <Avatar className="h-8 w-8 md:h-10 md:w-10 flex-shrink-0">
+                    <AvatarFallback className="text-xs md:text-sm">{student.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-medium">{student.name}</p>
-                    <p className="text-sm text-muted-foreground">{student.user_type}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm md:text-base truncate">{student.name}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground">{student.user_type}</p>
                   </div>
                 </div>
               </div>
@@ -575,43 +578,47 @@ export const CoachAssignments = () => {
 
       {/* Recent Assignments */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+            <FileText className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
             Recent Assignments
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="p-4 md:p-6">
+          <div className="space-y-3 md:space-y-4">
             {assignments.length > 0 ? (
               assignments.map((assignment) => (
-                 <div key={assignment.id} className="p-4 border rounded-lg">
-                   <div className="flex items-start justify-between">
-                     <div className="space-y-1 flex-1">
-                       <h3 className="font-medium">{assignment.title}</h3>
-                       <p className="text-sm text-muted-foreground">{assignment.description}</p>
-                       <p className="text-sm text-muted-foreground">Assigned to: {assignment.student_name}</p>
+                 <div key={assignment.id} className="p-3 md:p-4 border rounded-lg hover:shadow-sm transition-shadow">
+                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3 lg:gap-4">
+                     <div className="space-y-2 flex-1 min-w-0">
+                       <h3 className="font-medium text-sm md:text-base">{assignment.title}</h3>
+                       <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">{assignment.description}</p>
+                       <p className="text-xs md:text-sm text-muted-foreground">
+                         <span className="font-medium">Assigned to:</span> {assignment.student_name}
+                       </p>
                        {assignment.due_date && (
-                         <p className="text-sm text-muted-foreground flex items-center gap-1">
-                           <Calendar className="h-3 w-3" />
+                         <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-1">
+                           <Calendar className="h-3 w-3 flex-shrink-0" />
                            Due: {new Date(assignment.due_date).toLocaleDateString()}
                          </p>
                        )}
                      </div>
-                     <div className="flex items-center gap-2">
-                       <Badge variant={getPriorityColor(assignment.priority)}>
-                         {assignment.priority}
-                       </Badge>
-                       <Badge className={getStatusColor(assignment.status)}>
-                         {assignment.status}
-                       </Badge>
+                     <div className="flex flex-row lg:flex-col items-start lg:items-end justify-between lg:justify-start gap-2">
+                       <div className="flex flex-wrap gap-1 md:gap-2">
+                         <Badge variant={getPriorityColor(assignment.priority)} className="text-xs">
+                           {assignment.priority}
+                         </Badge>
+                         <Badge className={`${getStatusColor(assignment.status)} text-xs`}>
+                           {assignment.status}
+                         </Badge>
+                       </div>
                        <DropdownMenu>
                          <DropdownMenuTrigger asChild>
-                           <Button variant="ghost" size="sm">
+                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                              <MoreVertical className="h-4 w-4" />
                            </Button>
                          </DropdownMenuTrigger>
-                         <DropdownMenuContent align="end">
+                         <DropdownMenuContent align="end" className="bg-background">
                            <DropdownMenuItem onClick={() => openViewDialog(assignment)}>
                              <Eye className="h-4 w-4 mr-2" />
                              View Details
@@ -635,9 +642,9 @@ export const CoachAssignments = () => {
               ))
             ) : (
               <div className="text-center py-8">
-                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No assignments created yet</p>
-                <p className="text-sm text-muted-foreground">Create your first assignment to get started</p>
+                <FileText className="h-8 w-8 md:h-12 md:w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-sm md:text-base text-muted-foreground">No assignments created yet</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Create your first assignment to get started</p>
               </div>
             )}
           </div>
@@ -646,41 +653,43 @@ export const CoachAssignments = () => {
 
       {/* Edit Assignment Dialog */}
       <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl mx-3 md:mx-0">
           <DialogHeader>
-            <DialogTitle>Edit Assignment</DialogTitle>
+            <DialogTitle className="text-lg">Edit Assignment</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-title">Assignment Title *</Label>
+              <Label htmlFor="edit-title" className="text-sm font-medium">Assignment Title *</Label>
               <Input
                 id="edit-title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="Enter assignment title"
+                className="text-sm"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
+              <Label htmlFor="edit-description" className="text-sm font-medium">Description</Label>
               <Textarea
                 id="edit-description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Describe the assignment details"
                 rows={4}
+                className="text-sm"
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-priority">Priority</Label>
+                <Label htmlFor="edit-priority" className="text-sm font-medium">Priority</Label>
                 <select
                   id="edit-priority"
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'low' | 'medium' | 'high' })}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2 border rounded-md text-sm"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -689,12 +698,12 @@ export const CoachAssignments = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-status">Status</Label>
+                <Label htmlFor="edit-status" className="text-sm font-medium">Status</Label>
                 <select
                   id="edit-status"
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full p-2 border rounded-md"
+                  className="w-full p-2 border rounded-md text-sm"
                 >
                   <option value="pending">Pending</option>
                   <option value="in_progress">In Progress</option>
@@ -703,24 +712,26 @@ export const CoachAssignments = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-due_date">Due Date</Label>
+                <Label htmlFor="edit-due_date" className="text-sm font-medium">Due Date</Label>
                 <Input
                   id="edit-due_date"
                   type="datetime-local"
                   value={formData.due_date}
                   onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                  className="text-sm"
                 />
               </div>
             </div>
 
-            <div className="flex gap-2 justify-end">
+            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
               <Button
                 variant="outline"
                 onClick={() => setShowEditForm(false)}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
-              <Button onClick={handleEditAssignment}>
+              <Button onClick={handleEditAssignment} className="w-full sm:w-auto">
                 Update Assignment
               </Button>
             </div>
@@ -730,59 +741,59 @@ export const CoachAssignments = () => {
 
       {/* View Assignment Dialog */}
       <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl mx-3 md:mx-0">
           <DialogHeader>
-            <DialogTitle>Assignment Details</DialogTitle>
+            <DialogTitle className="text-lg">Assignment Details</DialogTitle>
           </DialogHeader>
           
           {viewingAssignment && (
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold text-lg">{viewingAssignment.title}</h3>
-                <p className="text-muted-foreground mt-1">{viewingAssignment.description}</p>
+                <h3 className="font-semibold text-base md:text-lg">{viewingAssignment.title}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{viewingAssignment.description}</p>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Assigned to:</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-xs md:text-sm font-medium">Assigned to:</Label>
                   <p className="text-sm">{viewingAssignment.student_name}</p>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium">Priority:</Label>
-                  <Badge variant={getPriorityColor(viewingAssignment.priority)} className="ml-2">
+                <div className="space-y-1">
+                  <Label className="text-xs md:text-sm font-medium">Priority:</Label>
+                  <Badge variant={getPriorityColor(viewingAssignment.priority)} className="text-xs">
                     {viewingAssignment.priority}
                   </Badge>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium">Status:</Label>
-                  <Badge className={`ml-2 ${getStatusColor(viewingAssignment.status)}`}>
+                <div className="space-y-1">
+                  <Label className="text-xs md:text-sm font-medium">Status:</Label>
+                  <Badge className={`${getStatusColor(viewingAssignment.status)} text-xs`}>
                     {viewingAssignment.status}
                   </Badge>
                 </div>
                 {viewingAssignment.due_date && (
-                  <div>
-                    <Label className="text-sm font-medium">Due Date:</Label>
-                    <p className="text-sm">{new Date(viewingAssignment.due_date).toLocaleString()}</p>
+                  <div className="space-y-1">
+                    <Label className="text-xs md:text-sm font-medium">Due Date:</Label>
+                    <p className="text-sm">{new Date(viewingAssignment.due_date).toLocaleDateString()}</p>
                   </div>
                 )}
               </div>
               
-              <div>
-                <Label className="text-sm font-medium">Created:</Label>
+              <div className="space-y-1">
+                <Label className="text-xs md:text-sm font-medium">Created:</Label>
                 <p className="text-sm">{new Date(viewingAssignment.created_at).toLocaleString()}</p>
               </div>
 
               {/* Assignment Files */}
-              <div>
-                <Label className="text-sm font-medium">Attached Files:</Label>
+              <div className="space-y-2">
+                <Label className="text-xs md:text-sm font-medium">Attached Files:</Label>
                 {assignmentFiles.length > 0 ? (
-                  <div className="mt-2 space-y-2">
+                  <div className="space-y-2">
                     {assignmentFiles.map((file) => (
-                      <div key={file.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm">{file.file_name}</span>
-                          <span className="text-xs text-gray-400">
+                      <div key={file.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 bg-gray-50 rounded-md gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                          <span className="text-sm truncate">{file.file_name}</span>
+                          <span className="text-xs text-gray-400 flex-shrink-0">
                             ({(file.file_size / 1024).toFixed(1)} KB)
                           </span>
                         </div>
@@ -790,19 +801,21 @@ export const CoachAssignments = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => window.open(file.file_url, '_blank')}
+                          className="w-full sm:w-auto"
                         >
-                          <Eye className="h-3 w-3" />
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
                         </Button>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground mt-1">No files attached</p>
+                  <p className="text-sm text-muted-foreground">No files attached</p>
                 )}
               </div>
 
               <div className="flex justify-end">
-                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                <Button variant="outline" onClick={() => setShowViewDialog(false)} className="w-full sm:w-auto">
                   Close
                 </Button>
               </div>
