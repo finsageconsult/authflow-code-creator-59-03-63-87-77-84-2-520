@@ -135,6 +135,86 @@ export const ContentDetail = () => {
 
   const TypeIcon = getTypeIcon(content.type);
 
+  // Blog-specific layout
+  if (content.type === 'blog') {
+    return (
+      <div className="space-y-6">
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Content Library
+        </Button>
+
+        <article className="max-w-4xl mx-auto">
+          <header className="mb-8">
+            <h1 className="text-4xl font-bold mb-4">{content.title}</h1>
+            
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Badge className={getTypeColor(content.type)}>
+                <TypeIcon className="h-3 w-3 mr-1" />
+                {content.type.charAt(0).toUpperCase() + content.type.slice(1)}
+              </Badge>
+              {content.category && (
+                <Badge variant="secondary">{content.category}</Badge>
+              )}
+              {content.duration && (
+                <Badge variant="outline">
+                  <Clock className="h-3 w-3 mr-1" />
+                  {content.duration}
+                </Badge>
+              )}
+            </div>
+
+            {content.tags && content.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-4">
+                {content.tags.map((tag, index) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    <Tag className="h-2 w-2 mr-1" />
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            <div className="text-sm text-muted-foreground mb-6">
+              Published on {new Date(content.created_at).toLocaleDateString()}
+              {content.updated_at !== content.created_at && (
+                <span> • Updated on {new Date(content.updated_at).toLocaleDateString()}</span>
+              )}
+            </div>
+          </header>
+
+          {content.thumbnail && (
+            <div className="mb-8">
+              <img
+                src={content.thumbnail}
+                alt={content.title}
+                className="w-full h-64 object-cover rounded-lg"
+              />
+            </div>
+          )}
+
+          <div className="prose prose-lg max-w-none">
+            {content.description && (
+              <div className="text-foreground leading-relaxed whitespace-pre-line text-base">
+                {content.description}
+              </div>
+            )}
+          </div>
+
+          {content.content_url && (
+            <div className="mt-8 pt-6 border-t">
+              <Button onClick={handleOpenContent} size="lg">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Read Full Article
+              </Button>
+            </div>
+          )}
+        </article>
+      </div>
+    );
+  }
+
+  // Default layout for other content types
   return (
     <div className="space-y-6">
       <Button variant="outline" onClick={() => navigate(-1)}>
@@ -197,7 +277,6 @@ export const ContentDetail = () => {
             <div className="flex gap-2">
               <Button onClick={handleOpenContent} className="flex-1 sm:flex-initial">
                 <TypeIcon className="h-4 w-4 mr-2" />
-                {content.type === 'blog' && 'Read Article'}
                 {content.type === 'video' && 'Watch Video'}
                 {content.type === 'pdf' && 'Download PDF'}
                 {content.type === 'link' && 'Open Link'}
