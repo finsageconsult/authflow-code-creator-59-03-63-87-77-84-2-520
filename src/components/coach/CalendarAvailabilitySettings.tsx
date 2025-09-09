@@ -98,32 +98,27 @@ export const CalendarAvailabilitySettings = () => {
       }
 
       const sessions: BookedSession[] = sessionsData?.map(session => {
-        const sessionDate = new Date(session.scheduled_at);
-        const endTime = new Date(sessionDate.getTime() + (session.duration_minutes * 60000));
+        // Simple fix: Parse the UTC time and subtract 5.5 hours to get IST intended time
+        const utcTime = new Date(session.scheduled_at);
+        const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+        const correctedTime = new Date(utcTime.getTime() - istOffset);
         
-        // Debug: Log the session data
-        console.log('Session data:', {
-          original: session.scheduled_at,
-          parsed: sessionDate,
-          localTime: sessionDate.toLocaleString(),
-          hours: sessionDate.getHours(),
-          utcHours: sessionDate.getUTCHours()
-        });
+        const endTime = new Date(correctedTime.getTime() + (session.duration_minutes * 60000));
         
-        // Format time in local timezone
-        const startHour = sessionDate.getHours().toString().padStart(2, '0');
-        const startMinute = sessionDate.getMinutes().toString().padStart(2, '0');
+        // Format times
+        const startHour = correctedTime.getHours().toString().padStart(2, '0');
+        const startMinute = correctedTime.getMinutes().toString().padStart(2, '0');
         const endHour = endTime.getHours().toString().padStart(2, '0');
         const endMinute = endTime.getMinutes().toString().padStart(2, '0');
         
-        // Format date in local timezone
-        const year = sessionDate.getFullYear();
-        const month = (sessionDate.getMonth() + 1).toString().padStart(2, '0');
-        const day = sessionDate.getDate().toString().padStart(2, '0');
+        // Format date
+        const year = correctedTime.getFullYear();
+        const month = (correctedTime.getMonth() + 1).toString().padStart(2, '0');
+        const day = correctedTime.getDate().toString().padStart(2, '0');
         
         return {
           id: session.id,
-          clientName: 'Booked Session', // Simplified for now
+          clientName: 'Booked Session',
           clientEmail: '',
           startTime: `${startHour}:${startMinute}`,
           endTime: `${endHour}:${endMinute}`,
