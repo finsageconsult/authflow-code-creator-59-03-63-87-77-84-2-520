@@ -286,7 +286,6 @@ export const CalendarAvailabilitySettings = () => {
               Week of {format(weekStart, 'MMMM d')} - {format(weekEnd, 'MMMM d, yyyy')}
             </CardTitle>
             <div className="flex items-center gap-4 text-sm">
-              <Button variant="outline" size="sm">Today</Button>
               <Button variant="outline" size="sm">Week</Button>
               <Button variant="outline" size="sm" className="text-primary">Working Hours</Button>
             </div>
