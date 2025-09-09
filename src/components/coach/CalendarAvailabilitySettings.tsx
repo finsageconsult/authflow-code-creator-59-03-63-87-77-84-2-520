@@ -368,7 +368,7 @@ export const CalendarAvailabilitySettings = () => {
                         {/* Available slot - just show color */}
                         {slotForThisHour && (
                           <div className="absolute inset-0 p-1">
-                            <div className="bg-primary/80 rounded h-full relative group">
+                            <div className="bg-primary rounded h-full relative group">
                               <Button
                                 variant="ghost"
                                 size="sm"
