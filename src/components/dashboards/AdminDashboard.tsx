@@ -21,6 +21,7 @@ import { AdminAnalyticsDashboard } from '@/components/analytics/AdminAnalyticsDa
 import { SecurityAuditDashboard } from '@/components/security/SecurityAuditDashboard';
 import { AdminSupportManager } from '@/components/support/AdminSupportManager';
 import { DemoRequestsManager } from '@/components/admin/DemoRequestsManager';
+import { ContentLibraryManager } from '@/components/cms/ContentLibraryManager';
 
 interface PlatformStats {
   totalOrganizations: number;
@@ -373,6 +374,10 @@ export const AdminDashboard = () => {
 
   if (activeTab === 'content') {
     return <ContentCatalog />;
+  }
+
+  if (activeTab === 'content-library') {
+    return <ContentLibraryManager />;
   }
 
   if (activeTab === 'security') {

@@ -25,6 +25,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { WebinarsView } from '@/components/webinars/WebinarsView';
 import { ToolsView } from '@/components/tools/ToolsView';
 import { ToolPage } from '@/components/tools/ToolPage';
+import { ContentDetail } from '@/components/employee/ContentDetail';
 import AssignmentsList from '@/components/assignments/AssignmentsList';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -71,6 +72,7 @@ export const SubdomainRouter = () => {
       <Route path="/hr-dashboard/insights" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRInsights /></AppLayout></ProtectedRoute>} />
       <Route path="/hr-dashboard/invoices" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRInvoices /></AppLayout></ProtectedRoute>} />
       <Route path="/employee-dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeLayout><EmployeeDashboard /></EmployeeLayout></ProtectedRoute>} />
+      <Route path="/employee-dashboard/content/:id" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeLayout><ContentDetail /></EmployeeLayout></ProtectedRoute>} />
       <Route path="/coach-dashboard" element={<ProtectedRoute allowedRoles={['COACH']}><AppLayout><CoachDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/individual-dashboard" element={<ProtectedRoute allowedRoles={['INDIVIDUAL']}><SimpleLayout><IndividualDashboard /></SimpleLayout></ProtectedRoute>} />
       <Route path="/catalog" element={<ProtectedRoute><RoleBasedLayout><div>Catalog Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
