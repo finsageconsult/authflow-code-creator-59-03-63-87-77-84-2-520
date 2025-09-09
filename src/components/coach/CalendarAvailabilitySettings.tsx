@@ -489,7 +489,7 @@ export const CalendarAvailabilitySettings = () => {
                     
                     const slotForThisHour = daySlots.find(slot => {
                       const slotStartHour = parseInt(slot.startTime.split(':')[0]);
-                      return currentHour === slotStartHour && slot.currentBookings < slot.maxBookings;
+                      return currentHour === slotStartHour;
                     });
 
                     // Check for booked sessions
@@ -498,9 +498,6 @@ export const CalendarAvailabilitySettings = () => {
                       const sessionStartHour = parseInt(session.startTime.split(':')[0]);
                       return currentHour === sessionStartHour;
                     });
-
-                    // Don't show available slot if there's a booked session
-                    const showAvailableSlot = slotForThisHour && !bookedSessionForThisHour;
 
                     return (
                       <div
@@ -511,18 +508,17 @@ export const CalendarAvailabilitySettings = () => {
                         )}
                         onClick={() => setSelectedDate(day)}
                       >
-                        {/* Available slot - only show if truly available */}
-                        {showAvailableSlot && (
+                        {/* Available slot - just show color */}
+                        {slotForThisHour && (
                           <div className="absolute inset-0">
-                            <div className="bg-green-500/80 text-white rounded text-xs p-1 h-full flex items-center justify-center relative group">
-                              <span className="font-medium truncate text-center">Available</span>
+                            <div className="bg-primary h-full relative group">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="absolute top-0 right-0 h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-white/20"
+                                className="absolute top-0 right-0 h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-primary-foreground hover:bg-primary-foreground/20"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteTimeSlot(slotForThisHour?.id);
+                                  deleteTimeSlot(slotForThisHour.id);
                                 }}
                               >
                                 <Trash2 className="h-2 w-2" />
