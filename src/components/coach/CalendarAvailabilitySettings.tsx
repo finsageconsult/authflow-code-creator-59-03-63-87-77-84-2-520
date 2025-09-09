@@ -84,22 +84,8 @@ export const CalendarAvailabilitySettings = () => {
 
       setAvailabilitySlots(slots);
 
-      // Fetch booked sessions (mock data for now - replace with actual query)
-      const mockBookedSessions: BookedSession[] = [
-        {
-          id: '1',
-          clientName: 'Manoj Vilasrao Kenekar',
-          clientEmail: 'manoj@example.com',
-          startTime: '12:00',
-          endTime: '12:30',
-          date: format(new Date(), 'yyyy-MM-dd'),
-          status: 'completed',
-          notes: 'Financial planning discussion',
-          isVirtual: true
-        }
-      ];
-
-      setBookedSessions(mockBookedSessions);
+      // Fetch booked sessions - will be empty until real bookings exist
+      setBookedSessions([]);
     } catch (error) {
       console.error('Error fetching availability:', error);
       toast({
