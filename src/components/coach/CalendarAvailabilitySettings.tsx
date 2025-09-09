@@ -575,29 +575,17 @@ export const CalendarAvailabilitySettings = () => {
       <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-lg font-semibold">
-                  {selectedSession?.clientName}
-                </DialogTitle>
-                <div className="flex items-center gap-2 mt-1">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    {selectedSession?.startTime} - {selectedSession?.endTime}
-                  </span>
-                  {selectedSession?.isVirtual && (
-                    <Badge variant="secondary" className="text-xs">Virtual</Badge>
-                  )}
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedSession(null)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <DialogTitle className="text-lg font-semibold">
+              {selectedSession?.clientName}
+            </DialogTitle>
+            <div className="flex items-center gap-2 mt-1">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                {selectedSession?.startTime} - {selectedSession?.endTime}
+              </span>
+              {selectedSession?.isVirtual && (
+                <Badge variant="secondary" className="text-xs">Virtual</Badge>
+              )}
             </div>
           </DialogHeader>
           
