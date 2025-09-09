@@ -97,29 +97,48 @@ export const CalendarAvailabilitySettings = () => {
         console.error('Error fetching sessions:', sessionsError);
       }
 
+      console.log('Sessions data for calendar:', sessionsData);
+
+      // Get client names for sessions
+      const clientIds = sessionsData?.map(s => s.client_id).filter(Boolean) || [];
+      const { data: clientsData } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .in('id', clientIds);
+
+      const clientMap = new Map(clientsData?.map(client => [client.id, client]) || []);
+
       const sessions: BookedSession[] = sessionsData?.map(session => {
-        // Simple fix: Parse the UTC time and subtract 5.5 hours to get IST intended time
-        const utcTime = new Date(session.scheduled_at);
-        const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-        const correctedTime = new Date(utcTime.getTime() - istOffset);
+        // Parse the scheduled time as stored in database (already in IST context)
+        const sessionDate = new Date(session.scheduled_at);
+        const endTime = new Date(sessionDate.getTime() + (session.duration_minutes * 60000));
         
-        const endTime = new Date(correctedTime.getTime() + (session.duration_minutes * 60000));
-        
-        // Format times
-        const startHour = correctedTime.getHours().toString().padStart(2, '0');
-        const startMinute = correctedTime.getMinutes().toString().padStart(2, '0');
+        // Format times in local timezone
+        const startHour = sessionDate.getHours().toString().padStart(2, '0');
+        const startMinute = sessionDate.getMinutes().toString().padStart(2, '0');
         const endHour = endTime.getHours().toString().padStart(2, '0');
         const endMinute = endTime.getMinutes().toString().padStart(2, '0');
         
         // Format date
-        const year = correctedTime.getFullYear();
-        const month = (correctedTime.getMonth() + 1).toString().padStart(2, '0');
-        const day = correctedTime.getDate().toString().padStart(2, '0');
+        const year = sessionDate.getFullYear();
+        const month = (sessionDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = sessionDate.getDate().toString().padStart(2, '0');
+        
+        const client = clientMap.get(session.client_id);
+        
+        console.log('Processing session:', {
+          id: session.id,
+          originalTime: session.scheduled_at,
+          parsedTime: sessionDate,
+          clientName: client?.name,
+          startTime: `${startHour}:${startMinute}`,
+          date: `${year}-${month}-${day}`
+        });
         
         return {
           id: session.id,
-          clientName: 'Booked Session',
-          clientEmail: '',
+          clientName: client?.name || 'Booked Session',
+          clientEmail: client?.email || '',
           startTime: `${startHour}:${startMinute}`,
           endTime: `${endHour}:${endMinute}`,
           date: `${year}-${month}-${day}`,
