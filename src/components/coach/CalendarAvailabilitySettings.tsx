@@ -84,8 +84,37 @@ export const CalendarAvailabilitySettings = () => {
 
       setAvailabilitySlots(slots);
 
-      // Fetch booked sessions - will be empty until real bookings exist
-      setBookedSessions([]);
+      // Fetch booked sessions from coaching_sessions table
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from('coaching_sessions')
+        .select('*')
+        .eq('coach_id', userProfile.id)
+        .gte('scheduled_at', weekStart.toISOString())
+        .lte('scheduled_at', weekEnd.toISOString())
+        .order('scheduled_at');
+
+      if (sessionsError) {
+        console.error('Error fetching sessions:', sessionsError);
+      }
+
+      const sessions: BookedSession[] = sessionsData?.map(session => {
+        const sessionDate = new Date(session.scheduled_at);
+        const endTime = new Date(sessionDate.getTime() + (session.duration_minutes * 60000));
+        
+        return {
+          id: session.id,
+          clientName: 'Booked Session', // Simplified for now
+          clientEmail: '',
+          startTime: sessionDate.toTimeString().slice(0, 5),
+          endTime: endTime.toTimeString().slice(0, 5),
+          date: sessionDate.toISOString().split('T')[0],
+          status: session.status as 'scheduled' | 'completed' | 'cancelled',
+          notes: session.notes || '',
+          isVirtual: true
+        };
+      }) || [];
+
+      setBookedSessions(sessions);
     } catch (error) {
       console.error('Error fetching availability:', error);
       toast({
