@@ -12,15 +12,15 @@ export const EmployeeLayout = ({ children }: EmployeeLayoutProps) => {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full">
         <EmployeeSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 border-b flex items-center px-6 w-full bg-background">
+        <div className="flex-1 flex flex-col">
+          <header className="h-14 border-b flex items-center px-6 w-full">
             <SidebarTrigger className="mr-4" />
             <div className="flex-1 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Finsage</h2>
               <TopNav />
             </div>
           </header>
-          <main className="flex-1 p-6 bg-muted/20 overflow-auto">
+          <main className="flex-1 p-6 bg-muted/20">
             {children}
           </main>
         </div>
