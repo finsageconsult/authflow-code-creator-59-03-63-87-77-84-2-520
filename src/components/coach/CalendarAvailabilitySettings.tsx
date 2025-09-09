@@ -494,7 +494,7 @@ export const CalendarAvailabilitySettings = () => {
 
                     // Check for booked sessions
                     const bookedSessionsForDay = getBookedSessionsForDate(day);
-                    const bookedSessionForThisHour = bookedSessionsForDay.find(session => {
+                    const bookedSessionsForThisHour = bookedSessionsForDay.filter(session => {
                       const sessionStartHour = parseInt(session.startTime.split(':')[0]);
                       return currentHour === sessionStartHour;
                     });
@@ -527,20 +527,34 @@ export const CalendarAvailabilitySettings = () => {
                           </div>
                         )}
 
-                        {/* Booked session */}
-                        {bookedSessionForThisHour && (
-                          <div 
-                            className="absolute inset-0 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedSession(bookedSessionForThisHour);
-                            }}
-                          >
-                            <div className="bg-red-500 text-white rounded text-[10px] px-0.5 py-px h-full flex items-center justify-center border border-red-600">
-                              <span className="font-normal truncate text-center leading-none">
-                                {bookedSessionForThisHour.clientName}
-                              </span>
-                            </div>
+                        {/* Multiple Booked sessions */}
+                        {bookedSessionsForThisHour.length > 0 && (
+                          <div className="absolute inset-0 p-px flex flex-col gap-px">
+                            {bookedSessionsForThisHour.slice(0, 3).map((session, sessionIndex) => (
+                              <div 
+                                key={session.id}
+                                className="flex-1 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedSession(session);
+                                }}
+                              >
+                                <div className="bg-red-500 text-white rounded text-[9px] px-1 py-px h-full flex items-center justify-center border border-red-600">
+                                  <span className="font-normal truncate text-center leading-none">
+                                    {session.clientName}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                            {bookedSessionsForThisHour.length > 3 && (
+                              <div className="flex-1 cursor-pointer">
+                                <div className="bg-red-600 text-white rounded text-[8px] px-1 py-px h-full flex items-center justify-center border border-red-700">
+                                  <span className="font-normal text-center leading-none">
+                                    +{bookedSessionsForThisHour.length - 3}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
