@@ -42,17 +42,6 @@ export const TopNav = () => {
 
   return (
     <div className="flex items-center gap-4">
-      {userProfile?.role === 'EMPLOYEE' && (
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate('/employee-dashboard?tab=content-library')}
-          className={`flex items-center gap-2 relative ${isContentLibraryActive ? 'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary' : ''}`}
-        >
-          <BookOpen className="h-4 w-4" />
-          <span>Content Library</span>
-        </Button>
-      )}
-      
       <NotificationCenter />
       
       {userProfile && (
