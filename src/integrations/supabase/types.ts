@@ -697,48 +697,6 @@ export type Database = {
           },
         ]
       }
-      content_library: {
-        Row: {
-          category: string | null
-          content_url: string | null
-          created_at: string
-          description: string | null
-          duration: string | null
-          id: string
-          tags: string[] | null
-          thumbnail: string | null
-          title: string
-          type: string
-          updated_at: string
-        }
-        Insert: {
-          category?: string | null
-          content_url?: string | null
-          created_at?: string
-          description?: string | null
-          duration?: string | null
-          id?: string
-          tags?: string[] | null
-          thumbnail?: string | null
-          title: string
-          type: string
-          updated_at?: string
-        }
-        Update: {
-          category?: string | null
-          content_url?: string | null
-          created_at?: string
-          description?: string | null
-          duration?: string | null
-          id?: string
-          tags?: string[] | null
-          thumbnail?: string | null
-          title?: string
-          type?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       content_tag_relations: {
         Row: {
           content_id: string
