@@ -128,11 +128,11 @@ export const HRCalendar = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Calendar & Events</h1>
-        <Button className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">Calendar & Events</h1>
+        <Button className="flex items-center gap-2 w-full sm:w-auto">
           <Plus className="h-4 w-4" />
           Schedule Event
         </Button>
@@ -147,7 +147,7 @@ export const HRCalendar = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Title *</label>
               <Input
@@ -206,7 +206,7 @@ export const HRCalendar = () => {
               rows={3}
             />
           </div>
-          <Button onClick={createWebinar} className="w-full">
+          <Button onClick={createWebinar} className="w-full mt-2">
             <Plus className="h-4 w-4 mr-2" />
             Schedule Webinar
           </Button>
@@ -222,33 +222,35 @@ export const HRCalendar = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {webinars
               .filter(w => new Date(w.scheduled_date) > new Date())
               .map((webinar) => (
-                <div key={webinar.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                  <div className="p-3 rounded-full bg-purple-100">
-                    <BookOpen className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium">{webinar.title}</h4>
-                    <p className="text-sm text-muted-foreground">{webinar.description}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(webinar.scheduled_date).toLocaleDateString()}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {webinar.duration_minutes} min
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        {webinar.current_participants}/{webinar.max_participants}
-                      </span>
+                <div key={webinar.id} className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 p-3 md:p-4 border rounded-lg">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="p-2 md:p-3 rounded-full bg-purple-100 flex-shrink-0">
+                      <BookOpen className="h-4 w-4 md:h-5 md:w-5 text-purple-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-medium text-sm md:text-base">{webinar.title}</h4>
+                      <p className="text-xs md:text-sm text-muted-foreground mt-1">{webinar.description}</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-xs md:text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3 md:h-4 md:w-4" />
+                          {new Date(webinar.scheduled_date).toLocaleDateString()}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3 md:h-4 md:w-4" />
+                          {webinar.duration_minutes} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3 md:h-4 md:w-4" />
+                          {webinar.current_participants}/{webinar.max_participants}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <Badge variant={webinar.status === 'scheduled' ? 'default' : 'secondary'}>
+                  <Badge variant={webinar.status === 'scheduled' ? 'default' : 'secondary'} className="self-start">
                     {webinar.status}
                   </Badge>
                 </div>
@@ -269,29 +271,31 @@ export const HRCalendar = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {webinars
               .filter(w => new Date(w.scheduled_date) <= new Date())
               .slice(0, 5)
               .map((webinar) => (
-                <div key={webinar.id} className="flex items-center gap-4 p-4 border rounded-lg opacity-75">
-                  <div className="p-3 rounded-full bg-gray-100">
-                    <BookOpen className="h-5 w-5 text-gray-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium">{webinar.title}</h4>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(webinar.scheduled_date).toLocaleDateString()}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        {webinar.current_participants} attended
-                      </span>
+                <div key={webinar.id} className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 p-3 md:p-4 border rounded-lg opacity-75">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="p-2 md:p-3 rounded-full bg-gray-100 flex-shrink-0">
+                      <BookOpen className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-medium text-sm md:text-base">{webinar.title}</h4>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1 text-xs md:text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3 md:h-4 md:w-4" />
+                          {new Date(webinar.scheduled_date).toLocaleDateString()}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3 w-3 md:h-4 md:w-4" />
+                          {webinar.current_participants} attended
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="self-start">
                     Completed
                   </Badge>
                 </div>

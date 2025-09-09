@@ -125,22 +125,22 @@ export const HROverview = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">HR Overview</h1>
-        <div className="flex items-center gap-2">
-          <p className="text-muted-foreground">
+        <h1 className="text-2xl md:text-3xl font-bold">HR Overview</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <p className="text-sm md:text-base text-muted-foreground">
             {organization?.name} - Program Management
           </p>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800 w-fit">
             HR Manager
           </Badge>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
@@ -191,24 +191,26 @@ export const HROverview = () => {
       {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
             <FileText className="h-5 w-5" />
             Recent Program Activity
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 md:space-y-4">
           {webinars.slice(0, 3).map((webinar) => (
-            <div key={webinar.id} className="flex items-center gap-3 p-3 rounded-lg border">
-              <div className="p-2 rounded-full bg-blue-100">
-                <Calendar className="h-4 w-4 text-blue-600" />
+            <div key={webinar.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 md:p-4 rounded-lg border">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="p-2 rounded-full bg-blue-100 flex-shrink-0">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium text-sm md:text-base">{webinar.title}</h4>
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    {new Date(webinar.scheduled_date).toLocaleDateString()} - {webinar.current_participants} participants
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h4 className="font-medium">{webinar.title}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {new Date(webinar.scheduled_date).toLocaleDateString()} - {webinar.current_participants} participants
-                </p>
-              </div>
-              <Badge variant={webinar.status === 'completed' ? 'default' : 'secondary'}>
+              <Badge variant={webinar.status === 'completed' ? 'default' : 'secondary'} className="self-start sm:self-center">
                 {webinar.status}
               </Badge>
             </div>

@@ -386,47 +386,61 @@ export const HRDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">HR Dashboard</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h1 className="text-2xl md:text-3xl font-bold">HR Dashboard</h1>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => exportData('csv')}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <Download className="h-4 w-4" />
               Export CSV
             </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <p className="text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <p className="text-sm md:text-base text-muted-foreground">
             {organization?.name} - Program Management
           </p>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800 w-fit">
             HR Manager
           </Badge>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="people">People</TabsTrigger>
-          <TabsTrigger value="credits">Credits</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar</TabsTrigger>
-          <TabsTrigger value="insights">Insights</TabsTrigger>
-          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 gap-1">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="people" className="text-xs sm:text-sm">People</TabsTrigger>
+          <TabsTrigger value="credits" className="text-xs sm:text-sm">Credits</TabsTrigger>
+          <TabsTrigger value="calendar" className="text-xs sm:text-sm lg:block hidden">Calendar</TabsTrigger>
+          <TabsTrigger value="insights" className="text-xs sm:text-sm lg:block hidden">Insights</TabsTrigger>
+          <TabsTrigger value="invoices" className="text-xs sm:text-sm lg:block hidden">Invoices</TabsTrigger>
         </TabsList>
+        
+        {/* Mobile dropdown for hidden tabs */}
+        <div className="lg:hidden">
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger>
+              <SelectValue placeholder="More sections..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="calendar">Calendar</SelectItem>
+              <SelectItem value="insights">Insights</SelectItem>
+              <SelectItem value="invoices">Invoices</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview" className="space-y-4 md:space-y-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
