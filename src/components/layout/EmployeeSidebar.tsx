@@ -77,12 +77,12 @@ export const EmployeeSidebar = () => {
       className="border-r bg-background h-screen sticky top-0"
     >
       <SidebarContent className="overflow-y-auto">
-        <div className="p-2">
-          <SidebarTrigger className="mb-2" />
+        <div className="px-3 py-4">
+          <SidebarTrigger className="mb-6" />
         </div>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu className="space-y-2 px-2">
               {employeeMenuItems.map(item => {
                 const active = isActive(item.url);
                 return (
