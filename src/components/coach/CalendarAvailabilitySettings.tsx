@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Clock, Save, Plus, Trash2 } from 'lucide-react';
+import { CalendarIcon, Clock, Save, Plus, Trash2, X } from 'lucide-react';
 import { format, addDays, startOfWeek, endOfWeek } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,11 +24,25 @@ interface AvailabilitySlot {
   slotType: 'coaching' | 'webinar' | 'workshop';
 }
 
+interface BookedSession {
+  id: string;
+  clientName: string;
+  clientEmail: string;
+  startTime: string;
+  endTime: string;
+  date: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+  notes?: string;
+  isVirtual: boolean;
+}
+
 export const CalendarAvailabilitySettings = () => {
   const { toast } = useToast();
   const { userProfile } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [availabilitySlots, setAvailabilitySlots] = useState<AvailabilitySlot[]>([]);
+  const [bookedSessions, setBookedSessions] = useState<BookedSession[]>([]);
+  const [selectedSession, setSelectedSession] = useState<BookedSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [newSlot, setNewSlot] = useState({
     startTime: '09:00',
@@ -45,7 +60,9 @@ export const CalendarAvailabilitySettings = () => {
 
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch availability slots
+      const { data: slotsData, error: slotsError } = await supabase
         .from('coach_time_slots')
         .select('*')
         .eq('coach_id', userProfile.id)
@@ -53,9 +70,9 @@ export const CalendarAvailabilitySettings = () => {
         .lte('start_time', weekEnd.toISOString())
         .order('start_time');
 
-      if (error) throw error;
+      if (slotsError) throw slotsError;
 
-      const slots: AvailabilitySlot[] = data?.map(slot => ({
+      const slots: AvailabilitySlot[] = slotsData?.map(slot => ({
         id: slot.id,
         date: new Date(slot.start_time),
         startTime: format(new Date(slot.start_time), 'HH:mm'),
@@ -66,6 +83,23 @@ export const CalendarAvailabilitySettings = () => {
       })) || [];
 
       setAvailabilitySlots(slots);
+
+      // Fetch booked sessions (mock data for now - replace with actual query)
+      const mockBookedSessions: BookedSession[] = [
+        {
+          id: '1',
+          clientName: 'Manoj Vilasrao Kenekar',
+          clientEmail: 'manoj@example.com',
+          startTime: '12:00',
+          endTime: '12:30',
+          date: format(new Date(), 'yyyy-MM-dd'),
+          status: 'completed',
+          notes: 'Financial planning discussion',
+          isVirtual: true
+        }
+      ];
+
+      setBookedSessions(mockBookedSessions);
     } catch (error) {
       console.error('Error fetching availability:', error);
       toast({
@@ -153,6 +187,12 @@ export const CalendarAvailabilitySettings = () => {
   const getSlotsForDate = (date: Date) => {
     return availabilitySlots.filter(slot => 
       format(slot.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+    );
+  };
+
+  const getBookedSessionsForDate = (date: Date) => {
+    return bookedSessions.filter(session => 
+      session.date === format(date, 'yyyy-MM-dd')
     );
   };
 
@@ -311,7 +351,7 @@ export const CalendarAvailabilitySettings = () => {
                     const currentHour = 7 + hourIndex;
                     const timeSlot = `${String(currentHour).padStart(2, '0')}:00`;
                     
-                    // Check if there's a slot that covers this hour
+                    // Check if there's an available slot that covers this hour
                     const hasSlot = daySlots.some(slot => {
                       const slotStartHour = parseInt(slot.startTime.split(':')[0]);
                       const slotEndHour = parseInt(slot.endTime.split(':')[0]);
@@ -323,6 +363,13 @@ export const CalendarAvailabilitySettings = () => {
                       return currentHour === slotStartHour;
                     });
 
+                    // Check for booked sessions
+                    const bookedSessionsForDay = getBookedSessionsForDate(day);
+                    const bookedSessionForThisHour = bookedSessionsForDay.find(session => {
+                      const sessionStartHour = parseInt(session.startTime.split(':')[0]);
+                      return currentHour === sessionStartHour;
+                    });
+
                     return (
                       <div
                         key={hourIndex}
@@ -332,28 +379,38 @@ export const CalendarAvailabilitySettings = () => {
                         )}
                         onClick={() => setSelectedDate(day)}
                       >
+                        {/* Available slot - just show color */}
                         {slotForThisHour && (
                           <div className="absolute inset-0 p-1">
-                            <div className="bg-primary/80 text-primary-foreground rounded text-xs p-1 h-full flex flex-col justify-between">
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium truncate">
-                                  {slotForThisHour.startTime}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-primary-foreground hover:bg-primary-foreground/20"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteTimeSlot(slotForThisHour.id);
-                                  }}
-                                >
-                                  <Trash2 className="h-2 w-2" />
-                                </Button>
-                              </div>
-                              <div className="text-xs opacity-80 truncate">
-                                {slotForThisHour.slotType}
-                              </div>
+                            <div className="bg-primary/80 rounded h-full relative group">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="absolute top-0 right-0 h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-primary-foreground hover:bg-primary-foreground/20"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteTimeSlot(slotForThisHour.id);
+                                }}
+                              >
+                                <Trash2 className="h-2 w-2" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Booked session */}
+                        {bookedSessionForThisHour && (
+                          <div 
+                            className="absolute inset-0 p-1 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedSession(bookedSessionForThisHour);
+                            }}
+                          >
+                            <div className="bg-red-500/80 text-white rounded text-xs p-1 h-full flex items-center justify-center">
+                              <span className="font-medium truncate text-center">
+                                {bookedSessionForThisHour.clientName}
+                              </span>
                             </div>
                           </div>
                         )}
@@ -366,6 +423,70 @@ export const CalendarAvailabilitySettings = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Session Details Dialog */}
+      <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-lg font-semibold">
+                  {selectedSession?.clientName}
+                </DialogTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    {selectedSession?.startTime} - {selectedSession?.endTime}
+                  </span>
+                  {selectedSession?.isVirtual && (
+                    <Badge variant="secondary" className="text-xs">Virtual</Badge>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedSession(null)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-3">Session details</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Booked by</span>
+                  <span>{selectedSession?.clientName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Client</span>
+                  <span>{selectedSession?.clientName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Session status</span>
+                  <Badge variant={selectedSession?.status === 'completed' ? 'default' : 'secondary'}>
+                    {selectedSession?.status}
+                  </Badge>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Presenting issue</span>
+                  <Badge variant="destructive" className="text-xs">
+                    PENDING
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            <Button variant="outline" className="w-full">
+              View case notes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
