@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { useCoachStats } from '@/hooks/useCoachStats';
 import { 
   Calendar, 
   Users, 
@@ -12,7 +13,8 @@ import {
   FileText,
   Star,
   CheckCircle,
-  Coins
+  Coins,
+  Loader2
 } from 'lucide-react';
 import { AvailabilitySettings } from '@/components/coach/AvailabilitySettings';
 import { SessionManager } from '@/components/coach/SessionManager';
@@ -34,80 +36,39 @@ export const CoachDashboard = () => {
   const { userProfile } = useAuth();
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'overview';
+  const { stats, outcomes, recentClients, loading } = useCoachStats();
   
   console.log('CoachDashboard loaded with activeTab:', activeTab);
-  
-  const stats = {
-    totalClients: 23,
-    upcomingSessions: 8,
-    completedSessions: 156,
-    avgRating: 4.8
-  };
-
-  const recentClients = [
-    {
-      id: 1,
-      name: 'Emma Wilson',
-      lastSession: '2 days ago',
-      progress: 'Great progress on emergency fund',
-      nextGoal: 'Start investment portfolio',
-      riskProfile: 'Moderate'
-    },
-    {
-      id: 2,
-      name: 'Mike Johnson',
-      lastSession: '1 week ago',
-      progress: 'Completed debt consolidation',
-      nextGoal: 'Build credit score',
-      riskProfile: 'Conservative'
-    },
-    {
-      id: 3,
-      name: 'Rachel Chen',
-      lastSession: '3 days ago',
-      progress: 'Opened retirement account',
-      nextGoal: 'Increase contribution rate',
-      riskProfile: 'Aggressive'
-    }
-  ];
 
   const coachStats = [
     {
       title: 'Active Clients',
       value: stats.totalClients.toString(),
-      change: '+3 this month',
+      change: `+${stats.thisMonthClients} this month`,
       icon: Users,
       color: 'text-blue-600'
     },
     {
       title: 'Upcoming Sessions',
       value: stats.upcomingSessions.toString(),
-      change: '8 this week',
+      change: `${stats.thisWeekSessions} this week`,
       icon: Calendar,
       color: 'text-green-600'
     },
     {
       title: 'Sessions Completed',
       value: stats.completedSessions.toString(),
-      change: '+12 this month',
+      change: `+${stats.thisMonthCompletedSessions} this month`,
       icon: CheckCircle,
       color: 'text-purple-600'
     },
     {
       title: 'Average Rating',
-      value: stats.avgRating.toString(),
-      change: '94% satisfaction',
+      value: stats.avgRating > 0 ? stats.avgRating.toString() : 'N/A',
+      change: stats.avgRating > 0 ? '94% satisfaction' : 'No ratings yet',
       icon: Star,
       color: 'text-orange-600'
     }
-  ];
-
-  const outcomes = [
-    { tag: 'Emergency Fund Built', count: 23, color: 'bg-green-100 text-green-800' },
-    { tag: 'Debt Reduced', count: 18, color: 'bg-blue-100 text-blue-800' },
-    { tag: 'Investment Started', count: 15, color: 'bg-purple-100 text-purple-800' },
-    { tag: 'Budget Created', count: 31, color: 'bg-yellow-100 text-yellow-800' },
-    { tag: 'Credit Improved', count: 12, color: 'bg-orange-100 text-orange-800' }
   ];
 
   const renderContent = () => {
@@ -199,51 +160,61 @@ export const CoachDashboard = () => {
       default:
         return (
           <div className="space-y-6">
-            {/* Coach Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {coachStats.map((stat, index) => (
-                <Card key={index} className="relative overflow-hidden">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {stat.title}
-                    </CardTitle>
-                    <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stat.value}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {stat.change}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-
-            {/* Outcomes Tracking */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Client Outcomes This Month
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Celebrating the positive impact you're making in your clients' financial lives
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {outcomes.map((outcome, index) => (
-                    <div key={index} className="text-center">
-                      <div className="text-2xl font-bold mb-1">{outcome.count}</div>
-                      <Badge variant="outline" className={outcome.color}>
-                        {outcome.tag}
-                      </Badge>
-                    </div>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Loading coach dashboard...</span>
+              </div>
+            ) : (
+              <>
+                {/* Coach Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {coachStats.map((stat, index) => (
+                    <Card key={index} className="relative overflow-hidden">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                          {stat.title}
+                        </CardTitle>
+                        <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stat.value}</div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {stat.change}
+                        </p>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+
+                {/* Outcomes Tracking */}
+                {outcomes.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Client Outcomes This Month
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Celebrating the positive impact you're making in your clients' financial lives
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        {outcomes.map((outcome, index) => (
+                          <div key={index} className="text-center">
+                            <div className="text-2xl font-bold mb-1">{outcome.count}</div>
+                            <Badge variant="outline" className={outcome.color}>
+                              {outcome.tag}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
           </div>
         );
     }
