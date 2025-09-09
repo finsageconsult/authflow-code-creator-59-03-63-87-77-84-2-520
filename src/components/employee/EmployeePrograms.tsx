@@ -370,40 +370,49 @@ export const EmployeePrograms = () => {
                       </div>
                     </div>
                     
-                    {isEnrolled ? (
-                      <div className="space-y-2">
-                        <Button 
-                          className="w-full" 
-                          variant="secondary"
-                          onClick={() => {
-                            toast.success(`Opening ${program.title}...`);
-                            // Navigate to program content
-                          }}
-                        >
-                          ✓ Enrolled - Continue Learning
-                        </Button>
-                         
-                          {(() => {
-                            const { link, scheduledAt } = getMeetingInfo(program.id);
-                            console.log(`Program: ${program.title}`, { link, scheduledAt, programId: program.id });
-                            
-                            if (isMeetingActive(scheduledAt, link)) {
-                              console.log(`Showing join button for ${program.title}`);
-                              return (
-                                <Button 
-                                  className="w-full" 
-                                  variant="default"
-                                  onClick={() => window.open(link!, '_blank')}
-                                >
-                                  <Video className="w-4 h-4 mr-2" />
-                                  Join Session
-                                </Button>
-                              );
-                            }
-                            
-                            return null;
-                          })()}
-                      </div>
+                     {isEnrolled ? (
+                       <div className="space-y-2">
+                         {(() => {
+                           const { link, scheduledAt } = getMeetingInfo(program.id);
+                           console.log(`Program: ${program.title}`, { link, scheduledAt, programId: program.id });
+                           
+                           if (link && isMeetingActive(scheduledAt, link)) {
+                             console.log(`Showing join button for ${program.title}`);
+                             return (
+                               <Button 
+                                 className="w-full" 
+                                 variant="default"
+                                 onClick={() => window.open(link!, '_blank')}
+                               >
+                                 <Video className="w-4 h-4 mr-2" />
+                                 Join Session
+                               </Button>
+                             );
+                           } else if (link && scheduledAt) {
+                             // Show session scheduled message
+                             return (
+                               <Button 
+                                 className="w-full" 
+                                 variant="outline"
+                                 disabled
+                               >
+                                 Session Scheduled - Link will be available closer to start time
+                               </Button>
+                             );
+                           } else {
+                             // No session link available
+                             return (
+                               <Button 
+                                 className="w-full" 
+                                 variant="outline"
+                                 disabled
+                               >
+                                 ✓ Enrolled - Session link will be provided once scheduled
+                               </Button>
+                             );
+                           }
+                         })()}
+                       </div>
                     ) : (
                       <Button 
                         className="w-full" 
