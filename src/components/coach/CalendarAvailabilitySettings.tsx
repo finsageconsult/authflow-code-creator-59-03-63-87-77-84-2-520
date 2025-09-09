@@ -263,8 +263,6 @@ export const CalendarAvailabilitySettings = () => {
                         className="mt-1 w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
                       >
                         <option value="coaching">Coaching</option>
-                        <option value="webinar">Webinar</option>
-                        <option value="workshop">Workshop</option>
                       </select>
                     </div>
                   </div>
