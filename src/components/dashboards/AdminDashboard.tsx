@@ -378,7 +378,13 @@ export const AdminDashboard = () => {
   }
 
   if (activeTab === 'content-library') {
-    return <ContentLibraryManager />;
+    return (
+      <div className="fixed inset-0 z-50 bg-background overflow-auto">
+        <div className="p-4 sm:p-6 lg:p-8">
+          <ContentLibraryManager />
+        </div>
+      </div>
+    );
   }
 
   if (activeTab === 'blogs') {
