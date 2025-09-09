@@ -13,11 +13,14 @@ import { signOut } from '@/lib/auth';
 import { toast } from 'sonner';
 import { LogOut, Settings, User, BookOpen } from 'lucide-react';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export const TopNav = () => {
   const { userProfile, organization } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const isContentLibraryActive = location.search.includes('tab=content-library');
 
   const handleSignOut = async () => {
     try {
@@ -43,7 +46,7 @@ export const TopNav = () => {
         <Button 
           variant="ghost" 
           onClick={() => navigate('/employee-dashboard?tab=content-library')}
-          className="flex items-center gap-2"
+          className={`flex items-center gap-2 relative ${isContentLibraryActive ? 'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary' : ''}`}
         >
           <BookOpen className="h-4 w-4" />
           <span>Content Library</span>
