@@ -60,6 +60,9 @@ export const EmployeeDashboard = () => {
     const tab = searchParams.get('tab');
     if (tab && ['dashboard', 'programs', 'content-library', 'credits', 'support', 'chat', 'assignments'].includes(tab)) {
       setActiveTab(tab);
+    } else if (!tab) {
+      // Default to dashboard when no tab parameter
+      setActiveTab('dashboard');
     }
   }, [searchParams]);
 
