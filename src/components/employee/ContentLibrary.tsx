@@ -1,85 +1,92 @@
-import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock } from 'lucide-react';
-import { useIndividualPrograms } from '@/hooks/useIndividualPrograms';
-import { Input } from '@/components/ui/input';
 
 export const ContentLibrary = () => {
-  const { programs, loading } = useIndividualPrograms();
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const getIllustrationBg = (index: number) => {
-    const colors = [
-      'bg-blue-100',
-      'bg-green-100', 
-      'bg-purple-100',
-      'bg-yellow-100',
-      'bg-pink-100',
-      'bg-indigo-100'
-    ];
-    return colors[index % colors.length];
-  };
-
-  const filteredPrograms = programs.filter(program => 
-    program.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    program.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) {
-    return <div className="flex items-center justify-center p-8">Loading content library...</div>;
-  }
+  const contentLibrary = [
+    {
+      id: 1,
+      title: "Funding Your Children's Education: A Practical Guide",
+      duration: "3 mins",
+      color: "bg-gradient-to-br from-teal-100 to-teal-200",
+      illustration: "👨‍👩‍👧‍👦"
+    },
+    {
+      id: 2,
+      title: "Understand Your Personal Finance",
+      duration: "3 mins", 
+      color: "bg-gradient-to-br from-orange-100 to-orange-200",
+      illustration: "📊"
+    },
+    {
+      id: 3,
+      title: "Planning Your Finances",
+      duration: "3 mins",
+      color: "bg-gradient-to-br from-blue-100 to-blue-200", 
+      illustration: "💡"
+    },
+    {
+      id: 4,
+      title: "Financial Wellbeing Scale",
+      duration: "3 mins",
+      color: "bg-gradient-to-br from-yellow-100 to-yellow-200",
+      illustration: "🧘‍♀️"
+    },
+    {
+      id: 5,
+      title: "Investment Basics",
+      duration: "5 mins",
+      color: "bg-gradient-to-br from-green-100 to-green-200",
+      illustration: "📈"
+    },
+    {
+      id: 6,
+      title: "Budgeting Made Simple", 
+      duration: "4 mins",
+      color: "bg-gradient-to-br from-purple-100 to-purple-200",
+      illustration: "💰"
+    },
+    {
+      id: 7,
+      title: "Retirement Planning Strategies",
+      duration: "6 mins",
+      color: "bg-gradient-to-br from-indigo-100 to-indigo-200",
+      illustration: "🏖️"
+    },
+    {
+      id: 8,
+      title: "Emergency Fund Essentials",
+      duration: "3 mins",
+      color: "bg-gradient-to-br from-red-100 to-red-200",
+      illustration: "🚨"
+    }
+  ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Content Library</h2>
-        <p className="text-muted-foreground">Explore all available learning resources</p>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <Input
-          placeholder="Search for finance courses..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-        />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredPrograms.map((program, index) => (
-            <Card 
-              key={program.id} 
-              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-0 bg-white overflow-hidden"
-            >
-              <CardContent className="p-0">
-                <div className={`${getIllustrationBg(index)} h-40 flex items-center justify-center`}>
-                  <div className="text-4xl">
-                    {index % 6 === 0 && '📚'}
-                    {index % 6 === 1 && '💰'}
-                    {index % 6 === 2 && '📊'}
-                    {index % 6 === 3 && '🎯'}
-                    {index % 6 === 4 && '💡'}
-                    {index % 6 === 5 && '📈'}
-                  </div>
+    <div className="p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {contentLibrary.map((content) => (
+          <Card 
+            key={content.id} 
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border border-gray-200 bg-white overflow-hidden rounded-2xl"
+          >
+            <CardContent className="p-0">
+              <div className={`${content.color} h-48 flex items-center justify-center relative`}>
+                <div className="text-6xl filter drop-shadow-sm">
+                  {content.illustration}
                 </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-sm mb-3 line-clamp-2">
-                    {program.title}
-                  </h3>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span className="text-xs">{program.duration}</span>
-                  </div>
+              </div>
+              <div className="p-5">
+                <h3 className="font-semibold text-gray-800 text-base mb-3 leading-tight">
+                  {content.title}
+                </h3>
+                <div className="flex items-center gap-2 text-gray-500">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm">{content.duration}</span>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredPrograms.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No content found matching your search</p>
-          </div>
-        )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
