@@ -44,9 +44,24 @@ export const BlogDetail = () => {
           .single();
 
         if (error) throw error;
+        // Ensure paragraphs is properly parsed as an array
+        let paragraphs: BlogParagraph[] = [];
+        if (data.paragraphs) {
+          if (Array.isArray(data.paragraphs)) {
+            paragraphs = data.paragraphs as unknown as BlogParagraph[];
+          } else if (typeof data.paragraphs === 'string') {
+            try {
+              paragraphs = JSON.parse(data.paragraphs) as BlogParagraph[];
+            } catch (e) {
+              console.error('Failed to parse paragraphs JSON:', e);
+              paragraphs = [];
+            }
+          }
+        }
+
         setBlog({
           ...data,
-          paragraphs: (data.paragraphs as unknown as BlogParagraph[]) || []
+          paragraphs
         });
       } catch (error) {
         console.error('Error fetching blog:', error);
