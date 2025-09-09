@@ -423,31 +423,33 @@ export const EmployeeDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold" role="heading" aria-level={1}>
-            Welcome back, {userProfile?.name || userProfile?.email?.split('@')[0] || 'there'}! 🌟
-          </h1>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setHasCheckedIn(false)}
-            className="text-xs"
-            aria-label="Retake mood check-in to update recommendations"
-          >
-            Retake Check-in
-          </Button>
+      {/* Header - Hidden on content library page */}
+      {activeTab !== 'content-library' && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold" role="heading" aria-level={1}>
+              Welcome back, {userProfile?.name || userProfile?.email?.split('@')[0] || 'there'}! 🌟
+            </h1>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setHasCheckedIn(false)}
+              className="text-xs"
+              aria-label="Retake mood check-in to update recommendations"
+            >
+              Retake Check-in
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <p className="text-muted-foreground">
+              {organization?.name} Employee
+            </p>
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              Employee Dashboard
+            </Badge>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <p className="text-muted-foreground">
-            {organization?.name} Employee
-          </p>
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
-            Employee Dashboard
-          </Badge>
-        </div>
-      </div>
+      )}
 
       {/* Enrollment Workflow - Render instead of dashboard content when active */}
       {showEnrollment ? (
