@@ -25,8 +25,8 @@ export const ContentLibrary = () => {
   const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterType, setFilterType] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterType, setFilterType] = useState('all');
   const navigate = useNavigate();
 
   // Mock data while database is being set up
@@ -134,8 +134,8 @@ export const ContentLibrary = () => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !filterCategory || item.category === filterCategory;
-    const matchesType = !filterType || item.type === filterType;
+    const matchesCategory = filterCategory === 'all' || !filterCategory || item.category === filterCategory;
+    const matchesType = filterType === 'all' || !filterType || item.type === filterType;
     
     return matchesSearch && matchesCategory && matchesType;
   });
@@ -167,7 +167,7 @@ export const ContentLibrary = () => {
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category} value={category!}>
                   {category}
@@ -180,7 +180,7 @@ export const ContentLibrary = () => {
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Types</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
               {types.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type.charAt(0).toUpperCase() + type.slice(1)}
