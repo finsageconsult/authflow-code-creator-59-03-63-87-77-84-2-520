@@ -36,14 +36,6 @@ interface BookedSession {
   isVirtual: boolean;
 }
 
-interface WorkingHours {
-  id: string;
-  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
-  startTime: string;
-  endTime: string;
-  isAvailable: boolean;
-}
-
 export const CalendarAvailabilitySettings = () => {
   const { toast } = useToast();
   const { userProfile } = useAuth();
@@ -52,18 +44,11 @@ export const CalendarAvailabilitySettings = () => {
   const [bookedSessions, setBookedSessions] = useState<BookedSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<BookedSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<'slots' | 'working-hours'>('slots');
-  const [workingHours, setWorkingHours] = useState<WorkingHours[]>([]);
   const [newSlot, setNewSlot] = useState({
     startTime: '09:00',
     endTime: '10:00',
     maxBookings: 1,
     slotType: 'coaching' as 'coaching' | 'webinar' | 'workshop'
-  });
-  const [newWorkingHour, setNewWorkingHour] = useState({
-    dayOfWeek: 1, // Monday
-    startTime: '09:00',
-    endTime: '17:00'
   });
 
   // Get date range for the selected week
@@ -98,25 +83,6 @@ export const CalendarAvailabilitySettings = () => {
       })) || [];
 
       setAvailabilitySlots(slots);
-
-      // Fetch working hours
-      const { data: workingHoursData, error: workingHoursError } = await supabase
-        .from('coach_availability')
-        .select('*')
-        .eq('coach_id', userProfile.id)
-        .order('day_of_week');
-
-      if (workingHoursError) throw workingHoursError;
-
-      const hours: WorkingHours[] = workingHoursData?.map(wh => ({
-        id: wh.id,
-        dayOfWeek: wh.day_of_week,
-        startTime: wh.start_time,
-        endTime: wh.end_time,
-        isAvailable: wh.is_available
-      })) || [];
-
-      setWorkingHours(hours);
 
       // Fetch booked sessions - will be empty until real bookings exist
       setBookedSessions([]);
@@ -204,92 +170,6 @@ export const CalendarAvailabilitySettings = () => {
     }
   };
 
-  const addWorkingHour = async () => {
-    if (!userProfile) return;
-
-    try {
-      // Check for overlapping hours on the same day
-      const existingHour = workingHours.find(wh => 
-        wh.dayOfWeek === newWorkingHour.dayOfWeek &&
-        ((newWorkingHour.startTime >= wh.startTime && newWorkingHour.startTime < wh.endTime) ||
-         (newWorkingHour.endTime > wh.startTime && newWorkingHour.endTime <= wh.endTime) ||
-         (newWorkingHour.startTime <= wh.startTime && newWorkingHour.endTime >= wh.endTime))
-      );
-
-      if (existingHour) {
-        toast({
-          title: "Error",
-          description: "Working hours overlap with existing hours on this day.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('coach_availability')
-        .insert({
-          coach_id: userProfile.id,
-          day_of_week: newWorkingHour.dayOfWeek,
-          start_time: newWorkingHour.startTime,
-          end_time: newWorkingHour.endTime,
-          is_available: true,
-          buffer_minutes: 15
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Working hours added successfully.",
-      });
-
-      fetchAvailability();
-    } catch (error) {
-      console.error('Error adding working hour:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add working hours.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const removeWorkingHour = async (workingHourId: string) => {
-    try {
-      const { error } = await supabase
-        .from('coach_availability')
-        .delete()
-        .eq('id', workingHourId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Working hours removed successfully.",
-      });
-
-      fetchAvailability();
-    } catch (error) {
-      console.error('Error removing working hour:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove working hours.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const getDayName = (dayOfWeek: number) => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return days[dayOfWeek];
-  };
-
-  const getWorkingHoursForDay = (dayOfWeek: number) => {
-    return workingHours.filter(wh => wh.dayOfWeek === dayOfWeek && wh.isAvailable);
-  };
-
   const getSlotsForDate = (date: Date) => {
     return availabilitySlots.filter(slot => 
       format(slot.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
@@ -336,147 +216,64 @@ export const CalendarAvailabilitySettings = () => {
               />
             </div>
 
-            {viewMode === 'slots' ? (
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">
-                    Add Time Slot for {format(selectedDate, 'MMMM d, yyyy')}
-                  </Label>
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Start Time</Label>
-                        <Input
-                          type="time"
-                          value={newSlot.startTime}
-                          onChange={(e) => setNewSlot(prev => ({ ...prev, startTime: e.target.value }))}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">End Time</Label>
-                        <Input
-                          type="time"
-                          value={newSlot.endTime}
-                          onChange={(e) => setNewSlot(prev => ({ ...prev, endTime: e.target.value }))}
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Max Bookings</Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="10"
-                          value={newSlot.maxBookings}
-                          onChange={(e) => setNewSlot(prev => ({ ...prev, maxBookings: parseInt(e.target.value) || 1 }))}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Type</Label>
-                        <select
-                          value={newSlot.slotType}
-                          onChange={(e) => setNewSlot(prev => ({ ...prev, slotType: e.target.value as 'coaching' | 'webinar' | 'workshop' }))}
-                          className="mt-1 w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
-                        >
-                          <option value="coaching">Coaching</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <Button onClick={addTimeSlot} className="w-full" size="sm">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Time Slot
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">
-                    Add Working Hours
-                  </Label>
-                  <div className="space-y-3">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium mb-2 block">
+                  Add Time Slot for {format(selectedDate, 'MMMM d, yyyy')}
+                </Label>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs text-muted-foreground">Day of Week</Label>
+                      <Label className="text-xs text-muted-foreground">Start Time</Label>
+                      <Input
+                        type="time"
+                        value={newSlot.startTime}
+                        onChange={(e) => setNewSlot(prev => ({ ...prev, startTime: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">End Time</Label>
+                      <Input
+                        type="time"
+                        value={newSlot.endTime}
+                        onChange={(e) => setNewSlot(prev => ({ ...prev, endTime: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Max Bookings</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={newSlot.maxBookings}
+                        onChange={(e) => setNewSlot(prev => ({ ...prev, maxBookings: parseInt(e.target.value) || 1 }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Type</Label>
                       <select
-                        value={newWorkingHour.dayOfWeek}
-                        onChange={(e) => setNewWorkingHour(prev => ({ ...prev, dayOfWeek: parseInt(e.target.value) }))}
+                        value={newSlot.slotType}
+                        onChange={(e) => setNewSlot(prev => ({ ...prev, slotType: e.target.value as 'coaching' | 'webinar' | 'workshop' }))}
                         className="mt-1 w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
                       >
-                        <option value={1}>Monday</option>
-                        <option value={2}>Tuesday</option>
-                        <option value={3}>Wednesday</option>
-                        <option value={4}>Thursday</option>
-                        <option value={5}>Friday</option>
-                        <option value={6}>Saturday</option>
-                        <option value={0}>Sunday</option>
+                        <option value="coaching">Coaching</option>
                       </select>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Start Time</Label>
-                        <Input
-                          type="time"
-                          value={newWorkingHour.startTime}
-                          onChange={(e) => setNewWorkingHour(prev => ({ ...prev, startTime: e.target.value }))}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">End Time</Label>
-                        <Input
-                          type="time"
-                          value={newWorkingHour.endTime}
-                          onChange={(e) => setNewWorkingHour(prev => ({ ...prev, endTime: e.target.value }))}
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-
-                    <Button onClick={addWorkingHour} className="w-full" size="sm">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Working Hours
-                    </Button>
                   </div>
-                </div>
 
-                {/* Current Working Hours List */}
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Current Working Hours</Label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {workingHours.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No working hours set</p>
-                    ) : (
-                      workingHours.map(wh => (
-                        <div key={wh.id} className="flex items-center justify-between p-2 border rounded">
-                          <div className="text-sm">
-                            <span className="font-medium">{getDayName(wh.dayOfWeek)}</span>
-                            <span className="text-muted-foreground ml-2">
-                              {wh.startTime} - {wh.endTime}
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeWorkingHour(wh.id)}
-                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                  <Button onClick={addTimeSlot} className="w-full" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Time Slot
+                  </Button>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -490,20 +287,8 @@ export const CalendarAvailabilitySettings = () => {
             </CardTitle>
             <div className="flex items-center gap-4 text-sm">
               <Button variant="outline" size="sm">Today</Button>
-              <Button 
-                variant={viewMode === 'slots' ? 'default' : 'outline'} 
-                size="sm"
-                onClick={() => setViewMode('slots')}
-              >
-                Time Slots
-              </Button>
-              <Button 
-                variant={viewMode === 'working-hours' ? 'default' : 'outline'} 
-                size="sm"
-                onClick={() => setViewMode('working-hours')}
-              >
-                Working Hours
-              </Button>
+              <Button variant="outline" size="sm">Week</Button>
+              <Button variant="outline" size="sm" className="text-primary">Working Hours</Button>
             </div>
           </div>
         </CardHeader>
@@ -550,45 +335,24 @@ export const CalendarAvailabilitySettings = () => {
                     const currentHour = 7 + hourIndex;
                     const timeSlot = `${String(currentHour).padStart(2, '0')}:00`;
                     
-                    let hasSlot = false;
-                    let slotForThisHour = null;
-                    let bookedSessionForThisHour = null;
+                    // Check if there's an available slot that covers this hour
+                    const hasSlot = daySlots.some(slot => {
+                      const slotStartHour = parseInt(slot.startTime.split(':')[0]);
+                      const slotEndHour = parseInt(slot.endTime.split(':')[0]);
+                      return currentHour >= slotStartHour && currentHour < slotEndHour;
+                    });
+                    
+                    const slotForThisHour = daySlots.find(slot => {
+                      const slotStartHour = parseInt(slot.startTime.split(':')[0]);
+                      return currentHour === slotStartHour;
+                    });
 
-                    if (viewMode === 'slots') {
-                      // Check if there's an available slot that covers this hour
-                      hasSlot = daySlots.some(slot => {
-                        const slotStartHour = parseInt(slot.startTime.split(':')[0]);
-                        const slotEndHour = parseInt(slot.endTime.split(':')[0]);
-                        return currentHour >= slotStartHour && currentHour < slotEndHour;
-                      });
-                      
-                      slotForThisHour = daySlots.find(slot => {
-                        const slotStartHour = parseInt(slot.startTime.split(':')[0]);
-                        return currentHour === slotStartHour;
-                      });
-
-                      // Check for booked sessions
-                      const bookedSessionsForDay = getBookedSessionsForDate(day);
-                      bookedSessionForThisHour = bookedSessionsForDay.find(session => {
-                        const sessionStartHour = parseInt(session.startTime.split(':')[0]);
-                        return currentHour === sessionStartHour;
-                      });
-                    } else {
-                      // Working hours mode - show working hours for this day
-                      const dayOfWeek = day.getDay();
-                      const workingHoursForDay = getWorkingHoursForDay(dayOfWeek);
-                      
-                      hasSlot = workingHoursForDay.some(wh => {
-                        const whStartHour = parseInt(wh.startTime.split(':')[0]);
-                        const whEndHour = parseInt(wh.endTime.split(':')[0]);
-                        return currentHour >= whStartHour && currentHour < whEndHour;
-                      });
-
-                      slotForThisHour = workingHoursForDay.find(wh => {
-                        const whStartHour = parseInt(wh.startTime.split(':')[0]);
-                        return currentHour === whStartHour;
-                      });
-                    }
+                    // Check for booked sessions
+                    const bookedSessionsForDay = getBookedSessionsForDate(day);
+                    const bookedSessionForThisHour = bookedSessionsForDay.find(session => {
+                      const sessionStartHour = parseInt(session.startTime.split(':')[0]);
+                      return currentHour === sessionStartHour;
+                    });
 
                     return (
                       <div
@@ -597,9 +361,9 @@ export const CalendarAvailabilitySettings = () => {
                           "h-12 border-b border-border relative group cursor-pointer transition-colors",
                           hasSlot ? "bg-primary/20 hover:bg-primary/30" : "hover:bg-muted/30"
                         )}
-                        onClick={() => viewMode === 'slots' && setSelectedDate(day)}
+                        onClick={() => setSelectedDate(day)}
                       >
-                        {/* Available slot/working hour - just show color */}
+                        {/* Available slot - just show color */}
                         {slotForThisHour && (
                           <div className="absolute inset-0">
                             <div className="bg-primary h-full relative group">
@@ -609,11 +373,7 @@ export const CalendarAvailabilitySettings = () => {
                                 className="absolute top-0 right-0 h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-primary-foreground hover:bg-primary-foreground/20"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (viewMode === 'slots') {
-                                    deleteTimeSlot(slotForThisHour.id);
-                                  } else {
-                                    removeWorkingHour(slotForThisHour.id);
-                                  }
+                                  deleteTimeSlot(slotForThisHour.id);
                                 }}
                               >
                                 <Trash2 className="h-2 w-2" />
@@ -622,8 +382,8 @@ export const CalendarAvailabilitySettings = () => {
                           </div>
                         )}
 
-                        {/* Booked session (only in slots mode) */}
-                        {viewMode === 'slots' && bookedSessionForThisHour && (
+                        {/* Booked session */}
+                        {bookedSessionForThisHour && (
                           <div 
                             className="absolute inset-0 p-1 cursor-pointer"
                             onClick={(e) => {
