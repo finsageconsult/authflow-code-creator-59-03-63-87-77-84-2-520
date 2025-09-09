@@ -101,6 +101,15 @@ export const CalendarAvailabilitySettings = () => {
         const sessionDate = new Date(session.scheduled_at);
         const endTime = new Date(sessionDate.getTime() + (session.duration_minutes * 60000));
         
+        // Debug: Log the session data
+        console.log('Session data:', {
+          original: session.scheduled_at,
+          parsed: sessionDate,
+          localTime: sessionDate.toLocaleString(),
+          hours: sessionDate.getHours(),
+          utcHours: sessionDate.getUTCHours()
+        });
+        
         // Format time in local timezone
         const startHour = sessionDate.getHours().toString().padStart(2, '0');
         const startMinute = sessionDate.getMinutes().toString().padStart(2, '0');
