@@ -2234,6 +2234,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_coach_client_names: {
+        Args: { client_ids: string[]; coach_user_id: string }
+        Returns: {
+          email: string
+          id: string
+          name: string
+        }[]
+      }
       get_current_user_id: {
         Args: Record<PropertyKey, never>
         Returns: string

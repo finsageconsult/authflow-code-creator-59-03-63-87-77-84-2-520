@@ -120,15 +120,16 @@ export const CalendarAvailabilitySettings = () => {
 
       console.log('All user IDs to fetch:', allUserIds);
 
-      // Fetch user details
+      // Fetch user details using the secure function
       let clientsData = [];
       if (allUserIds.length > 0) {
         const { data: usersData, error: usersError } = await supabase
-          .from('users')
-          .select('id, name, email')
-          .in('id', allUserIds);
+          .rpc('get_coach_client_names', {
+            coach_user_id: userProfile.id,
+            client_ids: allUserIds
+          });
         
-        console.log('Fetched users data:', usersData, 'Error:', usersError);
+        console.log('Fetched users data with function:', usersData, 'Error:', usersError);
         clientsData = usersData || [];
       }
 
