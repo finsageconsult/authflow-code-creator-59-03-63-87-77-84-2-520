@@ -11,11 +11,13 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { signOut } from '@/lib/auth';
 import { toast } from 'sonner';
-import { LogOut, Settings, User } from 'lucide-react';
+import { LogOut, Settings, User, BookOpen } from 'lucide-react';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { useNavigate } from 'react-router-dom';
 
 export const TopNav = () => {
   const { userProfile, organization } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
@@ -37,6 +39,17 @@ export const TopNav = () => {
 
   return (
     <div className="flex items-center gap-4">
+      {userProfile?.role === 'EMPLOYEE' && (
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/employee-dashboard?tab=content-library')}
+          className="flex items-center gap-2"
+        >
+          <BookOpen className="h-4 w-4" />
+          <span>Content Library</span>
+        </Button>
+      )}
+      
       <NotificationCenter />
       
       {userProfile && (

@@ -1,14 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock, BookOpen, Video, Calculator } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { useIndividualPrograms } from '@/hooks/useIndividualPrograms';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const ContentLibrary = () => {
-  const { programs, loading, getFilteredPrograms } = useIndividualPrograms();
+  const { programs, loading } = useIndividualPrograms();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
 
   const getIllustrationBg = (index: number) => {
     const colors = [
@@ -22,18 +20,7 @@ export const ContentLibrary = () => {
     return colors[index % colors.length];
   };
 
-  const getIcon = (category: string) => {
-    switch (category) {
-      case 'short-program':
-        return BookOpen;
-      case '1-1-sessions':
-        return Video;
-      default:
-        return Calculator;
-    }
-  };
-
-  const filteredPrograms = getFilteredPrograms(activeTab as any).filter(program => 
+  const filteredPrograms = programs.filter(program => 
     program.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     program.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -51,52 +38,48 @@ export const ContentLibrary = () => {
 
       <div className="flex flex-col gap-4">
         <Input
-          placeholder="Search for content..."
+          placeholder="Search for finance courses..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-md"
         />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="all">All Content</TabsTrigger>
-            <TabsTrigger value="short-program">Programs</TabsTrigger>
-            <TabsTrigger value="1-1-sessions">1-on-1 Sessions</TabsTrigger>
-          </TabsList>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredPrograms.map((program, index) => (
+            <Card 
+              key={program.id} 
+              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-0 bg-white overflow-hidden"
+            >
+              <CardContent className="p-0">
+                <div className={`${getIllustrationBg(index)} h-40 flex items-center justify-center`}>
+                  <div className="text-4xl">
+                    {index % 6 === 0 && '📚'}
+                    {index % 6 === 1 && '💰'}
+                    {index % 6 === 2 && '📊'}
+                    {index % 6 === 3 && '🎯'}
+                    {index % 6 === 4 && '💡'}
+                    {index % 6 === 5 && '📈'}
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-sm mb-3 line-clamp-2">
+                    {program.title}
+                  </h3>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    <span className="text-xs">{program.duration}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-          <TabsContent value={activeTab} className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredPrograms.map((program, index) => {
-                const Icon = getIcon(program.category);
-                return (
-                  <Card 
-                    key={program.id} 
-                    className="cursor-pointer hover:shadow-md transition-shadow border-0 bg-white"
-                  >
-                    <CardContent className="p-4">
-                      <div className={`${getIllustrationBg(index)} rounded-lg p-6 mb-3 flex items-center justify-center`}>
-                        <Icon className="h-12 w-12 text-gray-600" />
-                      </div>
-                      <h3 className="font-medium text-sm mb-2 line-clamp-2">
-                        {program.title}
-                      </h3>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span className="text-xs">{program.duration}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-
-            {filteredPrograms.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No content found matching your search</p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+        {filteredPrograms.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No content found matching your search</p>
+          </div>
+        )}
       </div>
     </div>
   );
