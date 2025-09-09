@@ -46,9 +46,8 @@ export const BlogDetail = () => {
         if (error) throw error;
         setBlog({
           ...data,
-          paragraphs: Array.isArray(data.paragraphs) ? 
-            (data.paragraphs as unknown as BlogParagraph[]) : []
-        } as BlogItem);
+          paragraphs: (data.paragraphs as unknown as BlogParagraph[]) || []
+        });
       } catch (error) {
         console.error('Error fetching blog:', error);
         toast({
