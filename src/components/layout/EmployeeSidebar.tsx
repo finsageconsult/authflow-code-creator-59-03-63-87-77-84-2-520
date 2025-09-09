@@ -56,9 +56,10 @@ export const EmployeeSidebar = () => {
   
   const isActive = (path: string) => {
     if (path.includes('?')) {
-      return currentPath + currentSearch === path;
+      const [pathPart, queryPart] = path.split('?');
+      return currentPath === pathPart && currentSearch.includes(queryPart);
     }
-    return currentPath === path;
+    return currentPath === path && !currentSearch;
   };
 
   const isCollapsed = state === 'collapsed';
