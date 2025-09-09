@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
+import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { LayoutDashboard, TrendingUp, CreditCard, HelpCircle, Wrench, Calendar, BookOpen, MessageSquare, ClipboardList } from 'lucide-react';
 
@@ -77,6 +77,9 @@ export const EmployeeSidebar = () => {
       className="border-r bg-background h-screen sticky top-0"
     >
       <SidebarContent className="overflow-y-auto">
+        <div className="p-2">
+          <SidebarTrigger className="mb-2" />
+        </div>
         <SidebarGroup>
           <SidebarGroupLabel className={isCollapsed ? 'sr-only' : ''}>
             Finsage
