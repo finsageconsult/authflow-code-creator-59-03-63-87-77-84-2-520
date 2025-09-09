@@ -15,6 +15,11 @@ const employeeMenuItems = [
     icon: BookOpen,
   },
   {
+    title: 'Content Library',
+    url: '/employee-dashboard?tab=content-library',
+    icon: BookOpen,
+  },
+  {
     title: 'My Credits',
     url: '/employee-dashboard?tab=credits',
     icon: CreditCard,
