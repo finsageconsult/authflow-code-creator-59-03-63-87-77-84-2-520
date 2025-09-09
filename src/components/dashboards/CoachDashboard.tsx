@@ -219,32 +219,6 @@ export const CoachDashboard = () => {
               ))}
             </div>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Button className="h-20 flex-col gap-2">
-                    <Calendar className="w-6 h-6" />
-                    <span>Schedule Session</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col gap-2">
-                    <Settings className="w-6 h-6" />
-                    <span>Set Availability</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col gap-2">
-                    <FileText className="w-6 h-6" />
-                    <span>Session Notes</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex-col gap-2">
-                    <Coins className="w-6 h-6" />
-                    <span>View Payouts</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Outcomes Tracking */}
             <Card>
