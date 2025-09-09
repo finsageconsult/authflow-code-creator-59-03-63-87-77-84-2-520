@@ -81,9 +81,6 @@ export const EmployeeSidebar = () => {
           <SidebarTrigger className="mb-2" />
         </div>
         <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? 'sr-only' : ''}>
-            Finsage
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {employeeMenuItems.map(item => {
