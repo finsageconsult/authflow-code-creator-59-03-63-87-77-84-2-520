@@ -225,8 +225,7 @@ export const AdminDashboard = () => {
     totalOrganizations: 0,
     totalUsers: 0,
     totalCredits: 0,
-    monthlyRevenue: 0,
-    monthlyPending: 0
+    monthlyRevenue: 0
   });
   const [loading, setLoading] = useState(true);
 
