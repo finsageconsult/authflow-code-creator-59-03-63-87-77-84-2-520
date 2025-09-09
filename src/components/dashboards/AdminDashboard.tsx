@@ -379,9 +379,24 @@ export const AdminDashboard = () => {
 
   if (activeTab === 'content-library') {
     return (
-      <div className="fixed inset-0 z-50 bg-background overflow-auto">
-        <div className="p-4 sm:p-6 lg:p-8">
-          <ContentLibraryManager />
+      <div className="fixed inset-0 z-[9999] bg-background">
+        <div className="h-full flex flex-col">
+          <div className="flex items-center gap-4 p-6 border-b">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/admin-dashboard')}
+              className="flex items-center gap-2"
+            >
+              ← Back to Dashboard
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">Content Library</h1>
+              <p className="text-muted-foreground">Manage all learning content</p>
+            </div>
+          </div>
+          <div className="flex-1 overflow-auto p-6">
+            <ContentLibraryManager />
+          </div>
         </div>
       </div>
     );
