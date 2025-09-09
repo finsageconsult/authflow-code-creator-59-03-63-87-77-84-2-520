@@ -165,14 +165,14 @@ const RecentActivity = () => {
   if (loading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+            <Activity className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
             Recent Platform Activity
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-muted-foreground">Loading recent activity...</div>
+        <CardContent className="p-4 md:p-6">
+          <div className="text-sm text-muted-foreground">Loading recent activity...</div>
         </CardContent>
       </Card>
     );
@@ -180,30 +180,30 @@ const RecentActivity = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
+      <CardHeader className="p-4 md:p-6">
+        <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+          <Activity className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
           Recent Platform Activity
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6">
         {activities.length === 0 ? (
-          <div className="text-muted-foreground text-center py-4">
+          <div className="text-sm text-muted-foreground text-center py-4">
             No recent activity found
           </div>
         ) : (
           activities.map((activity) => {
             const Icon = getActivityIcon(activity.type);
             return (
-              <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg border">
-                <div className={`p-2 rounded-full ${getActivityBgColor(activity.type)}`}>
-                  <Icon className={`h-4 w-4 ${getActivityColor(activity.type)}`} />
+              <div key={activity.id} className="flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg border">
+                <div className={`p-1.5 md:p-2 rounded-full ${getActivityBgColor(activity.type)} flex-shrink-0`}>
+                  <Icon className={`h-3 w-3 md:h-4 md:w-4 ${getActivityColor(activity.type)}`} />
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-medium">{activity.title}</h4>
-                  <p className="text-sm text-muted-foreground">{activity.description}</p>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-sm md:text-base">{activity.title}</h4>
+                  <p className="text-xs md:text-sm text-muted-foreground truncate">{activity.description}</p>
                 </div>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground flex-shrink-0">
                   {formatTimeAgo(activity.created_at)}
                 </span>
               </div>
@@ -394,34 +394,34 @@ export const AdminDashboard = () => {
 
   // Default overview content
   return (
-    <div className="space-y-6">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-2xl md:text-3xl font-bold">
           Admin Dashboard
         </h1>
-        <div className="flex items-center gap-2">
-          <p className="text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <p className="text-sm md:text-base text-muted-foreground">
             Platform-wide management and analytics
           </p>
-          <Badge variant="secondary" className="bg-red-100 text-red-800">
+          <Badge variant="secondary" className="bg-red-100 text-red-800 w-fit">
             Super Admin
           </Badge>
         </div>
       </div>
 
       {/* Platform Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {platformStats.map((stat, index) => (
           <Card key={index} className="relative overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <stat.icon className={`h-4 w-4 ${stat.color} flex-shrink-0`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-xl md:text-2xl font-bold">{stat.value}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 <span className="text-green-600">{stat.change}</span> from last month
               </p>
@@ -432,25 +432,25 @@ export const AdminDashboard = () => {
 
       {/* Quick Actions */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+            <Shield className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
             Admin Actions
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 p-4 md:p-6">
           {quickActions.map((action, index) => (
             <Button
               key={index}
               variant="outline"
-              className="h-auto p-4 justify-start"
+              className="h-auto p-3 md:p-4 justify-start"
               onClick={action.action}
             >
-              <div className="flex items-center gap-3 w-full">
-                <action.icon className={`h-5 w-5 ${action.color}`} />
-                <div className="text-left">
-                  <h4 className="font-medium">{action.title}</h4>
-                  <p className="text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 md:gap-3 w-full">
+                <action.icon className={`h-4 w-4 md:h-5 md:w-5 ${action.color} flex-shrink-0`} />
+                <div className="text-left min-w-0 flex-1">
+                  <h4 className="font-medium text-sm md:text-base">{action.title}</h4>
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     {action.description}
                   </p>
                 </div>

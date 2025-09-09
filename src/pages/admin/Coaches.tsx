@@ -296,15 +296,16 @@ export default function Coaches() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Coach Management</h1>
-          <p className="text-muted-foreground">Manage coaches and create access codes</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Coach Management</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Manage coaches and create access codes</p>
         </div>
-        <Button onClick={() => setShowCreateCodeDialog(true)}>
+        <Button onClick={() => setShowCreateCodeDialog(true)} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
-          Generate Coach Code
+          <span className="hidden sm:inline">Generate Coach Code</span>
+          <span className="sm:hidden">Generate Code</span>
         </Button>
       </div>
 
@@ -321,8 +322,8 @@ export default function Coaches() {
 
       {/* Search and Coaches Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>All Coaches</CardTitle>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-lg md:text-xl">All Coaches</CardTitle>
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
@@ -333,147 +334,220 @@ export default function Coaches() {
             />
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Coach Profile</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Experience</TableHead>
-                <TableHead>Offerings</TableHead>
-                <TableHead>Sessions</TableHead>
-                <TableHead>Availability</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCoaches.map((coach) => (
-                <TableRow key={coach.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={coach.avatar_url} alt={coach.name} />
-                        <AvatarFallback>
-                          {coach.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{coach.name}</div>
-                        <div className="text-sm text-muted-foreground">Coach</div>
-                        {coach.specialties && coach.specialties.length > 0 && (
-                          <div className="flex gap-1 mt-1">
-                            {coach.specialties.slice(0, 2).map((specialty, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
-                                {specialty}
-                              </Badge>
-                            ))}
-                            {coach.specialties.length > 2 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{coach.specialties.length - 2}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <div>{coach.email}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {coach.experience ? (
-                        <span className="text-foreground">{coach.experience}</span>
-                      ) : (
-                        <span className="text-muted-foreground italic">Not specified</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <BookOpen className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {getActiveOfferings(coach.coaching_offerings)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">active</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {getCompletedSessions(coach.coaching_sessions)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">completed</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <Badge variant={isAvailable(coach.coach_availability) ? "default" : "secondary"}>
-                        {isAvailable(coach.coach_availability) ? "Available" : "Busy"}
+        <CardContent className="p-2 md:p-6">
+          {/* Mobile Card View */}
+          <div className="block md:hidden space-y-3">
+            {filteredCoaches.map((coach) => (
+              <Card key={coach.id} className="p-3">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={coach.avatar_url} alt={coach.name} />
+                      <AvatarFallback>
+                        {coach.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium">{coach.name}</div>
+                      <div className="text-sm text-muted-foreground">{coach.email}</div>
+                      <Badge className={getStatusColor(coach.status)}>
+                        {coach.status}
                       </Badge>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(coach.status)}>
-                      {coach.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {new Date(coach.created_at).toLocaleDateString()}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/admin-dashboard/coaches/${coach.id}`)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                            disabled={deletingCoach === coach.id}
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/admin-dashboard/coaches/${coach.id}`)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          disabled={deletingCoach === coach.id}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Coach</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete <strong>{coach.name}</strong>? 
+                            This action cannot be undone and will permanently remove this coach from the platform.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteCoach(coach.id, coach.name)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Coach</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete <strong>{coach.name}</strong>? 
-                              This action cannot be undone and will permanently remove this coach from the platform.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteCoach(coach.id, coach.name)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {deletingCoach === coach.id ? 'Deleting...' : 'Delete Coach'}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
+                            {deletingCoach === coach.id ? 'Deleting...' : 'Delete Coach'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  <div>Offerings: {getActiveOfferings(coach.coaching_offerings)}</div>
+                  <div>Sessions: {getCompletedSessions(coach.coaching_sessions)}</div>
+                  <div>Joined: {new Date(coach.created_at).toLocaleDateString()}</div>
+                  <div>Available: {isAvailable(coach.coach_availability) ? "Yes" : "No"}</div>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Coach Profile</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Experience</TableHead>
+                  <TableHead>Offerings</TableHead>
+                  <TableHead>Sessions</TableHead>
+                  <TableHead>Availability</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredCoaches.map((coach) => (
+                  <TableRow key={coach.id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={coach.avatar_url} alt={coach.name} />
+                          <AvatarFallback>
+                            {coach.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{coach.name}</div>
+                          <div className="text-sm text-muted-foreground">Coach</div>
+                          {coach.specialties && coach.specialties.length > 0 && (
+                            <div className="flex gap-1 mt-1">
+                              {coach.specialties.slice(0, 2).map((specialty, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs">
+                                  {specialty}
+                                </Badge>
+                              ))}
+                              {coach.specialties.length > 2 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{coach.specialties.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>{coach.email}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {coach.experience ? (
+                          <span className="text-foreground">{coach.experience}</span>
+                        ) : (
+                          <span className="text-muted-foreground italic">Not specified</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        <BookOpen className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {getActiveOfferings(coach.coaching_offerings)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">active</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {getCompletedSessions(coach.coaching_sessions)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">completed</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <Badge variant={isAvailable(coach.coach_availability) ? "default" : "secondary"}>
+                          {isAvailable(coach.coach_availability) ? "Available" : "Busy"}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(coach.status)}>
+                        {coach.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {new Date(coach.created_at).toLocaleDateString()}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/admin-dashboard/coaches/${coach.id}`)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              disabled={deletingCoach === coach.id}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Coach</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete <strong>{coach.name}</strong>? 
+                                This action cannot be undone and will permanently remove this coach from the platform.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteCoach(coach.id, coach.name)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {deletingCoach === coach.id ? 'Deleting...' : 'Delete Coach'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 

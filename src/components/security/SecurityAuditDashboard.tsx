@@ -331,18 +331,18 @@ export const SecurityAuditDashboard = () => {
     }));
 
   return (
-    <div className="space-y-6">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Shield className="h-6 w-6" />
+          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+            <Shield className="h-5 w-5 md:h-6 md:w-6 flex-shrink-0" />
             Security Audit Dashboard
           </h2>
-          <p className="text-muted-foreground">Monitor security events and audit trail for the entire platform</p>
+          <p className="text-sm md:text-base text-muted-foreground">Monitor security events and audit trail for the entire platform</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => exportAuditLogs('csv')} variant="outline" size="sm">
+          <Button onClick={() => exportAuditLogs('csv')} variant="outline" size="sm" className="w-full sm:w-auto">
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
@@ -350,14 +350,14 @@ export const SecurityAuditDashboard = () => {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-            <Activity className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-xs md:text-sm font-medium">Total Events</CardTitle>
+            <Activity className="h-4 w-4 text-blue-600 flex-shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalEvents}</div>
+            <div className="text-xl md:text-2xl font-bold">{metrics.totalEvents}</div>
             <p className="text-xs text-muted-foreground">
               Last {filters.dateRange} period
             </p>
@@ -366,11 +366,11 @@ export const SecurityAuditDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Login Success Rate</CardTitle>
-            <LogIn className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-xs md:text-sm font-medium">Login Success Rate</CardTitle>
+            <LogIn className="h-4 w-4 text-green-600 flex-shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl md:text-2xl font-bold">
               {metrics.loginSuccessCount + metrics.loginFailureCount > 0 
                 ? ((metrics.loginSuccessCount / (metrics.loginSuccessCount + metrics.loginFailureCount)) * 100).toFixed(1)
                 : '0'
@@ -384,11 +384,11 @@ export const SecurityAuditDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Failed Attempts</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <CardTitle className="text-xs md:text-sm font-medium">Failed Attempts</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.loginFailureCount}</div>
+            <div className="text-xl md:text-2xl font-bold">{metrics.loginFailureCount}</div>
             <p className="text-xs text-muted-foreground">
               Security incidents detected
             </p>
@@ -397,11 +397,11 @@ export const SecurityAuditDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">High Risk Events</CardTitle>
-            <AlertCircle className="h-4 w-4 text-orange-600" />
+            <CardTitle className="text-xs md:text-sm font-medium">High Risk Events</CardTitle>
+            <AlertCircle className="h-4 w-4 text-orange-600 flex-shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl md:text-2xl font-bold">
               {logs.filter(log => log.action && log.action.includes('DELETE')).length}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -412,7 +412,7 @@ export const SecurityAuditDashboard = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {loginChartData.some(item => item.value > 0) ? (
           <AnalyticsChart
             title="Login Success vs Failed"

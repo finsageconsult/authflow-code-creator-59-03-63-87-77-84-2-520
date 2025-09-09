@@ -242,35 +242,36 @@ export const BlogManager = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Blog Management</h2>
-          <p className="text-muted-foreground">Create and manage blog articles for employees</p>
+          <h2 className="text-xl md:text-2xl font-bold">Blog Management</h2>
+          <p className="text-sm md:text-base text-muted-foreground">Create and manage blog articles for employees</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm}>
+            <Button onClick={resetForm} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Create Blog
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-3 md:mx-0">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-lg">
                 {editingBlog ? 'Edit Blog' : 'Create New Blog'}
               </DialogTitle>
             </DialogHeader>
             
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Title</label>
                   <Input
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     required
+                    className="text-sm"
                   />
                 </div>
                 <div className="space-y-2">
@@ -279,6 +280,7 @@ export const BlogManager = () => {
                     value={formData.duration}
                     onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                     placeholder="5 min read"
+                    className="text-sm"
                   />
                 </div>
               </div>
@@ -290,16 +292,18 @@ export const BlogManager = () => {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
                   placeholder="Brief summary of the blog article"
+                  className="text-sm"
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
                   <Input
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     placeholder="e.g., Personal Finance, Investments"
+                    className="text-sm"
                   />
                 </div>
                 <div className="space-y-2">
@@ -308,6 +312,7 @@ export const BlogManager = () => {
                     value={formData.tags}
                     onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                     placeholder="e.g., budgeting, planning, investing"
+                    className="text-sm"
                   />
                 </div>
               </div>
@@ -318,22 +323,23 @@ export const BlogManager = () => {
                   value={formData.thumbnail}
                   onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
                   placeholder="https://..."
+                  className="text-sm"
                 />
               </div>
               
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <label className="text-sm font-medium">Blog Content (Paragraphs)</label>
-                  <Button type="button" variant="outline" size="sm" onClick={addParagraph}>
+                  <Button type="button" variant="outline" size="sm" onClick={addParagraph} className="w-full sm:w-auto">
                     <Plus className="h-4 w-4 mr-1" />
                     Add Section
                   </Button>
                 </div>
                 
                 {formData.paragraphs.map((paragraph, index) => (
-                  <Card key={index} className="p-4">
+                  <Card key={index} className="p-3 md:p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium">Section {index + 1}</h4>
+                      <h4 className="font-medium text-sm">Section {index + 1}</h4>
                       {formData.paragraphs.length > 1 && (
                         <Button 
                           type="button" 
@@ -350,23 +356,25 @@ export const BlogManager = () => {
                         placeholder="Section heading (optional)"
                         value={paragraph.heading}
                         onChange={(e) => updateParagraph(index, 'heading', e.target.value)}
+                        className="text-sm"
                       />
                       <Textarea
                         placeholder="Section content"
                         value={paragraph.body}
                         onChange={(e) => updateParagraph(index, 'body', e.target.value)}
                         rows={4}
+                        className="text-sm"
                       />
                     </div>
                   </Card>
                 ))}
               </div>
               
-              <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <div className="flex flex-col sm:flex-row gap-2 sm:justify-end pt-4 border-t">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" className="w-full sm:w-auto">
                   {editingBlog ? 'Update Blog' : 'Create Blog'}
                 </Button>
               </div>
@@ -376,88 +384,107 @@ export const BlogManager = () => {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>All Blogs ({blogs.length})</CardTitle>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-lg md:text-xl">All Blogs ({blogs.length})</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Tags</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {blogs.map((blog) => (
-                <TableRow key={blog.id}>
-                  <TableCell className="font-medium">{blog.title}</TableCell>
-                  <TableCell>{blog.category}</TableCell>
-                  <TableCell>
-                    {blog.duration && (
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {blog.duration}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {blog.tags && blog.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {blog.tags.slice(0, 2).map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            <Tag className="h-2 w-2 mr-1" />
-                            {tag}
-                          </Badge>
-                        ))}
-                        {blog.tags.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{blog.tags.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(blog.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePreview(blog)}
-                      >
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(blog)}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(blog.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </TableCell>
+        <CardContent className="p-2 md:p-6">
+          {/* Mobile Card View */}
+          <div className="block md:hidden space-y-3">
+            {blogs.map((blog) => (
+              <Card key={blog.id} className="p-3">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-medium text-sm">{blog.title}</h3>
+                  <div className="flex gap-1">
+                    <Button variant="outline" size="sm" onClick={() => handlePreview(blog)}>
+                      <Eye className="h-3 w-3" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(blog)}>
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(blog.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  <div>Category: {blog.category}</div>
+                  <div>Duration: {blog.duration}</div>
+                  <div>Created: {new Date(blog.created_at).toLocaleDateString()}</div>
+                  <div>Tags: {blog.tags?.length || 0}</div>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {blogs.map((blog) => (
+                  <TableRow key={blog.id}>
+                    <TableCell className="font-medium">{blog.title}</TableCell>
+                    <TableCell>{blog.category}</TableCell>
+                    <TableCell>
+                      {blog.duration && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {blog.duration}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {blog.tags && blog.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {blog.tags.slice(0, 2).map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              <Tag className="h-2 w-2 mr-1" />
+                              {tag}
+                            </Badge>
+                          ))}
+                          {blog.tags.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{blog.tags.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(blog.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-2 justify-end">
+                        <Button variant="outline" size="sm" onClick={() => handlePreview(blog)}>
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(blog)}>
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDelete(blog.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           
           {blogs.length === 0 && (
             <div className="text-center py-12">
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No blogs found. Create your first blog article.</p>
+              <FileText className="h-8 w-8 md:h-12 md:w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-sm md:text-base text-muted-foreground">No blogs found. Create your first blog article.</p>
             </div>
           )}
         </CardContent>
