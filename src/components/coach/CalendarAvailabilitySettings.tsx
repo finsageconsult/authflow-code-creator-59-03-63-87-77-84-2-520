@@ -530,14 +530,14 @@ export const CalendarAvailabilitySettings = () => {
                         {/* Booked session */}
                         {bookedSessionForThisHour && (
                           <div 
-                            className="absolute inset-0 p-0.5 cursor-pointer"
+                            className="absolute inset-0 p-px cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedSession(bookedSessionForThisHour);
                             }}
                           >
-                            <div className="bg-red-500 text-white rounded-md text-sm p-2 h-full flex items-center justify-center shadow-md border border-red-600">
-                              <span className="font-semibold truncate text-center leading-tight">
+                            <div className="bg-red-500 text-white rounded text-xs p-1 h-full flex items-center justify-center shadow-sm border border-red-600">
+                              <span className="font-medium truncate text-center leading-none">
                                 {bookedSessionForThisHour.clientName}
                               </span>
                             </div>
