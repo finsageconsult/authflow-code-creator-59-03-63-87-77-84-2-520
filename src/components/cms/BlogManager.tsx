@@ -42,6 +42,8 @@ export const BlogManager = () => {
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewBlog, setPreviewBlog] = useState<BlogItem | null>(null);
   const [editingBlog, setEditingBlog] = useState<BlogItem | null>(null);
   const [formData, setFormData] = useState<BlogFormData>({
     title: '',
@@ -97,6 +99,11 @@ export const BlogManager = () => {
   useEffect(() => {
     fetchBlogs();
   }, []);
+
+  const handlePreview = (blog: BlogItem) => {
+    setPreviewBlog(blog);
+    setIsPreviewOpen(true);
+  };
 
   const resetForm = () => {
     setFormData({
@@ -422,7 +429,7 @@ export const BlogManager = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(`/employee-dashboard/blog/${blog.id}`, '_blank')}
+                        onClick={() => handlePreview(blog)}
                       >
                         <Eye className="h-3 w-3" />
                       </Button>
@@ -455,6 +462,79 @@ export const BlogManager = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Blog Preview Modal */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Blog Preview
+            </DialogTitle>
+          </DialogHeader>
+          
+          {previewBlog && (
+            <div className="space-y-6">
+              {/* Blog Header */}
+              <div className="space-y-4">
+                {previewBlog.thumbnail && (
+                  <img 
+                    src={previewBlog.thumbnail} 
+                    alt={previewBlog.title}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                )}
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">{previewBlog.title}</h1>
+                  {previewBlog.description && (
+                    <p className="text-lg text-muted-foreground mb-4">{previewBlog.description}</p>
+                  )}
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    {previewBlog.duration && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        {previewBlog.duration}
+                      </div>
+                    )}
+                    {previewBlog.category && (
+                      <Badge variant="secondary">{previewBlog.category}</Badge>
+                    )}
+                    {previewBlog.tags && previewBlog.tags.length > 0 && (
+                      <div className="flex gap-1">
+                        {previewBlog.tags.map((tag, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Blog Content */}
+              <div className="space-y-6">
+                {previewBlog.paragraphs && previewBlog.paragraphs.length > 0 ? (
+                  previewBlog.paragraphs.map((paragraph, index) => (
+                    <div key={index} className="space-y-2">
+                      {paragraph.heading && (
+                        <h2 className="text-xl font-semibold">{paragraph.heading}</h2>
+                      )}
+                      {paragraph.body && (
+                        <p className="text-base leading-relaxed whitespace-pre-wrap">
+                          {paragraph.body}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground italic">No content available.</p>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
