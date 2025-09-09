@@ -405,23 +405,25 @@ export default function Auth() {
   // Handle different view states
   if (showForgotAccessCode) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-3 sm:p-6">
         <div className="w-full max-w-md">
           <Card className="w-full shadow-professional-lg border-0 sm:border">
-            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8 relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowForgotAccessCode(false)}
-                className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <CardTitle className="text-xl sm:text-2xl font-bold mt-8">
+            <CardHeader className="space-y-3 text-center px-4 sm:px-6 pt-4 sm:pt-6 relative">
+              <div className="flex items-center justify-start mb-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowForgotAccessCode(false)}
+                  className="text-muted-foreground hover:text-foreground p-1"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back
+                </Button>
+              </div>
+              <CardTitle className="text-lg sm:text-2xl font-bold">
                 Request Access Code
               </CardTitle>
-              <p className="text-sm sm:text-base text-muted-foreground">
+              <p className="text-sm text-muted-foreground px-2">
                 Enter your email to receive your access code
               </p>
             </CardHeader>
@@ -440,9 +442,9 @@ export default function Auth() {
                   />
                 </div>
                 
-                <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading}>
+                <Button type="submit" className="w-full h-10" disabled={isLoading}>
                   {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  <span className="text-sm sm:text-base">Send Access Code</span>
+                  Send Access Code
                 </Button>
               </form>
             </CardContent>
@@ -454,26 +456,28 @@ export default function Auth() {
 
   if (showOtpVerification) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-3 sm:p-6">
         <div className="w-full max-w-md">
           <Card className="w-full shadow-professional-lg border-0 sm:border">
-            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8 relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowOtpVerification(false);
-                  setShowForgotPassword(true);
-                }}
-                className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <CardTitle className="text-xl sm:text-2xl font-bold mt-8">
+            <CardHeader className="space-y-3 text-center px-4 sm:px-6 pt-4 sm:pt-6 relative">
+              <div className="flex items-center justify-start mb-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowOtpVerification(false);
+                    setShowForgotPassword(true);
+                  }}
+                  className="text-muted-foreground hover:text-foreground p-1"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back
+                </Button>
+              </div>
+              <CardTitle className="text-lg sm:text-2xl font-bold">
                 Verify OTP & Set New Password
               </CardTitle>
-              <p className="text-sm sm:text-base text-muted-foreground">
+              <p className="text-sm text-muted-foreground px-2">
                 Check your email for the OTP code
               </p>
             </CardHeader>
@@ -556,9 +560,9 @@ export default function Auth() {
                   </div>
                 </div>
                 
-                <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading}>
+                <Button type="submit" className="w-full h-10" disabled={isLoading}>
                   {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  <span className="text-sm sm:text-base">Reset Password</span>
+                  Reset Password
                 </Button>
               </form>
               
@@ -597,23 +601,25 @@ export default function Auth() {
 
   if (showForgotPassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-3 sm:p-6">
         <div className="w-full max-w-md">
           <Card className="w-full shadow-professional-lg border-0 sm:border">
-            <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8 relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowForgotPassword(false)}
-                className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <CardTitle className="text-xl sm:text-2xl font-bold mt-8">
+            <CardHeader className="space-y-3 text-center px-4 sm:px-6 pt-4 sm:pt-6 relative">
+              <div className="flex items-center justify-start mb-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="text-muted-foreground hover:text-foreground p-1"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back
+                </Button>
+              </div>
+              <CardTitle className="text-lg sm:text-2xl font-bold">
                 Reset Password
               </CardTitle>
-              <p className="text-sm sm:text-base text-muted-foreground">
+              <p className="text-sm text-muted-foreground px-2">
                 Enter your email to receive an OTP
               </p>
             </CardHeader>
@@ -632,9 +638,9 @@ export default function Auth() {
                   />
                 </div>
                 
-                <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading}>
+                <Button type="submit" className="w-full h-10" disabled={isLoading}>
                   {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  <span className="text-sm sm:text-base">Send OTP</span>
+                  Send OTP
                 </Button>
               </form>
             </CardContent>
@@ -645,23 +651,25 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4 sm:p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-3 sm:p-6">
       <div className="w-full max-w-md">
         <Card className="w-full shadow-professional-lg border-0 sm:border">
-          <CardHeader className="space-y-1 text-center px-4 sm:px-6 pt-6 sm:pt-8 relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <CardTitle className="text-xl sm:text-2xl font-bold mt-8">
+          <CardHeader className="space-y-3 text-center px-4 sm:px-6 pt-4 sm:pt-6 relative">
+            <div className="flex items-center justify-start mb-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/')}
+                className="text-muted-foreground hover:text-foreground p-1"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
+              </Button>
+            </div>
+            <CardTitle className="text-lg sm:text-2xl font-bold">
               Welcome to Finsage
             </CardTitle>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-sm text-muted-foreground px-2">
               {userType === 'employer' 
                 ? 'Sign in with your organization access code'
                 : 'Sign in to your account or create a new one'
@@ -716,10 +724,10 @@ export default function Auth() {
                       </div>
                     </div>
                     
-                    <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading || !accessCode.trim()}>
+                    <Button type="submit" className="w-full h-10" disabled={isLoading || !accessCode.trim()}>
                       {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                       <Key className="w-4 h-4 mr-2" />
-                      <span className="text-sm sm:text-base">Sign In</span>
+                      Sign In
                     </Button>
                   </form>
                 </TabsContent>
@@ -729,7 +737,7 @@ export default function Auth() {
                 <TabsContent value="email" className="space-y-4">
                   <Button
                     variant="outline"
-                    className="w-full h-11 sm:h-10"
+                    className="w-full h-10"
                     onClick={handleGoogleSignIn}
                     disabled={isLoading}
                   >
@@ -836,9 +844,9 @@ export default function Auth() {
                       )}
                     </div>
 
-                    <Button type="submit" className="w-full h-11 sm:h-10" disabled={isLoading}>
+                    <Button type="submit" className="w-full h-10" disabled={isLoading}>
                       {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      <span className="text-sm sm:text-base">{isSignUp ? 'Create Account' : 'Sign In'}</span>
+                      {isSignUp ? 'Create Account' : 'Sign In'}
                     </Button>
                   </form>
 
