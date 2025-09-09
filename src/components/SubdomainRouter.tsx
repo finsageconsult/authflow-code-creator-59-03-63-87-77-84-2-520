@@ -30,6 +30,7 @@ import AssignmentsList from '@/components/assignments/AssignmentsList';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { ContentLibraryManager } from '@/components/cms/ContentLibraryManager';
 
 const getRoleDashboardUrl = (role: string) => {
   switch (role) {
@@ -86,6 +87,7 @@ export const SubdomainRouter = () => {
       <Route path="/admin/organizations" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Organizations /></AppLayout></ProtectedRoute>} />
       <Route path="/admin/organizations/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><OrganizationDetail /></AppLayout></ProtectedRoute>} />
       <Route path="/admin/coaches" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Coaches /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin/content-library" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><ContentLibraryManager /></AppLayout></ProtectedRoute>} />
       <Route path="/admin-dashboard/coaches/:coachId" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><CoachProfile /></AppLayout></ProtectedRoute>} />
       <Route path="*" element={<Index />} />
     </Routes>

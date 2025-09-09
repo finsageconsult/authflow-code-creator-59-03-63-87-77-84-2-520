@@ -87,21 +87,16 @@ export const ContentLibrary = () => {
 
   const fetchContent = async () => {
     try {
-      // Try to fetch from database, fall back to mock data
-      try {
-        const { data, error } = await supabase
-          .from('content_library' as any)
-          .select('*')
-          .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('content_library')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-        if (!error && data) {
-          setContent(data as unknown as ContentItem[]);
-        } else {
-          setContent(mockContent);
-        }
-      } catch (dbError) {
-        // Database table doesn't exist yet, use mock data
+      if (error) {
+        console.error('Database error, using mock data:', error);
         setContent(mockContent);
+      } else {
+        setContent((data || []) as ContentItem[]);
       }
     } catch (error) {
       console.error('Error fetching content:', error);

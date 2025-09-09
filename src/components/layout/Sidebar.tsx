@@ -93,7 +93,7 @@ const adminMenuItems = [{
   roles: ['ADMIN']
 }, {
   title: 'Content Library',
-  url: '/admin-dashboard?tab=content-library',
+  url: '/admin/content-library',
   icon: BookOpen,
   roles: ['ADMIN']
 }, {

@@ -7,11 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Label } from '@/components/ui/label';
-import { Plus, Edit, Trash2, BookOpen, Clock, ExternalLink, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, Play, Download, ExternalLink, Clock, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 interface ContentItem {
   id: string;
@@ -27,78 +25,50 @@ interface ContentItem {
   updated_at: string;
 }
 
-const CONTENT_TYPES = [
-  { value: 'blog', label: 'Blog Post' },
-  { value: 'video', label: 'Video' },
-  { value: 'pdf', label: 'PDF Document' },
-  { value: 'link', label: 'External Link' }
-];
-
-const CATEGORIES = [
-  'Personal Finance',
-  'Investments',
-  'Tax Planning',
-  'Planning',
-  'Retirement',
-  'Cryptocurrency',
-  'Savings',
-  'Debt Management'
-];
+interface ContentFormData {
+  title: string;
+  description: string;
+  thumbnail: string;
+  duration: string;
+  category: string;
+  tags: string;
+  type: 'blog' | 'video' | 'pdf' | 'link';
+  content_url: string;
+}
 
 export const ContentLibraryManager = () => {
   const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingItem, setEditingItem] = useState<ContentItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [databaseError, setDatabaseError] = useState(false);
-  const [formData, setFormData] = useState({
+  const [editingItem, setEditingItem] = useState<ContentItem | null>(null);
+  const [formData, setFormData] = useState<ContentFormData>({
     title: '',
     description: '',
     thumbnail: '',
     duration: '',
     category: '',
     tags: '',
-    type: 'blog' as 'blog' | 'video' | 'pdf' | 'link',
+    type: 'blog',
     content_url: ''
   });
-
-  // Mock data while database is being set up
-  const mockContent: ContentItem[] = [
-    {
-      id: '1',
-      title: 'Financial Fitness Bootcamp',
-      description: 'Complete guide to personal financial management and budgeting strategies',
-      thumbnail: '',
-      duration: '4 weeks',
-      category: 'Personal Finance',
-      tags: ['budgeting', 'finance', 'planning'],
-      type: 'video',
-      content_url: 'https://example.com/financial-fitness',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ];
+  const { toast } = useToast();
 
   const fetchContent = async () => {
     try {
-      // Try to fetch from database
       const { data, error } = await supabase
-        .from('content_library' as any)
+        .from('content_library')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.log('Database not ready, using mock data');
-        setContent(mockContent);
-        setDatabaseError(true);
-      } else {
-        setContent((data as unknown as ContentItem[]) || []);
-        setDatabaseError(false);
-      }
+      if (error) throw error;
+      setContent((data || []) as ContentItem[]);
     } catch (error) {
-      console.log('Database connection error, using mock data');
-      setContent(mockContent);
-      setDatabaseError(true);
+      console.error('Error fetching content:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch content library",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -125,40 +95,43 @@ export const ContentLibraryManager = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (databaseError) {
-      toast.error('Database not available. Please set up the content_library table first.');
-      return;
-    }
-    
-    const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-    
-    const payload = {
-      title: formData.title,
-      description: formData.description || null,
-      thumbnail: formData.thumbnail || null,
-      duration: formData.duration || null,
-      category: formData.category || null,
-      tags: tagsArray.length > 0 ? tagsArray : null,
-      type: formData.type,
-      content_url: formData.content_url || null
-    };
-
     try {
+      const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+      
+      const contentData = {
+        title: formData.title,
+        description: formData.description || null,
+        thumbnail: formData.thumbnail || null,
+        duration: formData.duration || null,
+        category: formData.category || null,
+        tags: tagsArray,
+        type: formData.type,
+        content_url: formData.content_url || null
+      };
+
       if (editingItem) {
         const { error } = await supabase
-          .from('content_library' as any)
-          .update(payload)
+          .from('content_library')
+          .update(contentData)
           .eq('id', editingItem.id);
-        
+
         if (error) throw error;
-        toast.success('Content updated successfully');
+        
+        toast({
+          title: "Success",
+          description: "Content updated successfully"
+        });
       } else {
         const { error } = await supabase
-          .from('content_library' as any)
-          .insert([payload]);
-        
+          .from('content_library')
+          .insert([contentData]);
+
         if (error) throw error;
-        toast.success('Content created successfully');
+        
+        toast({
+          title: "Success",
+          description: "Content created successfully"
+        });
       }
 
       setIsDialogOpen(false);
@@ -166,7 +139,11 @@ export const ContentLibraryManager = () => {
       fetchContent();
     } catch (error) {
       console.error('Error saving content:', error);
-      toast.error('Failed to save content');
+      toast({
+        title: "Error",
+        description: "Failed to save content",
+        variant: "destructive"
+      });
     }
   };
 
@@ -186,35 +163,49 @@ export const ContentLibraryManager = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (databaseError) {
-      toast.error('Database not available. Please set up the content_library table first.');
-      return;
-    }
-
     if (!confirm('Are you sure you want to delete this content?')) return;
 
     try {
       const { error } = await supabase
-        .from('content_library' as any)
+        .from('content_library')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-      toast.success('Content deleted successfully');
+      
+      toast({
+        title: "Success",
+        description: "Content deleted successfully"
+      });
+      
       fetchContent();
     } catch (error) {
       console.error('Error deleting content:', error);
-      toast.error('Failed to delete content');
+      toast({
+        title: "Error",
+        description: "Failed to delete content",
+        variant: "destructive"
+      });
     }
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'blog': return '📚';
-      case 'video': return '🎥';
-      case 'pdf': return '📄';
-      case 'link': return '🔗';
-      default: return '📚';
+      case 'blog': return FileText;
+      case 'video': return Play;
+      case 'pdf': return Download;
+      case 'link': return ExternalLink;
+      default: return FileText;
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'blog': return 'bg-blue-100 text-blue-800';
+      case 'video': return 'bg-red-100 text-red-800';
+      case 'pdf': return 'bg-green-100 text-green-800';
+      case 'link': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -224,34 +215,10 @@ export const ContentLibraryManager = () => {
 
   return (
     <div className="space-y-6">
-      {databaseError && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Database table 'content_library' not found. Please run the following SQL to create it:
-            <pre className="mt-2 p-2 bg-muted rounded text-xs">
-{`CREATE TABLE content_library (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  title TEXT NOT NULL,
-  description TEXT,
-  thumbnail TEXT,
-  duration TEXT,
-  category TEXT,
-  tags TEXT[],
-  type TEXT CHECK (type IN ('blog', 'video', 'pdf', 'link')) NOT NULL,
-  content_url TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);`}
-            </pre>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Content Library Management</h1>
-          <p className="text-muted-foreground">Manage all learning resources and content</p>
+          <h2 className="text-2xl font-bold">Content Library Management</h2>
+          <p className="text-muted-foreground">Manage all learning content for employees</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -261,8 +228,7 @@ export const ContentLibraryManager = () => {
               Add Content
             </Button>
           </DialogTrigger>
-          
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {editingItem ? 'Edit Content' : 'Add New Content'}
@@ -272,104 +238,90 @@ export const ContentLibraryManager = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title *</Label>
+                  <label className="text-sm font-medium">Title</label>
                   <Input
-                    id="title"
-                    required
                     value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Content title"
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
                   />
                 </div>
-                
                 <div className="space-y-2">
-                  <Label htmlFor="type">Type *</Label>
-                  <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value as any }))}>
+                  <label className="text-sm font-medium">Content Type</label>
+                  <Select 
+                    value={formData.type} 
+                    onValueChange={(value: 'blog' | 'video' | 'pdf' | 'link') => 
+                      setFormData({ ...formData, type: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {CONTENT_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="blog">Blog Article</SelectItem>
+                      <SelectItem value="video">Video</SelectItem>
+                      <SelectItem value="pdf">PDF Document</SelectItem>
+                      <SelectItem value="link">External Link</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <label className="text-sm font-medium">Description</label>
                 <Textarea
-                  id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Content description"
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
                 />
               </div>
-
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="duration">Duration</Label>
+                  <label className="text-sm font-medium">Category</label>
                   <Input
-                    id="duration"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    placeholder="e.g., Personal Finance, Investments"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Duration</label>
+                  <Input
                     value={formData.duration}
-                    onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
-                    placeholder="e.g., 2 weeks, 90 min"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="thumbnail">Thumbnail URL</Label>
-                  <Input
-                    id="thumbnail"
-                    value={formData.thumbnail}
-                    onChange={(e) => setFormData(prev => ({ ...prev, thumbnail: e.target.value }))}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="tags">Tags (comma separated)</Label>
-                  <Input
-                    id="tags"
-                    value={formData.tags}
-                    onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-                    placeholder="finance, planning, budgeting"
+                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                    placeholder="e.g., 30 min, 2 weeks"
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="content_url">Content URL</Label>
+                <label className="text-sm font-medium">Tags (comma-separated)</label>
                 <Input
-                  id="content_url"
-                  value={formData.content_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, content_url: e.target.value }))}
-                  placeholder="https://example.com/content"
+                  value={formData.tags}
+                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                  placeholder="e.g., budgeting, planning, investing"
                 />
               </div>
-
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Content URL</label>
+                  <Input
+                    value={formData.content_url}
+                    onChange={(e) => setFormData({ ...formData, content_url: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Thumbnail URL</label>
+                  <Input
+                    value={formData.thumbnail}
+                    onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
@@ -385,47 +337,31 @@ export const ContentLibraryManager = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            Content Library ({content.length} items)
-          </CardTitle>
+          <CardTitle>All Content ({content.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {content.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No content available. Add some content to get started.
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Tags</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {content.map((item) => (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Duration</TableHead>
+                <TableHead>Tags</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {content.map((item) => {
+                const TypeIcon = getTypeIcon(item.type);
+                return (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{getTypeIcon(item.type)}</span>
-                        <div>
-                          <div>{item.title}</div>
-                          {item.description && (
-                            <div className="text-sm text-muted-foreground line-clamp-1">
-                              {item.description}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
+                    <TableCell className="font-medium">{item.title}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary">
-                        {CONTENT_TYPES.find(t => t.value === item.type)?.label}
+                      <Badge className={getTypeColor(item.type)}>
+                        <TypeIcon className="h-3 w-3 mr-1" />
+                        {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                       </Badge>
                     </TableCell>
                     <TableCell>{item.category}</TableCell>
@@ -433,57 +369,59 @@ export const ContentLibraryManager = () => {
                       {item.duration && (
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          <span className="text-sm">{item.duration}</span>
+                          {item.duration}
                         </div>
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1 flex-wrap">
-                        {item.tags?.slice(0, 2).map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {item.tags && item.tags.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{item.tags.length - 2}
-                          </Badge>
-                        )}
-                      </div>
+                      {item.tags && item.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {item.tags.slice(0, 2).map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              <Tag className="h-2 w-2 mr-1" />
+                              {tag}
+                            </Badge>
+                          ))}
+                          {item.tags.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{item.tags.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        {item.content_url && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => window.open(item.content_url!, '_blank')}
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                        )}
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-2 justify-end">
                         <Button
-                          size="sm"
                           variant="outline"
+                          size="sm"
                           onClick={() => handleEdit(item)}
-                          disabled={databaseError}
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
                         <Button
-                          size="sm"
                           variant="outline"
+                          size="sm"
                           onClick={() => handleDelete(item.id)}
-                          disabled={databaseError}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                );
+              })}
+            </TableBody>
+          </Table>
+          
+          {content.length === 0 && (
+            <div className="text-center py-12">
+              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No content found. Create your first content item.</p>
+            </div>
           )}
         </CardContent>
       </Card>
