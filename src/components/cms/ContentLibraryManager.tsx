@@ -56,12 +56,12 @@ export const ContentLibraryManager = () => {
   const fetchContent = async () => {
     try {
       const { data, error } = await supabase
-        .from('content_library')
+        .from('content_library' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setContent((data || []) as ContentItem[]);
+      setContent((data || []) as unknown as ContentItem[]);
     } catch (error) {
       console.error('Error fetching content:', error);
       toast({
@@ -111,7 +111,7 @@ export const ContentLibraryManager = () => {
 
       if (editingItem) {
         const { error } = await supabase
-          .from('content_library')
+          .from('content_library' as any)
           .update(contentData)
           .eq('id', editingItem.id);
 
@@ -123,7 +123,7 @@ export const ContentLibraryManager = () => {
         });
       } else {
         const { error } = await supabase
-          .from('content_library')
+          .from('content_library' as any)
           .insert([contentData]);
 
         if (error) throw error;
@@ -167,7 +167,7 @@ export const ContentLibraryManager = () => {
 
     try {
       const { error } = await supabase
-        .from('content_library')
+        .from('content_library' as any)
         .delete()
         .eq('id', id);
 

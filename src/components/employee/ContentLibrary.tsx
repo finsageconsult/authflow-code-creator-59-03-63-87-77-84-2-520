@@ -90,7 +90,7 @@ export const ContentLibrary = () => {
       // Fetch both content_library and blog_library
       const [contentResult, blogResult] = await Promise.all([
         supabase
-          .from('content_library')
+          .from('content_library' as any)
           .select('*')
           .order('created_at', { ascending: false }),
         supabase
@@ -103,7 +103,7 @@ export const ContentLibrary = () => {
 
       // Add content from content_library
       if (contentResult.data) {
-        allContent.push(...(contentResult.data as ContentItem[]));
+        allContent.push(...(contentResult.data as unknown as ContentItem[]));
       }
 
       // Add blogs from blog_library (convert to ContentItem format)
