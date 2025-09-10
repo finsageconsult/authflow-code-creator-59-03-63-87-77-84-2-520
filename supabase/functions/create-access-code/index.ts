@@ -8,10 +8,12 @@ const corsHeaders = {
 
 interface CreateAccessCodeRequest {
   code: string;
-  organization_id: string;
+  organization_id: string | null;
   role: string;
   max_uses: number;
   email: string;
+  expires_in_days?: number;
+  expires_at?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -20,7 +22,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { code, organization_id, role, max_uses, email }: CreateAccessCodeRequest = await req.json();
+    const body: CreateAccessCodeRequest = await req.json();
+    const { code, organization_id, role, max_uses, email } = body;
 
     // Create admin client with service role key to bypass RLS
     const supabaseAdmin = createClient(
@@ -31,6 +34,14 @@ const handler = async (req: Request): Promise<Response> => {
     // For coaches, organization_id should be null as they're not tied to orgs
     const actualOrgId = role === 'COACH' ? null : organization_id;
 
+    // Determine expiry (default 30 days if not provided)
+    const now = new Date();
+    const expiresAt = body.expires_at
+      ? new Date(body.expires_at).toISOString()
+      : new Date(now.getTime() + ((typeof body.expires_in_days === 'number' && body.expires_in_days > 0 ? body.expires_in_days : 30) * 24 * 60 * 60 * 1000)).toISOString();
+
+    const nowIso = now.toISOString();
+
     // Check if an active access code already exists for this email (for coaches, check globally)
     let checkError = null;
     let existingCodes = null;
@@ -39,22 +50,24 @@ const handler = async (req: Request): Promise<Response> => {
       // For coaches, check globally across all records with this email
       const { data, error } = await supabaseAdmin
         .from('access_codes')
-        .select('id, code, email')
+        .select('id, code, email, expires_at')
         .eq('email', email)
         .eq('role', 'COACH')
-        .gt('max_uses', 0);
-      
+        .gt('max_uses', 0)
+        .gt('expires_at', nowIso);
+
       existingCodes = data;
       checkError = error;
     } else {
       // For other roles, check within organization
       const { data, error } = await supabaseAdmin
         .from('access_codes')
-        .select('id, code, email')
+        .select('id, code, email, expires_at')
         .eq('organization_id', actualOrgId)
         .eq('email', email)
-        .gt('max_uses', 0);
-      
+        .gt('max_uses', 0)
+        .gt('expires_at', nowIso);
+
       existingCodes = data;
       checkError = error;
     }
@@ -75,7 +88,8 @@ const handler = async (req: Request): Promise<Response> => {
         role,
         max_uses,
         used_count: 0,
-        email
+        email,
+        expires_at: expiresAt
       })
       .select()
       .single();
