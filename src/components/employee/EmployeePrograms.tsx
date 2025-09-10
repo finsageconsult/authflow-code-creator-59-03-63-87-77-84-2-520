@@ -226,8 +226,7 @@ export const EmployeePrograms = () => {
 
   // Filter programs for short programs category or show all active programs
   const availablePrograms = programs.filter(program => program.is_active);
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Free Courses & Tools Section */}
       <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border">
         <div className="flex items-center gap-3 mb-4">
@@ -300,152 +299,112 @@ export const EmployeePrograms = () => {
         })}
       </div>
 
-        {/* Group programs by category */}
-        {Object.entries(groupedPrograms).map(([category, categoryPrograms]) => {
-          // Skip empty categories
-          if (selectedCategory !== 'all' && selectedCategory !== category) return null;
-          
-          const categoryDetails = {
-            'course': { label: 'Courses', icon: GraduationCap, color: 'text-blue-600' },
-            'webinar': { label: 'Webinars', icon: Users, color: 'text-purple-600' },
-            'coaching': { label: 'Coaching', icon: Target, color: 'text-green-600' },
-            'finance': { label: 'Finance Planning', icon: DollarSign, color: 'text-orange-600' },
-            'tax': { label: 'Tax Planning', icon: Calculator, color: 'text-red-600' },
-            'investment': { label: 'Investments', icon: TrendingUp, color: 'text-indigo-600' },
-            'insurance': { label: 'Insurance', icon: Shield, color: 'text-cyan-600' },
-            'wellness': { label: 'Financial Wellness', icon: Heart, color: 'text-pink-600' },
-            'short-program': { label: 'Short Programs', icon: Target, color: 'text-green-600' },
-            '1-1-sessions': { label: '1-on-1 Sessions', icon: Users, color: 'text-purple-600' }
-          }[category] || { label: category, icon: BookOpen, color: 'text-gray-600' };
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {availablePrograms.map(program => {
+          // Check if user has already enrolled in this program
+          const isEnrolled = enrolledPrograms.has(program.id);
+          return <Card key={program.id} className="group hover:shadow-lg transition-all bg-white/70">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base line-clamp-2">
+                      {program.title}
+                    </CardTitle>
+                    {isEnrolled ? <Badge className="bg-green-100 text-green-700">
+                        ✓ Enrolled
+                      </Badge> : <Badge className="bg-blue-100 text-blue-700">
+                        FREE
+                      </Badge>}
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {program.description}
+                  </p>
 
-          const CategoryIcon = categoryDetails.icon;
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {program.duration}
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {program.level}
+                    </Badge>
+                  </div>
 
-          return (
-            <div key={category} className="space-y-4">
-              {/* Category Header */}
-              <div className="flex items-center gap-3 border-b pb-2">
-                <CategoryIcon className={`h-6 w-6 ${categoryDetails.color}`} />
-                <h2 className="text-xl font-semibold">
-                  {categoryDetails.label} ({categoryPrograms.length})
-                </h2>
-              </div>
-
-              {/* Programs Grid for this category */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {categoryPrograms.map(program => {
-                  // Check if user has already enrolled in this program
-                  const isEnrolled = enrolledPrograms.has(program.id);
-                  return (
-                    <Card key={program.id} className="group hover:shadow-lg transition-all bg-white/70">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <CardTitle className="text-base line-clamp-2">
-                            {program.title}
-                          </CardTitle>
-                          {isEnrolled ? (
-                            <Badge className="bg-green-100 text-green-700">
-                              ✓ Enrolled
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-blue-100 text-blue-700">
-                              FREE
-                            </Badge>
-                          )}
-                        </div>
-                      </CardHeader>
-                      
-                      <CardContent className="space-y-4">
-                        <p className="text-sm text-muted-foreground line-clamp-3">
-                          {program.description}
-                        </p>
-
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {program.duration}
-                          </div>
-                          <Badge variant="outline" className="text-xs">
-                            {program.level}
-                          </Badge>
-                        </div>
-
-                        <div className="pt-2 border-t">
-                          <div className="text-center mb-3">
-                            <div className="text-lg font-bold text-green-600">
-                              ✓ FREE with Organization Plan
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              One-time enrollment per employee
-                            </div>
-                          </div>
-                          
-                          {isEnrolled ? (
-                            <div className="space-y-2">
-                              {(() => {
-                                const { link, scheduledAt } = getMeetingInfo(program.id);
-                                console.log(`Program: ${program.title}`, { link, scheduledAt, programId: program.id });
-                                
-                                if (link && isMeetingActive(scheduledAt, link)) {
-                                  console.log(`Showing join button for ${program.title}`);
-                                  return (
-                                    <Button 
-                                      className="w-full" 
-                                      variant="default"
-                                      onClick={() => window.open(link!, '_blank')}
-                                    >
-                                      <Video className="w-4 h-4 mr-2" />
-                                      Join Session
-                                    </Button>
-                                  );
-                                } else {
-                                  // No session link available or not active yet
-                                  return (
-                                    <Button 
-                                      className="w-full" 
-                                      variant="outline"
-                                      disabled
-                                    >
-                                      ✓ Enrolled - Session link will be provided once scheduled
-                                    </Button>
-                                  );
-                                }
-                              })()}
-                            </div>
-                          ) : (
-                            <Button 
-                              className="w-full" 
-                              onClick={() => {
-                                console.log('Enroll button clicked for program:', program.id);
-                                const courseData = {
-                                  id: program.id,
-                                  title: program.title,
-                                  description: program.description,
-                                  duration: program.duration,
-                                  price: 0, // Free for employees
-                                  category: program.category,
-                                  tags: program.tags || ['financial-planning', 'budgeting', 'investing'] // Use program tags or defaults
-                                };
-                                console.log('Setting course data:', courseData);
-                                setSelectedCourse(courseData);
-                                console.log('Setting showEnrollment to true');
-                                setShowEnrollment(true);
-                              }}
-                            >
-                              Enroll Now - FREE
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          );
+                  <div className="pt-2 border-t">
+                    <div className="text-center mb-3">
+                      <div className="text-lg font-bold text-green-600">
+                        ✓ FREE with Organization Plan
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        One-time enrollment per employee
+                      </div>
+                    </div>
+                    
+                     {isEnrolled ? (
+                       <div className="space-y-2">
+                         {(() => {
+                           const { link, scheduledAt } = getMeetingInfo(program.id);
+                           console.log(`Program: ${program.title}`, { link, scheduledAt, programId: program.id });
+                           
+                            if (link && isMeetingActive(scheduledAt, link)) {
+                              console.log(`Showing join button for ${program.title}`);
+                              return (
+                                <Button 
+                                  className="w-full" 
+                                  variant="default"
+                                  onClick={() => window.open(link!, '_blank')}
+                                >
+                                  <Video className="w-4 h-4 mr-2" />
+                                  Join Session
+                                </Button>
+                              );
+                            } else {
+                              // No session link available or not active yet
+                              return (
+                                <Button 
+                                  className="w-full" 
+                                  variant="outline"
+                                  disabled
+                                >
+                                  ✓ Enrolled - Session link will be provided once scheduled
+                                </Button>
+                              );
+                            }
+                         })()}
+                       </div>
+                    ) : (
+                      <Button 
+                        className="w-full" 
+                        onClick={() => {
+                          console.log('Enroll button clicked for program:', program.id);
+                          const courseData = {
+                            id: program.id,
+                            title: program.title,
+                            description: program.description,
+                            duration: program.duration,
+                            price: 0, // Free for employees
+                            category: program.category,
+                            tags: program.tags || ['financial-planning', 'budgeting', 'investing'] // Use program tags or defaults
+                          };
+                          console.log('Setting course data:', courseData);
+                          setSelectedCourse(courseData);
+                          console.log('Setting showEnrollment to true');
+                          setShowEnrollment(true);
+                        }}
+                      >
+                        Enroll Now - FREE
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>;
         })}
+        </div>
+      </div>
 
-      {programs.length === 0 && (
-        <Card className="p-8 text-center">
+      {programs.length === 0 && <Card className="p-8 text-center">
           <div className="flex flex-col items-center gap-3">
             <BookOpen className="h-12 w-12 text-muted-foreground" />
             <h3 className="font-semibold">No Programs Available</h3>
@@ -453,8 +412,7 @@ export const EmployeePrograms = () => {
               Programs will be available soon. Check back later for new learning opportunities.
             </p>
           </div>
-        </Card>
-      )}
+        </Card>}
       
       {/* Enrollment Workflow Modal */}
       {showEnrollment && selectedCourse && (
@@ -496,5 +454,5 @@ export const EmployeePrograms = () => {
           </div>
         </div>
       )}
-    </div>
-  );
+    </div>;
+};
