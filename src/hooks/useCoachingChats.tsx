@@ -145,9 +145,23 @@ export const useCoachingChats = () => {
         const program = programMap[enrollment.course_id];
         const coach = coachMap[enrollment.coach_id];
         
-        if (coach && program) {
+        if (program) {
           // Create or find coaching chat
           let chatId = chatMap[enrollment.coach_id];
+          
+          // If no coach data, create fallback coach data
+          let coachData = coach;
+          if (!coachData) {
+            console.log('Creating fallback coach data for coach_id:', enrollment.coach_id);
+            coachData = {
+              id: enrollment.coach_id,
+              name: 'Financial Coach',
+              bio: 'Expert coach specializing in financial guidance',
+              rating: 4.8,
+              specialties: ['Financial Planning'],
+              experience: '5+ years'
+            };
+          }
           
           if (!chatId) {
             console.log('Creating new coaching chat for enrollment:', enrollment.id);
@@ -168,7 +182,7 @@ export const useCoachingChats = () => {
             title: program.title,
             category: program.category === '1-1-sessions' ? '1-1-sessions' : 'short-program',
             description: program.description,
-            coach,
+            coach: coachData,
             purchaseDate: enrollment.created_at,
             progress: 0,
             chatId
@@ -176,7 +190,7 @@ export const useCoachingChats = () => {
           
           console.log('Added course to list:', program.title);
         } else {
-          console.log('Missing data for enrollment:', enrollment.id, { hasCoach: !!coach, hasProgram: !!program });
+          console.log('Missing program data for enrollment:', enrollment.id, { hasCoach: !!coach, hasProgram: !!program });
         }
       }
       
