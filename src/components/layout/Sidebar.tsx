@@ -166,11 +166,6 @@ const hrMenuItems = [{
   icon: Calendar,
   roles: ['HR']
 }, {
-  title: 'Calendar',
-  url: '/hr-dashboard/calendar',
-  icon: Clock,
-  roles: ['HR']
-}, {
   title: 'Support',
   url: '/hr-dashboard/support',
   icon: HelpCircle,
