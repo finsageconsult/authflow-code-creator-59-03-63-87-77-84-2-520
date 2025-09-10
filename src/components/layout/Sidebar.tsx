@@ -171,11 +171,6 @@ const hrMenuItems = [{
   icon: Clock,
   roles: ['HR']
 }, {
-  title: 'Insights',
-  url: '/hr-dashboard/insights',
-  icon: BarChart3,
-  roles: ['HR']
-}, {
   title: 'Support',
   url: '/hr-dashboard/support',
   icon: HelpCircle,
