@@ -30,7 +30,7 @@ const Header = () => {
           
           <Button 
             variant="ghost"
-            className="text-foreground hover:text-primary transition-colors"
+            className="text-foreground hover:text-primary hover:bg-transparent transition-colors"
             onClick={() => window.location.href = '/auth/individual'}
           >
             For Individuals
