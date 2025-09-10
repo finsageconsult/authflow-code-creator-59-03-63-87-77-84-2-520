@@ -407,7 +407,6 @@ export const CoachAssignments = () => {
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm md:text-base truncate">{student.name}</p>
-                        <p className="text-xs md:text-sm text-muted-foreground truncate">{student.email}</p>
                         <Badge variant="outline" className="text-xs mt-1">{student.user_type}</Badge>
                       </div>
                     </div>

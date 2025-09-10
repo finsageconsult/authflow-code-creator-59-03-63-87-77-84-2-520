@@ -184,11 +184,6 @@ export const WebinarsView = () => {
                 </div>
               </div>
 
-              {webinar.credits_required && webinar.credits_required > 0 && (
-                <Badge variant="outline" className="w-fit">
-                  {webinar.credits_required} credits required
-                </Badge>
-              )}
               
               <div className="mt-auto pt-4">
                 <Button 

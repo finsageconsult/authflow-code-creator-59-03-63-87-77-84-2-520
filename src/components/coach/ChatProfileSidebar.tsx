@@ -135,7 +135,7 @@ export const ChatProfileSidebar: React.FC<ChatProfileSidebarProps> = ({
                             </div>
                           </div>
                           
-                          <p className="text-xs text-muted-foreground truncate mb-2">{student.email}</p>
+                          
                           
                           {/* Latest Program */}
                           {student.enrollments.length > 0 ? (

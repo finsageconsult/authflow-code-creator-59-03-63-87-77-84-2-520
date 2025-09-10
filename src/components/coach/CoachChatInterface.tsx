@@ -61,7 +61,7 @@ export const CoachChatInterface: React.FC = () => {
       const transformedStudents: CoachingStudent[] = studentsData.map((student: any) => ({
         id: student.id,
         name: student.name || 'Unknown User',
-        email: student.email || 'No email',
+        email: '', // Hide email for privacy
         user_type: student.user_type || 'User',
         enrollments: student.enrollments || []
       }));
