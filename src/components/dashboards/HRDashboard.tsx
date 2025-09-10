@@ -28,6 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { SupportQuery } from '@/components/support/SupportQuery';
 
 interface HRStats {
   totalEmployees: number;
@@ -414,10 +415,11 @@ export const HRDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 gap-1">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 gap-1">
           <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
           <TabsTrigger value="people" className="text-xs sm:text-sm">People</TabsTrigger>
           <TabsTrigger value="credits" className="text-xs sm:text-sm">Credits</TabsTrigger>
+          <TabsTrigger value="support" className="text-xs sm:text-sm">Support</TabsTrigger>
           <TabsTrigger value="calendar" className="text-xs sm:text-sm lg:block hidden">Calendar</TabsTrigger>
           <TabsTrigger value="insights" className="text-xs sm:text-sm lg:block hidden">Insights</TabsTrigger>
           <TabsTrigger value="invoices" className="text-xs sm:text-sm lg:block hidden">Invoices</TabsTrigger>
@@ -430,6 +432,7 @@ export const HRDashboard = () => {
               <SelectValue placeholder="More sections..." />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="support">Support</SelectItem>
               <SelectItem value="calendar">Calendar</SelectItem>
               <SelectItem value="insights">Insights</SelectItem>
               <SelectItem value="invoices">Invoices</SelectItem>
@@ -756,6 +759,11 @@ export const HRDashboard = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Support Tab */}
+        <TabsContent value="support" className="space-y-6">
+          <SupportQuery />
         </TabsContent>
 
         {/* Tickets/Referrals Tab */}
