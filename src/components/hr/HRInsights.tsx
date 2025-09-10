@@ -76,13 +76,274 @@ export const HRInsights = () => {
   }
 
   if (!insights) {
+    // Show sample data when no real insights are available
+    const sampleInsights: AnonymizedInsights = {
+      totalEmployees: 45,
+      activeParticipants: 32,
+      avgStressLevel: 6.2,
+      avgConfidenceLevel: 7.8,
+      moodDistribution: {
+        optimistic: 12,
+        confident: 8,
+        neutral: 7,
+        concerned: 5,
+        stressed: 3
+      },
+      topConcerns: {
+        "debt management": 18,
+        "emergency savings": 14,
+        "retirement planning": 12,
+        "budgeting skills": 10,
+        "investment knowledge": 8
+      },
+      webinarAttendanceRate: 0.73,
+      oneOnOneBookingRate: 0.45,
+      toolUsageRate: 0.68
+    };
+
     return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Analytics & Insights</h1>
+      <div className="space-y-4 md:space-y-6 p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-2xl md:text-3xl font-bold">Analytics & Insights</h1>
+          <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs md:text-sm">
+            Sample Data - Live insights coming soon
+          </div>
+        </div>
+
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
+              <Activity className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl md:text-2xl font-bold">71%</div>
+              <p className="text-xs text-muted-foreground">32 of 45 employees active</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Financial Wellness</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl md:text-2xl font-bold">7.8/10</div>
+              <p className="text-xs text-muted-foreground">Above average confidence</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Stress Level</CardTitle>
+              <BarChart3 className="h-4 w-4 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl md:text-2xl font-bold">6.2/10</div>
+              <p className="text-xs text-muted-foreground">Moderate stress detected</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tool Usage</CardTitle>
+              <Target className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl md:text-2xl font-bold">68%</div>
+              <p className="text-xs text-muted-foreground">Active engagement</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Program Participation */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <Users className="h-5 w-5" />
+                Program Participation
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Webinar Attendance</span>
+                  <span className="font-semibold">73%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: '73%' }}></div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>1-on-1 Coaching Bookings</span>
+                  <span className="font-semibold">45%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div className="bg-green-600 h-2 rounded-full" style={{ width: '45%' }}></div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Financial Tools Usage</span>
+                  <span className="font-semibold">68%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div className="bg-purple-600 h-2 rounded-full" style={{ width: '68%' }}></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <PieChart className="h-5 w-5" />
+                Employee Sentiment
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    Optimistic
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 bg-muted rounded-full h-2">
+                      <div className="bg-green-500 h-2 rounded-full" style={{ width: '60%' }}></div>
+                    </div>
+                    <span className="text-sm text-muted-foreground w-8 text-right">12</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    Confident
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 bg-muted rounded-full h-2">
+                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '40%' }}></div>
+                    </div>
+                    <span className="text-sm text-muted-foreground w-8 text-right">8</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    Neutral
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 bg-muted rounded-full h-2">
+                      <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '35%' }}></div>
+                    </div>
+                    <span className="text-sm text-muted-foreground w-8 text-right">7</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm flex items-center gap-2">
+                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    Concerned
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 bg-muted rounded-full h-2">
+                      <div className="bg-orange-500 h-2 rounded-full" style={{ width: '25%' }}></div>
+                    </div>
+                    <span className="text-sm text-muted-foreground w-8 text-right">5</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    Stressed
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 bg-muted rounded-full h-2">
+                      <div className="bg-red-500 h-2 rounded-full" style={{ width: '15%' }}></div>
+                    </div>
+                    <span className="text-sm text-muted-foreground w-8 text-right">3</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Top Financial Concerns */}
         <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <Target className="h-5 w-5" />
+              Top Financial Concerns & Focus Areas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+              {[
+                { concern: "Debt Management", mentions: 18, priority: "high" },
+                { concern: "Emergency Savings", mentions: 14, priority: "high" },
+                { concern: "Retirement Planning", mentions: 12, priority: "medium" },
+                { concern: "Budgeting Skills", mentions: 10, priority: "medium" },
+                { concern: "Investment Knowledge", mentions: 8, priority: "low" },
+                { concern: "Credit Score Improvement", mentions: 6, priority: "low" }
+              ].map(({ concern, mentions, priority }) => (
+                <div key={concern} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 border rounded-lg gap-2">
+                  <span className="font-medium text-sm">{concern}</span>
+                  <div className="flex items-center gap-2">
+                    <div className={`px-2 py-1 rounded text-xs ${
+                      priority === 'high' ? 'bg-red-100 text-red-800' :
+                      priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {mentions} employees
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recommendations */}
+        <Card className="border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="text-green-800 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              AI-Powered Recommendations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-green-800 text-sm">
+                  <strong>Focus on Debt Management:</strong> 40% of employees mention debt concerns. Consider scheduling specialized webinars on debt consolidation and payment strategies.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-green-800 text-sm">
+                  <strong>Boost Emergency Fund Education:</strong> Emergency savings is the second top concern. Promote the savings calculator tool and emergency fund webinars.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-green-800 text-sm">
+                  <strong>Increase 1-on-1 Coaching:</strong> Only 45% booking rate suggests opportunity to promote personalized coaching benefits and success stories.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Privacy Notice */}
+        <Card className="border-blue-200 bg-blue-50">
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              No analytics data available yet. Insights will appear as employees engage with the platform.
+            <p className="text-sm text-blue-800">
+              <strong>Privacy Protected:</strong> All insights are anonymized and aggregated to protect individual privacy. 
+              No personal data or individual responses are visible in these analytics.
             </p>
           </CardContent>
         </Card>
