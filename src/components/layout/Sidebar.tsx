@@ -191,8 +191,15 @@ export const Sidebar = () => {
   
   const isActive = (path: string) => {
     const fullCurrentUrl = currentPath + currentSearch;
-    if (path.includes('?')) {
+    
+    // If current URL has query parameters, only match exact URLs with query parameters
+    if (currentSearch) {
       return fullCurrentUrl === path;
+    }
+    
+    // If no query parameters, match normally
+    if (path.includes('?')) {
+      return false; // Current URL has no query params, so tab-specific URLs shouldn't match
     }
     return currentPath === path;
   };
