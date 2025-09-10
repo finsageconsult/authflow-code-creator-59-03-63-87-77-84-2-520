@@ -261,53 +261,26 @@ export const SessionManager = () => {
         organization_id: userProfile?.organization_id
       });
 
-      // First check if a session already exists
-      const { data: existingSession, error: checkError } = await supabase
+      // Use upsert to avoid duplicates - this will update if exists or insert if not
+      const { error: upsertError } = await supabase
         .from('coaching_sessions')
-        .select('id')
-        .eq('coach_id', userProfile?.id)
-        .eq('client_id', enrollment.user.id)
-        .eq('scheduled_at', enrollment.scheduledAt)
-        .maybeSingle();
+        .upsert({
+          coach_id: userProfile?.id,
+          client_id: enrollment.user.id,
+          scheduled_at: enrollment.scheduledAt,
+          session_type: enrollment.course?.title || 'Coaching Session',
+          meeting_link: linkToUse,
+          status: 'scheduled',
+          organization_id: userProfile?.organization_id || null,
+          duration_minutes: 60,
+        }, {
+          onConflict: 'coach_id,client_id,scheduled_at',
+          ignoreDuplicates: false
+        });
 
-      if (checkError) {
-        console.error('Error checking existing session:', checkError);
-        throw checkError;
-      }
-
-      let sessionError;
-      if (existingSession) {
-        // Update existing session
-        const { error } = await supabase
-          .from('coaching_sessions')
-          .update({
-            meeting_link: linkToUse,
-            status: 'scheduled',
-            session_type: enrollment.course?.title || 'Coaching Session',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingSession.id);
-        sessionError = error;
-      } else {
-        // Insert new session
-        const { error } = await supabase
-          .from('coaching_sessions')
-          .insert({
-            coach_id: userProfile?.id,
-            client_id: enrollment.user.id,
-            scheduled_at: enrollment.scheduledAt,
-            session_type: enrollment.course?.title || 'Coaching Session',
-            meeting_link: linkToUse,
-            status: 'scheduled',
-            organization_id: userProfile?.organization_id || null,
-            duration_minutes: 60,
-          });
-        sessionError = error;
-      }
-
-      if (sessionError) {
-        console.error('Session operation error:', sessionError);
-        throw sessionError;
+      if (upsertError) {
+        console.error('Session upsert error:', upsertError);
+        throw upsertError;
       }
 
       // Also update the enrollment status to confirmed when link is set

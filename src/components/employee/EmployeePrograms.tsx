@@ -376,45 +376,41 @@ export const EmployeePrograms = () => {
                            const { link, scheduledAt } = getMeetingInfo(program.id);
                            console.log(`Program: ${program.title}`, { link, scheduledAt, programId: program.id });
                            
-                           return (
-                             <Button 
-                               className="w-full" 
-                               variant="default"
-                               onClick={async () => {
-                                 // Fetch latest session info when button is clicked
-                                 try {
-                                   const { data: sessionsData } = await supabase
-                                     .from('coaching_sessions')
-                                     .select('*')
-                                     .eq('client_id', userProfile?.id)
-                                     .order('updated_at', { ascending: false });
-                                   
-                                   console.log('Fetched latest sessions:', sessionsData);
-                                   
-                                   if (sessionsData && sessionsData.length > 0) {
-                                     const activeSession = sessionsData.find(s => 
-                                       s.meeting_link && s.scheduled_at
-                                     );
-                                     
-                                     if (activeSession?.meeting_link) {
-                                       window.open(activeSession.meeting_link, '_blank');
-                                       toast.success('Opening session link');
-                                     } else {
-                                       toast.error('Session link not yet available. Please check back closer to your scheduled time.');
-                                     }
-                                   } else {
-                                     toast.error('No session scheduled yet. Your coach will provide the link soon.');
-                                   }
-                                 } catch (error) {
-                                   console.error('Error fetching session link:', error);
-                                   toast.error('Unable to fetch session link. Please try again.');
-                                 }
-                               }}
-                             >
-                               <Video className="w-4 h-4 mr-2" />
-                               Join Session
-                             </Button>
-                           );
+                           if (link && isMeetingActive(scheduledAt, link)) {
+                             console.log(`Showing join button for ${program.title}`);
+                             return (
+                               <Button 
+                                 className="w-full" 
+                                 variant="default"
+                                 onClick={() => window.open(link!, '_blank')}
+                               >
+                                 <Video className="w-4 h-4 mr-2" />
+                                 Join Session
+                               </Button>
+                             );
+                           } else if (link && scheduledAt) {
+                             // Show session scheduled message
+                             return (
+                               <Button 
+                                 className="w-full" 
+                                 variant="outline"
+                                 disabled
+                               >
+                                 Session Scheduled - Link will be available closer to start time
+                               </Button>
+                             );
+                           } else {
+                             // No session link available
+                             return (
+                               <Button 
+                                 className="w-full" 
+                                 variant="outline"
+                                 disabled
+                               >
+                                 ✓ Enrolled - Session link will be provided once scheduled
+                               </Button>
+                             );
+                           }
                          })()}
                        </div>
                     ) : (
