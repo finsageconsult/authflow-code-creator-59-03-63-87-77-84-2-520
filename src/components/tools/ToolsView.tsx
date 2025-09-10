@@ -299,13 +299,7 @@ export const ToolsView = () => {
                           {tool.description}
                         </p>
 
-                        {/* Show unlimited access message for employees */}
-                        {!isOwned && (
-                          <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                            <p className="text-sm text-green-700 font-medium">✓ Unlimited Free Access</p>
-                            <p className="text-xs text-green-600 mt-1">Part of your organization plan</p>
-                          </div>
-                        )}
+                        {/* Show unlimited access message for employees removed */}
 
                         {tool.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1">
