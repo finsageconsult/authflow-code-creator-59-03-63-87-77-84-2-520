@@ -287,9 +287,6 @@ export const ToolsView = () => {
                                 Free
                               </Badge>
                             )}
-                            <Badge variant="outline" className="text-xs capitalize">
-                              {tool.tool_type}
-                            </Badge>
                           </div>
                         </div>
                       </CardHeader>
