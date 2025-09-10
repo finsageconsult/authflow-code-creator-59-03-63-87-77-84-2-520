@@ -509,65 +509,6 @@ export const IndividualDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* My Bookings Section */}
-            <Card>
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Calendar className="h-5 w-5" />
-                  My Bookings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0">
-                {loadingEnrollments ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                ) : enrollments.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No bookings found</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {enrollments.map((enrollment) => {
-                      const staticProgram = staticIndividualPrograms.find(p => p.id === enrollment.course_id);
-                      const displayTitle = staticProgram?.title || 'Unknown Program';
-                      
-                      return (
-                        <div key={enrollment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-sm sm:text-base">{displayTitle}</h3>
-                            <p className="text-xs sm:text-sm text-muted-foreground">
-                              Scheduled: {enrollment.scheduled_at ? new Date(enrollment.scheduled_at).toLocaleString() : 'TBD'}
-                            </p>
-                            <p className="text-xs sm:text-sm text-muted-foreground">
-                              Enrolled: {new Date(enrollment.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
-                            <span className="font-semibold text-sm sm:text-base">{formatPrice(enrollment.amount_paid || 0)}</span>
-                            <Badge variant={enrollment.status === 'confirmed' ? 'default' : 'secondary'} className="text-xs w-fit">
-                              {enrollment.status}
-                            </Badge>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                if (enrollment.meeting_link) {
-                                  window.open(enrollment.meeting_link, '_blank', 'noopener,noreferrer');
-                                } else {
-                                  toast.error('Meeting link not available yet.');
-                                }
-                              }}
-                            >
-                              Join Session
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
         );
       case 'mood':
