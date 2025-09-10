@@ -255,7 +255,7 @@ export default function Auth() {
         return;
       }
 
-      toast.success(`Welcome to ${userData.organizationName}!`);
+      
       redirectToDashboard(userData.role);
       
     } catch (error) {
