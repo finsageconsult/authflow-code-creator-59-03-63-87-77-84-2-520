@@ -211,28 +211,14 @@ export const EmployeePrograms = () => {
   const isMeetingActive = (scheduledAt?: string | null, meetingLink?: string | null) => {
     console.log('isMeetingActive called with:', { scheduledAt, meetingLink });
     
+    // If there's a meeting link, consider it active regardless of timing
     if (!scheduledAt || !meetingLink) {
       console.log('Missing scheduledAt or meetingLink');
       return false;
     }
     
-    const sessionTime = new Date(scheduledAt).getTime();
-    const now = Date.now();
-    
-    // Show join button for upcoming sessions (within 2 weeks)
-    const twoWeeksFromNow = now + (14 * 24 * 60 * 60 * 1000);
-    const twoHoursAfterSession = sessionTime + (2 * 60 * 60 * 1000);
-    
-    const isActive = sessionTime <= twoWeeksFromNow && now <= twoHoursAfterSession;
-    console.log('Meeting active check:', { 
-      now: new Date(now), 
-      sessionTime: new Date(sessionTime),
-      twoWeeksFromNow: new Date(twoWeeksFromNow),
-      twoHoursAfterSession: new Date(twoHoursAfterSession),
-      isActive 
-    });
-    
-    return isActive;
+    console.log('Meeting has link - considering active');
+    return true;
   };
 
   const handleProgramClick = (program: Program) => {
