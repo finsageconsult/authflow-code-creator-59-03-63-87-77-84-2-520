@@ -190,8 +190,9 @@ export const Sidebar = () => {
   const currentSearch = location.search;
   
   const isActive = (path: string) => {
+    const fullCurrentUrl = currentPath + currentSearch;
     if (path.includes('?')) {
-      return currentPath + currentSearch === path;
+      return fullCurrentUrl === path;
     }
     return currentPath === path;
   };
