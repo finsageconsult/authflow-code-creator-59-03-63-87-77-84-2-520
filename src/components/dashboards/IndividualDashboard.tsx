@@ -33,7 +33,8 @@ import {
   Award,
   CreditCard,
   Menu,
-  RefreshCw
+  RefreshCw,
+  MessageSquare
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -214,13 +215,19 @@ export const IndividualDashboard = () => {
     
     setLoadingEnrollments(true);
     try {
+      console.log('Fetching enrollments for user:', userProfile.id);
       const { data: enrolls, error } = await supabase
         .from('enrollments')
         .select('*')
         .eq('user_id', userProfile.id)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Enrollment fetch error:', error);
+        throw error;
+      }
+      
+      console.log('Fetched enrollments:', enrolls);
 
       // Fetch any coaching sessions for this user and merge meeting links
       const { data: sessions } = await supabase
@@ -422,38 +429,120 @@ export const IndividualDashboard = () => {
         );
       case 'bookings':
         return (
-          <Card>
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Calendar className="h-5 w-5" />
-                My Bookings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6 pt-0">
-              {loadingEnrollments ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                </div>
-              ) : enrollments.length === 0 ? (
-                <p className="text-muted-foreground text-sm sm:text-base">No bookings found.</p>
-              ) : (
-                <div className="space-y-4">
-                  {enrollments.map((enrollment) => {
-                    // Map course_id to program title
-                    const program = staticIndividualPrograms.find(p => p.id === enrollment.course_id);
-                    const programTitle = program?.title || 'Unknown Program';
-                    
-                    return (
-                      <div key={enrollment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow">
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-medium text-sm sm:text-base truncate">{programTitle}</h4>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            Scheduled: {enrollment.scheduled_at ? new Date(enrollment.scheduled_at).toLocaleString() : 'TBD'}
-                          </p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            Enrolled: {new Date(enrollment.created_at).toLocaleDateString()}
-                          </p>
+          <div className="space-y-4 sm:space-y-6">
+            {/* Coaching Sessions Section */}
+            <Card>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <MessageSquare className="h-5 w-5" />
+                  Your Coaching Sessions
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Connect with your coaches and access your enrolled programs
+                </p>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6 pt-0">
+                {loadingEnrollments ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : enrollments.filter(e => e.status === 'confirmed').length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Coaching Sessions Yet</h3>
+                    <p className="text-muted-foreground text-center mb-4">
+                      Purchase a program to get access to your dedicated coach and start chatting.
+                    </p>
+                    <Button onClick={() => setSearchParams({ tab: 'programs' })}>
+                      Browse Programs
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {enrollments.filter(e => e.status === 'confirmed').map((enrollment) => {
+                      const staticProgram = staticIndividualPrograms.find(p => p.id === enrollment.course_id);
+                      const displayTitle = staticProgram?.title || 'Unknown Program';
+                      
+                      return (
+                        <div key={enrollment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover:shadow-md transition-shadow">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm sm:text-base">{displayTitle}</h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              Scheduled: {enrollment.scheduled_at ? new Date(enrollment.scheduled_at).toLocaleString() : 'TBD'}
+                            </p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              Enrolled: {new Date(enrollment.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
+                            <span className="font-semibold text-sm sm:text-base">{formatPrice(enrollment.amount_paid || 0)}</span>
+                            <Badge variant="default" className="text-xs w-fit">
+                              {enrollment.status}
+                            </Badge>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setSearchParams({ tab: 'chat' })}
+                              >
+                                Start Chat
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  if (enrollment.meeting_link) {
+                                    window.open(enrollment.meeting_link, '_blank', 'noopener,noreferrer');
+                                  } else {
+                                    toast.error('Meeting link will be provided before your scheduled session.');
+                                  }
+                                }}
+                              >
+                                Join Session
+                              </Button>
+                            </div>
+                          </div>
                         </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* My Bookings Section */}
+            <Card>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Calendar className="h-5 w-5" />
+                  My Bookings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6 pt-0">
+                {loadingEnrollments ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : enrollments.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No bookings found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {enrollments.map((enrollment) => {
+                      const staticProgram = staticIndividualPrograms.find(p => p.id === enrollment.course_id);
+                      const displayTitle = staticProgram?.title || 'Unknown Program';
+                      
+                      return (
+                        <div key={enrollment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm sm:text-base">{displayTitle}</h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              Scheduled: {enrollment.scheduled_at ? new Date(enrollment.scheduled_at).toLocaleString() : 'TBD'}
+                            </p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              Enrolled: {new Date(enrollment.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
                             <span className="font-semibold text-sm sm:text-base">{formatPrice(enrollment.amount_paid || 0)}</span>
                             <Badge variant={enrollment.status === 'confirmed' ? 'default' : 'secondary'} className="text-xs w-fit">
@@ -472,13 +561,14 @@ export const IndividualDashboard = () => {
                               Join Session
                             </Button>
                           </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         );
       case 'mood':
         return <MoodCheckIn />;

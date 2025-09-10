@@ -37,13 +37,18 @@ export const useCoachingChats = () => {
       setLoading(true);
       
       // Fetch user's enrollments
+      console.log('useCoachingChats: Fetching enrollments for user:', userProfile.id);
       const { data: enrollmentData, error: enrollmentError } = await supabase
         .from('enrollments')
         .select('*')
         .eq('user_id', userProfile.id)
         .eq('status', 'confirmed');
 
-      if (enrollmentError) throw enrollmentError;
+      console.log('useCoachingChats: Enrollment data:', enrollmentData);
+      if (enrollmentError) {
+        console.error('useCoachingChats: Enrollment error:', enrollmentError);
+        throw enrollmentError;
+      }
 
       if (!enrollmentData || enrollmentData.length === 0) {
         setCoachingCourses([]);
@@ -145,6 +150,7 @@ export const useCoachingChats = () => {
           let chatId = chatMap[enrollment.coach_id];
           
           if (!chatId) {
+            console.log('Creating new coaching chat for enrollment:', enrollment.id);
             const newChat = await createCoachingChat(
               enrollment.coach_id,
               program.title,
@@ -152,6 +158,7 @@ export const useCoachingChats = () => {
             );
             if (newChat) {
               chatId = newChat.id;
+              console.log('Created new chat with ID:', chatId);
             }
           }
 
@@ -166,9 +173,14 @@ export const useCoachingChats = () => {
             progress: 0,
             chatId
           });
+          
+          console.log('Added course to list:', program.title);
+        } else {
+          console.log('Missing data for enrollment:', enrollment.id, { hasCoach: !!coach, hasProgram: !!program });
         }
       }
-
+      
+      console.log('Final coaching courses:', courses);
       setCoachingCourses(courses);
     } catch (error) {
       console.error('Error fetching coaching courses:', error);
