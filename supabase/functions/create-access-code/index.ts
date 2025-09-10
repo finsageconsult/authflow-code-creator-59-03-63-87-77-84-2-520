@@ -76,7 +76,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     // If there are existing active codes for this email, prevent creation
     if (existingCodes && existingCodes.length > 0) {
-      throw new Error(`An active access code already exists for email ${email}. Please use the existing code.`);
+      console.log("Active access code already exists, reusing existing code.", existingCodes[0]);
+      return new Response(
+        JSON.stringify({ success: true, data: existingCodes[0], reused: true, message: `An active access code already exists for ${email}. Reusing existing code.` }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     // Insert access code with admin privileges (bypasses RLS)
