@@ -176,11 +176,6 @@ const hrMenuItems = [{
   icon: BarChart3,
   roles: ['HR']
 }, {
-  title: 'Invoices',
-  url: '/hr-dashboard/invoices',
-  icon: FileText,
-  roles: ['HR']
-}, {
   title: 'Support',
   url: '/hr-dashboard/support',
   icon: HelpCircle,
