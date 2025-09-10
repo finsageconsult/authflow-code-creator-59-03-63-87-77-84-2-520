@@ -144,8 +144,9 @@ export const useEnrollmentWorkflow = () => {
     console.log('Course tags to match:', courseTags);
     
     const matchingCoaches = realCoaches.filter(coach => {
+      // If coach has no specialties, include them as potential match
       if (!coach.specialties || coach.specialties.length === 0) {
-        return false; // Don't show coaches without specialties
+        return true; // Show coaches without specialties as they can handle general coaching
       }
       
       const coachSpecialties = coach.specialties.map(s => s.toLowerCase().trim());
@@ -181,8 +182,13 @@ export const useEnrollmentWorkflow = () => {
     console.log('Filtering coaches by course tags:', courseTags);
     console.log('Found matching coaches:', matchingCoaches.length, 'out of', realCoaches.length);
     
-    // Always show filtered coaches, even if empty (with appropriate message)
-    setFilteredCoaches(matchingCoaches);
+    // If no matching coaches found, show all coaches as fallback
+    if (matchingCoaches.length === 0) {
+      console.log('No specialty matches found, showing all coaches as fallback');
+      setFilteredCoaches(realCoaches);
+    } else {
+      setFilteredCoaches(matchingCoaches);
+    }
   }, [realCoaches]);
 
   // Assign specializations based on coach ID for consistency
