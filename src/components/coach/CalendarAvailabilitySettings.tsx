@@ -178,7 +178,7 @@ export const CalendarAvailabilitySettings = () => {
         return {
           id: enrollment.id,
           clientName: client?.name || `User ${enrollment.user_id?.slice(-8) || 'Unknown'}`,
-          clientEmail: client?.email || 'No email available',
+          clientEmail: '', // Hidden for privacy
           startTime: `${startHour}:${startMinute}`,
           endTime: `${endHour}:${endMinute}`,
           date: `${year}-${month}-${day}`,
@@ -222,7 +222,7 @@ export const CalendarAvailabilitySettings = () => {
         return {
           id: session.id,
           clientName: client?.name || `Client ${session.client_id?.slice(-8) || 'Unknown'}`,
-          clientEmail: client?.email || 'No email available',
+          clientEmail: '', // Hidden for privacy
           startTime: `${startHour}:${startMinute}`,
           endTime: `${endHour}:${endMinute}`,
           date: `${year}-${month}-${day}`,
@@ -596,10 +596,6 @@ export const CalendarAvailabilitySettings = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Booked by</span>
                   <span>{selectedSession?.clientName}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Email</span>
-                  <span className="text-xs">{selectedSession?.clientEmail || 'Not available'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Session status</span>

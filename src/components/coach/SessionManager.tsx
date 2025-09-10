@@ -115,7 +115,7 @@ export const SessionManager = () => {
             user: {
               id: student.id,
               name: student.name,
-              email: student.email
+              email: '' // Hide for privacy
             },
             scheduledAt: enrollment.scheduled_at,
             status: enrollment.status,
@@ -455,7 +455,7 @@ export const SessionManager = () => {
                                 </Badge>
                               </div>
                             </div>
-                            <p className="text-sm text-muted-foreground">{enrollment.user.email}</p>
+                            
                             <p className="text-sm text-muted-foreground">{date} • {time}</p>
                             
                             {enrollment.meetingLink && (
