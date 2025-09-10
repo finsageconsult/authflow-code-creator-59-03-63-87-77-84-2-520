@@ -272,7 +272,6 @@ export const ToolsView = () => {
                       <CardHeader>
                         <div className="flex items-start justify-between gap-2">
                           <CardTitle className="text-lg line-clamp-2 flex items-center gap-2">
-                            <ToolIcon className={`h-5 w-5 ${toolIconColor}`} />
                             {tool.name}
                           </CardTitle>
                           <div className="flex flex-col gap-1">
@@ -333,7 +332,6 @@ export const ToolsView = () => {
                     <CardHeader>
                       <div className="flex items-start justify-between gap-2">
                         <CardTitle className="text-lg line-clamp-2 flex items-center gap-2">
-                          <ToolIcon className={`h-5 w-5 ${toolIconColor}`} />
                           {tool.name}
                         </CardTitle>
                         <div className="flex flex-col gap-1">
