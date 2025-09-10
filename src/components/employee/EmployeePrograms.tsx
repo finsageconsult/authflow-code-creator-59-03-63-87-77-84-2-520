@@ -176,33 +176,18 @@ export const EmployeePrograms = () => {
     
     if (userSessions.length === 0) return { link: null, scheduledAt: null };
     
-    // Sort sessions by scheduled time for consistency
+    // Sort sessions by scheduled time and return the most recent/relevant one
     const sortedSessions = userSessions.sort((a, b) => 
       new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
     );
     
-    // Create explicit mapping based on program titles
-    const programTitleMap = {
-      '550e8400-e29b-41d4-a716-446655440000': 'Financial Fitness Bootcamp',
-      '550e8400-e29b-41d4-a716-446655440002': 'Smart Tax Planning' // Should get https://sprakash.pro/
-    };
+    // Return the first available session with a meeting link
+    const session = sortedSessions[0];
     
-    const programTitle = programTitleMap[programId as keyof typeof programTitleMap];
-    
-    // Map specific programs to specific session links
-    let session;
-    if (programTitle === 'Smart Tax Planning') {
-      // Find session with sprakash.pro link  
-      session = sortedSessions.find(s => s.meeting_link?.includes('sprakash.pro')) || sortedSessions[1] || sortedSessions[0];
-    } else {
-      // Use first available session for all other programs
-      session = sortedSessions[0];
-    }
-    
-    console.log(`Program: ${programTitle}`, {
+    console.log(`Program: ${programId}`, {
       link: session.meeting_link,
       scheduledAt: session.scheduled_at,
-      programId: programId
+      sessionId: session.id
     });
     
     return { link: session.meeting_link, scheduledAt: session.scheduled_at };
