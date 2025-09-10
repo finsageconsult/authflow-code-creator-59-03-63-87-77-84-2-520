@@ -167,7 +167,7 @@ export const EmployeePrograms = () => {
     const isEnrolledInProgram = enrolledPrograms.has(programId);
     if (!isEnrolledInProgram) return { link: null, scheduledAt: null };
     
-    // Find any coaching session for this user with an active meeting link
+    // Find coaching sessions for this user with meeting links
     const userSessions = coachingSessions.filter(s => 
       s.client_id === userProfile?.id && 
       s.meeting_link && 
@@ -176,18 +176,19 @@ export const EmployeePrograms = () => {
     
     if (userSessions.length === 0) return { link: null, scheduledAt: null };
     
-    // Sort sessions by scheduled time and return the most recent/relevant one
+    // Sort by updated_at to get the most recently updated session (most recent link)
     const sortedSessions = userSessions.sort((a, b) => 
-      new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
     );
     
-    // Return the first available session with a meeting link
+    // Use the most recently updated session
     const session = sortedSessions[0];
     
-    console.log(`Program: ${programId}`, {
+    console.log(`Program: ${programId} - Using most recent session:`, {
       link: session.meeting_link,
       scheduledAt: session.scheduled_at,
-      sessionId: session.id
+      sessionId: session.id,
+      updatedAt: session.updated_at
     });
     
     return { link: session.meeting_link, scheduledAt: session.scheduled_at };
