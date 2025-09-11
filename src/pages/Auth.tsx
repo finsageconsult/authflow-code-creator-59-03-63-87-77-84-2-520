@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { signIn, signUp, signInWithGoogle } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -61,12 +62,43 @@ export default function Auth() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: ''
+    name: '',
+    organizationId: ''
   });
+  const [organizations, setOrganizations] = useState<{id: string, name: string, domain: string}[]>([]);
+  const [detectedOrganization, setDetectedOrganization] = useState<string | null>(null);
   
+  // Fetch organizations for employee signup
   useEffect(() => {
-    // Update activeTab when userType changes
-    setActiveTab(['employer', 'hr', 'coach'].includes(userType) ? 'access-code' : 'email');
+    if (userType === 'employer') {
+      fetchOrganizations();
+    }
+  }, [userType]);
+
+  // Auto-detect organization from email for employees
+  useEffect(() => {
+    if (userType === 'employer' && formData.email && isSignUp) {
+      const emailDomain = formData.email.split('@')[1]?.toLowerCase();
+      if (emailDomain) {
+        const matchedOrg = organizations.find(org => org.domain === emailDomain);
+        if (matchedOrg) {
+          setDetectedOrganization(matchedOrg.name);
+          setFormData(prev => ({ ...prev, organizationId: matchedOrg.id }));
+        } else {
+          setDetectedOrganization(null);
+          setFormData(prev => ({ ...prev, organizationId: '' }));
+        }
+      }
+    }
+  }, [formData.email, organizations, userType, isSignUp]);
+
+  useEffect(() => {
+    // Update activeTab when userType changes - employees use email only
+    if (userType === 'employer') {
+      setActiveTab('email'); // Force email tab for employees
+    } else {
+      setActiveTab(['hr', 'coach'].includes(userType) ? 'access-code' : 'email');
+    }
     
     const codeFromUrl = searchParams.get('code') || searchParams.get('access_code');
     if (codeFromUrl) {
@@ -125,7 +157,54 @@ export default function Auth() {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [resendCountdown]);
+    }, [resendCountdown]);
+
+  const fetchOrganizations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('id, name, domain')
+        .eq('status', 'ACTIVE')
+        .not('domain', 'is', null);
+      
+      if (error) throw error;
+      setOrganizations(data || []);
+    } catch (error) {
+      console.error('Failed to fetch organizations:', error);
+    }
+  };
+
+  const validateEmployeeEmail = async (email: string): Promise<boolean> => {
+    try {
+      // Check if email is corporate (not free provider)
+      const { data: isCorporate, error: corporateError } = await supabase
+        .rpc('is_corporate_email', { email });
+
+      if (corporateError) {
+        console.error('Corporate email check failed:', corporateError);
+        return false;
+      }
+
+      if (!isCorporate) {
+        toast.error('Please use your corporate email address. Personal email domains are not allowed.');
+        return false;
+      }
+
+      // Extract domain and check if organization exists
+      const domain = email.split('@')[1]?.toLowerCase();
+      const matchedOrg = organizations.find(org => org.domain === domain);
+      
+      if (!matchedOrg) {
+        toast.error(`No organization found for domain @${domain}. Please contact your HR team.`);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Email validation failed:', error);
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,6 +212,19 @@ export default function Auth() {
 
     try {
       if (isSignUp) {
+        // Special validation for employee signup
+        if (userType === 'employer') {
+          if (!formData.organizationId) {
+            toast.error('Please select an organization.');
+            return;
+          }
+          
+          const isValidEmail = await validateEmployeeEmail(formData.email);
+          if (!isValidEmail) {
+            return;
+          }
+        }
+
         const { error } = await signUp(formData.email, formData.password, formData.name);
         if (error) {
           if (error.message.includes('already registered')) {
@@ -141,10 +233,43 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
+          // For employees, update their profile with organization and role
+          if (userType === 'employer' && formData.organizationId) {
+            try {
+              // Wait for user profile to be created
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              
+              const { data: user } = await supabase.auth.getUser();
+              if (user.user) {
+                const { error: updateError } = await supabase
+                  .from('users')
+                  .update({
+                    role: 'EMPLOYEE',
+                    organization_id: formData.organizationId
+                  })
+                  .eq('auth_id', user.user.id);
+
+                if (updateError) {
+                  console.error('Failed to update employee profile:', updateError);
+                }
+              }
+            } catch (profileError) {
+              console.error('Error updating employee profile:', profileError);
+            }
+          }
+          
           toast.success('Account created successfully! Please check your email to verify your account.');
           setIsSignUp(false);
         }
       } else {
+        // For employee login, validate corporate email
+        if (userType === 'employer') {
+          const isValidEmail = await validateEmployeeEmail(formData.email);
+          if (!isValidEmail) {
+            return;
+          }
+        }
+
         const { error } = await signIn(formData.email, formData.password);
         if (error) {
           const msg = (error.message || '').toLowerCase();
@@ -681,7 +806,9 @@ export default function Auth() {
               Welcome to Finsage
             </CardTitle>
             <p className="text-sm text-muted-foreground px-2">
-              {userType === 'employer' || userType === 'hr' || userType === 'coach'
+              {userType === 'employer'
+                ? 'Sign in with your corporate email address'
+                : userType === 'hr' || userType === 'coach'
                 ? 'Sign in with your organization access code'
                 : 'Sign in to your account or create a new one'
               }
@@ -696,6 +823,12 @@ export default function Auth() {
                     <TabsTrigger value="email" className="text-xs sm:text-sm">Email Login</TabsTrigger>
                   </TabsList>
                 </>
+              ) : userType === 'employer' ? (
+                <>
+                  <TabsList className="grid w-full grid-cols-1">
+                    <TabsTrigger value="email" className="text-xs sm:text-sm">Employee Login</TabsTrigger>
+                  </TabsList>
+                </>
               ) : (
                 <>
                   <TabsList className="grid w-full grid-cols-1">
@@ -704,8 +837,8 @@ export default function Auth() {
                 </>
               )}
               
-              {/* Conditionally show tab content based on user type */}
-              {(userType === 'employer' || userType === 'hr' || userType === 'coach') && (
+              {/* Access code login only for HR and Coach */}
+              {(userType === 'hr' || userType === 'coach') && (
                 <TabsContent value="access-code" className="space-y-4">
                   <form onSubmit={handleAccessCodeLogin} className="space-y-4">
                     <div className="space-y-2">
@@ -744,45 +877,51 @@ export default function Auth() {
                 </TabsContent>
               )}
               
-              {userType === 'individual' && (
+              {/* Email login for individuals and employees */}
+              {(userType === 'individual' || userType === 'employer') && (
                 <TabsContent value="email" className="space-y-4">
-                  <Button
-                    variant="outline"
-                    className="w-full h-10"
-                    onClick={handleGoogleSignIn}
-                    disabled={isLoading}
-                  >
-                    <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    Continue with Google
-                  </Button>
+                  {/* Google Sign-in only for individuals */}
+                  {userType === 'individual' && (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="w-full h-10"
+                        onClick={handleGoogleSignIn}
+                        disabled={isLoading}
+                      >
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                          />
+                          <path
+                            fill="currentColor"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                          />
+                          <path
+                            fill="currentColor"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                          />
+                          <path
+                            fill="currentColor"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                          />
+                        </svg>
+                        Continue with Google
+                      </Button>
 
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <Separator className="w-full" />
-                    </div>
-                    <div className="relative flex justify-center text-xs sm:text-sm uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">
-                        Or continue with email
-                      </span>
-                    </div>
-                  </div>
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <Separator className="w-full" />
+                        </div>
+                        <div className="relative flex justify-center text-xs sm:text-sm uppercase">
+                          <span className="bg-background px-2 text-muted-foreground">
+                            Or continue with email
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {isSignUp && (
@@ -799,18 +938,62 @@ export default function Auth() {
                         />
                       </div>
                     )}
+
+                    {/* Organization selection for employee signup */}
+                    {isSignUp && userType === 'employer' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="organization">Organization</Label>
+                        {detectedOrganization ? (
+                          <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                            <p className="text-sm text-green-800">
+                              ✓ Organization detected: <strong>{detectedOrganization}</strong>
+                            </p>
+                          </div>
+                        ) : (
+                          <Select 
+                            value={formData.organizationId} 
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, organizationId: value }))}
+                            required={isSignUp}
+                            disabled={isLoading}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select your organization" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {organizations.map((org) => (
+                                <SelectItem key={org.id} value={org.id}>
+                                  {org.name} (@{org.domain})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    )}
                     
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">
+                        Email Address
+                        {userType === 'employer' && (
+                          <span className="text-xs text-muted-foreground ml-1">
+                            {isSignUp ? '(Use your corporate email)' : ''}
+                          </span>
+                        )}
+                      </Label>
                       <Input
                         id="email"
                         type="email"
-                        placeholder="Enter your email"
+                        placeholder={userType === 'employer' ? "Enter your corporate email address" : "Enter your email"}
                         value={formData.email}
                         onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                         required
                         disabled={isLoading}
                       />
+                      {userType === 'employer' && isSignUp && formData.email && (
+                        <p className="text-xs text-muted-foreground">
+                          Corporate domains only. Personal emails (@gmail.com, @yahoo.com, etc.) are not allowed.
+                        </p>
+                      )}
                     </div>
                     
                     <div className="space-y-2">
