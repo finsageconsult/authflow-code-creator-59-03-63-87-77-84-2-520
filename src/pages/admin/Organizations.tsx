@@ -212,86 +212,172 @@ export default function Organizations() {
 
     setDeletingOrg(orgId);
     try {
-      // Check for related records that prevent deletion
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select('id')
-        .eq('organization_id', orgId)
-        .limit(1);
-
-      if (ordersError) throw ordersError;
-
-      const { data: users, error: usersError } = await supabase
+      // Step 1: Get all user IDs in this organization
+      const { data: orgUsers } = await supabase
         .from('users')
         .select('id')
-        .eq('organization_id', orgId)
-        .limit(1);
+        .eq('organization_id', orgId);
 
-      if (usersError) throw usersError;
+      const userIds = orgUsers?.map(u => u.id) || [];
 
-      // If there are related records, prevent deletion
-      if (orders && orders.length > 0) {
-        toast({
-          title: "Cannot Delete Organization",
-          description: `${orgName} has existing orders and cannot be deleted. Please contact support if you need to remove this organization.`,
-          variant: "destructive"
-        });
-        return;
+      // Step 2: Get assignment IDs for this organization
+      const { data: orgAssignments } = await supabase
+        .from('assignments')
+        .select('id')
+        .eq('organization_id', orgId);
+
+      const assignmentIds = orgAssignments?.map(a => a.id) || [];
+
+      // Step 3: Delete in the correct order to avoid foreign key constraints
+
+      // Delete assignment-related data
+      if (assignmentIds.length > 0) {
+        await supabase
+          .from('assignment_files')
+          .delete()
+          .in('assignment_id', assignmentIds);
+
+        await supabase
+          .from('assignment_messages')
+          .delete()
+          .in('assignment_id', assignmentIds);
       }
 
-      if (users && users.length > 0) {
-        toast({
-          title: "Cannot Delete Organization",
-          description: `${orgName} has existing users and cannot be deleted. Please remove all users first or contact support.`,
-          variant: "destructive"
-        });
-        return;
+      await supabase
+        .from('assignments')
+        .delete()
+        .eq('organization_id', orgId);
+
+      // Delete coaching sessions
+      await supabase
+        .from('coaching_sessions')
+        .delete()
+        .eq('organization_id', orgId);
+
+      // Delete user-related data
+      if (userIds.length > 0) {
+        // Get wallet IDs for these users
+        const { data: wallets } = await supabase
+          .from('credit_wallets')
+          .select('id')
+          .eq('owner_type', 'USER')
+          .in('owner_id', userIds);
+
+        const walletIds = wallets?.map(w => w.id) || [];
+
+        if (walletIds.length > 0) {
+          await supabase
+            .from('credit_transactions')
+            .delete()
+            .in('wallet_id', walletIds);
+        }
+
+        await supabase
+          .from('credit_wallets')
+          .delete()
+          .eq('owner_type', 'USER')
+          .in('owner_id', userIds);
+
+        await supabase
+          .from('enrollments')
+          .delete()
+          .in('user_id', userIds);
+
+        await supabase
+          .from('individual_bookings')
+          .delete()
+          .in('user_id', userIds);
+
+        await supabase
+          .from('mood_check_ins')
+          .delete()
+          .in('user_id', userIds);
+
+        await supabase
+          .from('notifications')
+          .delete()
+          .in('user_id', userIds);
+
+        await supabase
+          .from('encrypted_questionnaire_responses')
+          .delete()
+          .in('user_id', userIds);
       }
 
-      // Delete the organization (safe to delete now)
-      const { error } = await supabase
+      // Delete invoice-related data
+      const { data: orgInvoices } = await supabase
+        .from('invoices')
+        .select('id')
+        .eq('organization_id', orgId);
+
+      const invoiceIds = orgInvoices?.map(inv => inv.id) || [];
+
+      if (invoiceIds.length > 0) {
+        await supabase
+          .from('invoice_line_items')
+          .delete()
+          .in('invoice_id', invoiceIds);
+      }
+
+      await supabase
+        .from('invoices')
+        .delete()
+        .eq('organization_id', orgId);
+
+      // Delete other organization-related data
+      await supabase
+        .from('orders')
+        .delete()
+        .eq('organization_id', orgId);
+
+      await supabase
+        .from('anonymized_insights')
+        .delete()
+        .eq('organization_id', orgId);
+
+      await supabase
+        .from('access_codes')
+        .delete()
+        .eq('organization_id', orgId);
+
+      await supabase
+        .from('audit_logs')
+        .delete()
+        .eq('organization_id', orgId);
+
+      await supabase
+        .from('memberships')
+        .delete()
+        .eq('organization_id', orgId);
+
+      // Delete users (this should cascade to auth.users if properly configured)
+      await supabase
+        .from('users')
+        .delete()
+        .eq('organization_id', orgId);
+
+      // Finally, delete the organization
+      const { error: orgError } = await supabase
         .from('organizations')
         .delete()
         .eq('id', orgId);
 
-      if (error) throw error;
-
-      // Log the deletion activity
-      await supabase
-        .from('audit_logs')
-        .insert({
-          action: 'DELETE',
-          entity: 'ORGANIZATION',
-          entity_id: orgId,
-          actor_id: userProfile.id,
-          before_data: { name: orgName },
-          after_data: null
-        });
+      if (orgError) throw orgError;
 
       toast({
         title: "Organization Deleted",
-        description: `${orgName} has been permanently removed from the platform`
+        description: `${orgName} and all its data have been permanently removed`
       });
 
-      // Real-time update will handle UI refresh
+      // Refresh the organizations list
+      fetchOrganizations();
     } catch (error) {
       console.error('Error deleting organization:', error);
-      
-      // Check if it's a foreign key constraint error
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('foreign key constraint') || errorMessage.includes('violates')) {
-        toast({
-          title: "Cannot Delete Organization",
-          description: `${orgName} has related data and cannot be deleted. Please remove all associated users, orders, and other data first.`,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to delete organization",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to delete organization and its data",
+        variant: "destructive"
+      });
     } finally {
       setDeletingOrg(null);
     }
