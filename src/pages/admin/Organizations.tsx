@@ -17,14 +17,9 @@ import { useToast } from '@/hooks/use-toast';
 interface Organization {
   id: string;
   name: string;
-  plan: string;
+  domain: string;
   status: string;
   created_at: string;
-  org_plans: {
-    plan_type: string;
-    credit_allotment_1on1: number;
-    credit_allotment_webinar: number;
-  } | null;
   _count?: {
     users: number;
   };
@@ -45,7 +40,7 @@ export default function Organizations() {
   });
   const [newOrg, setNewOrg] = useState({
     name: '',
-    plan: 'STARTER'
+    domain: ''
   });
   const [deletingOrg, setDeletingOrg] = useState<string | null>(null);
 
@@ -80,14 +75,7 @@ export default function Organizations() {
     try {
       const { data, error } = await supabase
         .from('organizations')
-        .select(`
-          *,
-          org_plans (
-            plan_type,
-            credit_allotment_1on1,
-            credit_allotment_webinar
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -104,13 +92,37 @@ export default function Organizations() {
     }
   };
 
+  const validateDomain = (domain: string): boolean => {
+    // Check if domain starts with @ and has valid format
+    const domainRegex = /^@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+    return domainRegex.test(domain);
+  };
+
   const createOrganization = async () => {
+    if (!newOrg.name.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Organization name is required',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!validateDomain(newOrg.domain)) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please enter a valid domain format (e.g., @company.com)',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .insert({
           name: newOrg.name,
-          plan: 'BASIC',
+          domain: newOrg.domain,
           status: 'ACTIVE'
         })
         .select()
@@ -118,31 +130,13 @@ export default function Organizations() {
 
       if (orgError) throw orgError;
 
-      // Create org plan
-      const creditAllotments = {
-        STARTER: { oneon1: 5, webinar: 2 },
-        GROWTH: { oneon1: 20, webinar: 10 },
-        ENTERPRISE: { oneon1: 50, webinar: 25 }
-      };
-
-      const { error: planError } = await supabase
-        .from('org_plans')
-        .insert({
-          organization_id: orgData.id,
-          plan_type: newOrg.plan,
-          credit_allotment_1on1: creditAllotments[newOrg.plan as keyof typeof creditAllotments].oneon1,
-          credit_allotment_webinar: creditAllotments[newOrg.plan as keyof typeof creditAllotments].webinar
-        });
-
-      if (planError) throw planError;
-
       toast({
         title: 'Success',
         description: 'Organization created successfully'
       });
 
       setShowCreateDialog(false);
-      setNewOrg({ name: '', plan: 'STARTER' });
+      setNewOrg({ name: '', domain: '' });
       fetchOrganizations();
     } catch (error) {
       console.error('Error creating organization:', error);
@@ -269,19 +263,6 @@ export default function Organizations() {
     }
   };
 
-  const getPlanColor = (plan: string) => {
-    switch (plan.toLowerCase()) {
-      case 'starter':
-        return 'bg-blue-100 text-blue-800';
-      case 'growth':
-        return 'bg-purple-100 text-purple-800';
-      case 'enterprise':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   if (userProfile?.role !== 'ADMIN') {
     return (
       <div className="flex items-center justify-center h-64">
@@ -353,36 +334,29 @@ export default function Organizations() {
             <>
               {/* Desktop Table View - Hidden on mobile */}
               <div className="hidden md:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Plan</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Credits (1:1 / Webinar)</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email Domain</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {organizations.map((org) => (
                       <TableRow key={org.id}>
                         <TableCell className="font-medium">{org.name}</TableCell>
                         <TableCell>
-                          <Badge className={getPlanColor(org.org_plans?.plan_type || '')}>
-                            {org.org_plans?.plan_type || 'N/A'}
-                          </Badge>
+                          <code className="text-sm bg-muted px-2 py-1 rounded">
+                            {org.domain}
+                          </code>
                         </TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(org.status)}>
                             {org.status}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {org.org_plans 
-                            ? `${org.org_plans.credit_allotment_1on1} / ${org.org_plans.credit_allotment_webinar}`
-                            : 'N/A'
-                          }
                         </TableCell>
                         <TableCell>
                           {new Date(org.created_at).toLocaleDateString()}
@@ -455,6 +429,9 @@ export default function Organizations() {
                         <div>
                           <h3 className="font-semibold text-lg">{org.name}</h3>
                           <p className="text-sm text-muted-foreground">
+                            <code className="text-xs bg-muted px-2 py-1 rounded">{org.domain}</code>
+                          </p>
+                          <p className="text-sm text-muted-foreground">
                             Created {new Date(org.created_at).toLocaleDateString()}
                           </p>
                         </div>
@@ -513,11 +490,11 @@ export default function Organizations() {
                       
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-xs text-muted-foreground">Plan</Label>
+                          <Label className="text-xs text-muted-foreground">Domain</Label>
                           <div className="mt-1">
-                            <Badge className={getPlanColor(org.org_plans?.plan_type || '')}>
-                              {org.org_plans?.plan_type || 'N/A'}
-                            </Badge>
+                            <code className="text-xs bg-muted px-2 py-1 rounded">
+                              {org.domain}
+                            </code>
                           </div>
                         </div>
                         
@@ -529,16 +506,6 @@ export default function Organizations() {
                             </Badge>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Credits (1:1 / Webinar)</Label>
-                        <p className="text-sm font-medium mt-1">
-                          {org.org_plans 
-                            ? `${org.org_plans.credit_allotment_1on1} / ${org.org_plans.credit_allotment_webinar}`
-                            : 'N/A'
-                          }
-                        </p>
                       </div>
                     </div>
                   </Card>
@@ -566,23 +533,22 @@ export default function Organizations() {
               />
             </div>
             <div>
-              <Label htmlFor="plan">Plan</Label>
-              <Select value={newOrg.plan} onValueChange={(value) => setNewOrg({ ...newOrg, plan: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="STARTER">Starter (5 1:1, 2 Webinar)</SelectItem>
-                  <SelectItem value="GROWTH">Growth (20 1:1, 10 Webinar)</SelectItem>
-                  <SelectItem value="ENTERPRISE">Enterprise (50 1:1, 25 Webinar)</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="domain">Organization Email Domain</Label>
+              <Input
+                id="domain"
+                value={newOrg.domain}
+                onChange={(e) => setNewOrg({ ...newOrg, domain: e.target.value })}
+                placeholder="@company.com"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Enter the domain format (e.g., @rohitsaw.in). Employees with matching email domains will be automatically linked to this organization.
+              </p>
             </div>
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                 Cancel
               </Button>
-              <Button onClick={createOrganization} disabled={!newOrg.name}>
+              <Button onClick={createOrganization} disabled={!newOrg.name || !newOrg.domain}>
                 Create Organization
               </Button>
             </div>
