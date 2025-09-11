@@ -1594,6 +1594,7 @@ export type Database = {
       organizations: {
         Row: {
           created_at: string
+          domain: string | null
           id: string
           name: string
           plan: Database["public"]["Enums"]["organization_plan"]
@@ -1602,6 +1603,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          domain?: string | null
           id?: string
           name: string
           plan?: Database["public"]["Enums"]["organization_plan"]
@@ -1610,6 +1612,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          domain?: string | null
           id?: string
           name?: string
           plan?: Database["public"]["Enums"]["organization_plan"]
@@ -2265,6 +2268,10 @@ export type Database = {
         }
         Returns: string
       }
+      extract_email_domain: {
+        Args: { email: string }
+        Returns: string
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2308,6 +2315,10 @@ export type Database = {
         Returns: {
           chat_id: string
         }[]
+      }
+      is_corporate_email: {
+        Args: { email: string }
+        Returns: boolean
       }
       log_security_event: {
         Args: {
