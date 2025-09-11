@@ -66,7 +66,8 @@ export const SubdomainRouter = () => {
       if (currentPath === '/') {
         switch (subdomain) {
           case 'admin':
-            window.location.replace('/admin-dashboard');
+            // Admin subdomain goes to access code login
+            window.location.replace('/auth/admin');
             break;
           case 'hr':
             // HR subdomain goes to access code login
@@ -93,6 +94,7 @@ export const SubdomainRouter = () => {
       <Route path="/auth/employer" element={<Auth />} />
       <Route path="/auth/hr" element={<Auth />} />
       <Route path="/auth/coach" element={<Auth />} />
+      <Route path="/auth/admin" element={<Auth />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/role-redirect" element={<RoleRedirect />} />
       <Route path="/book-demo" element={<BookDemo />} />

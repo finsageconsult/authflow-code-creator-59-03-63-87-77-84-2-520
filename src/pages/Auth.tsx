@@ -32,11 +32,14 @@ export default function Auth() {
     if (location.pathname.includes('/coach')) {
       return 'coach';
     }
+    if (location.pathname.includes('/admin')) {
+      return 'admin';
+    }
     return searchParams.get('type') || 'individual'; // fallback to URL param or default
   };
   
   const userType = getUserType();
-  const [activeTab, setActiveTab] = useState(['employer', 'hr', 'coach'].includes(userType) ? 'access-code' : 'email');
+  const [activeTab, setActiveTab] = useState(['employer', 'hr', 'coach', 'admin'].includes(userType) ? 'access-code' : 'email');
   const [accessCode, setAccessCode] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showOtpVerification, setShowOtpVerification] = useState(false);
@@ -63,7 +66,7 @@ export default function Auth() {
   
   useEffect(() => {
     // Update activeTab when userType changes
-    setActiveTab(['employer', 'hr', 'coach'].includes(userType) ? 'access-code' : 'email');
+    setActiveTab(['employer', 'hr', 'coach', 'admin'].includes(userType) ? 'access-code' : 'email');
     
     const codeFromUrl = searchParams.get('code') || searchParams.get('access_code');
     if (codeFromUrl) {
@@ -661,7 +664,7 @@ export default function Auth() {
       <div className="w-full max-w-md">
         <Card className="w-full shadow-professional-lg border-0 sm:border">
           <CardHeader className="space-y-3 text-center px-4 sm:px-6 pt-4 sm:pt-6 relative">
-            {userType !== 'coach' && (
+            {!['coach', 'hr', 'admin'].includes(userType) && (
               <div className="flex items-center justify-start mb-2">
                 <Button
                   variant="ghost"
@@ -678,7 +681,7 @@ export default function Auth() {
               Welcome to Finsage
             </CardTitle>
             <p className="text-sm text-muted-foreground px-2">
-              {userType === 'employer' || userType === 'hr' || userType === 'coach'
+              {userType === 'employer' || userType === 'hr' || userType === 'coach' || userType === 'admin'
                 ? 'Sign in with your organization access code'
                 : 'Sign in to your account or create a new one'
               }
@@ -702,7 +705,7 @@ export default function Auth() {
               )}
               
               {/* Conditionally show tab content based on user type */}
-              {(userType === 'employer' || userType === 'hr' || userType === 'coach') && (
+              {(userType === 'employer' || userType === 'hr' || userType === 'coach' || userType === 'admin') && (
                 <TabsContent value="access-code" className="space-y-4">
                   <form onSubmit={handleAccessCodeLogin} className="space-y-4">
                     <div className="space-y-2">
