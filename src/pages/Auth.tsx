@@ -26,11 +26,17 @@ export default function Auth() {
     if (location.pathname.includes('/individual')) {
       return 'individual';
     }
+    if (location.pathname.includes('/hr')) {
+      return 'hr';
+    }
+    if (location.pathname.includes('/coach')) {
+      return 'coach';
+    }
     return searchParams.get('type') || 'individual'; // fallback to URL param or default
   };
   
   const userType = getUserType();
-  const [activeTab, setActiveTab] = useState(userType === 'employer' ? 'access-code' : 'email');
+  const [activeTab, setActiveTab] = useState(['employer', 'hr'].includes(userType) ? 'access-code' : 'email');
   const [accessCode, setAccessCode] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showOtpVerification, setShowOtpVerification] = useState(false);
@@ -57,7 +63,7 @@ export default function Auth() {
   
   useEffect(() => {
     // Update activeTab when userType changes
-    setActiveTab(userType === 'employer' ? 'access-code' : 'email');
+    setActiveTab(['employer', 'hr'].includes(userType) ? 'access-code' : 'email');
     
     const codeFromUrl = searchParams.get('code') || searchParams.get('access_code');
     if (codeFromUrl) {
@@ -670,8 +676,10 @@ export default function Auth() {
               Welcome to Finsage
             </CardTitle>
             <p className="text-sm text-muted-foreground px-2">
-              {userType === 'employer' 
+              {userType === 'employer' || userType === 'hr'
                 ? 'Sign in with your organization access code'
+                : userType === 'coach' 
+                ? 'Sign in with your access code or email'
                 : 'Sign in to your account or create a new one'
               }
             </p>
@@ -685,6 +693,13 @@ export default function Auth() {
                     <TabsTrigger value="email" className="text-xs sm:text-sm">Email Login</TabsTrigger>
                   </TabsList>
                 </>
+              ) : userType === 'coach' ? (
+                <>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="access-code" className="text-xs sm:text-sm">Access Code</TabsTrigger>
+                    <TabsTrigger value="email" className="text-xs sm:text-sm">Email Login</TabsTrigger>
+                  </TabsList>
+                </>
               ) : (
                 <>
                   <TabsList className="grid w-full grid-cols-1">
@@ -694,7 +709,7 @@ export default function Auth() {
               )}
               
               {/* Conditionally show tab content based on user type */}
-              {userType === 'employer' && (
+              {(userType === 'employer' || userType === 'hr' || userType === 'coach') && (
                 <TabsContent value="access-code" className="space-y-4">
                   <form onSubmit={handleAccessCodeLogin} className="space-y-4">
                     <div className="space-y-2">
@@ -733,7 +748,7 @@ export default function Auth() {
                 </TabsContent>
               )}
               
-              {userType === 'individual' && (
+              {(userType === 'individual' || userType === 'coach') && (
                 <TabsContent value="email" className="space-y-4">
                   <Button
                     variant="outline"

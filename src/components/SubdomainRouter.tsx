@@ -62,17 +62,19 @@ export const SubdomainRouter = () => {
     if (subdomain) {
       const currentPath = window.location.pathname;
       
-      // Redirect subdomain users to appropriate dashboards if on root
+      // Redirect subdomain users to appropriate auth or dashboards
       if (currentPath === '/') {
         switch (subdomain) {
           case 'admin':
             window.location.replace('/admin-dashboard');
             break;
           case 'hr':
-            window.location.replace('/hr-dashboard');
+            // HR subdomain goes to access code login
+            window.location.replace('/auth/hr');
             break;
           case 'coach':
-            window.location.replace('/coach-dashboard');
+            // Coach subdomain goes to dual auth (access code + email)
+            window.location.replace('/auth/coach');
             break;
           case 'employee':
             window.location.replace('/employee-dashboard');
@@ -89,6 +91,8 @@ export const SubdomainRouter = () => {
       <Route path="/auth/individual" element={<Auth />} />
       <Route path="/auth/employee" element={<Auth />} />
       <Route path="/auth/employer" element={<Auth />} />
+      <Route path="/auth/hr" element={<Auth />} />
+      <Route path="/auth/coach" element={<Auth />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/role-redirect" element={<RoleRedirect />} />
       <Route path="/book-demo" element={<BookDemo />} />
