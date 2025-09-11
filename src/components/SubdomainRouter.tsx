@@ -2,7 +2,6 @@ import { Routes, Route } from 'react-router-dom';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import BookDemo from '@/pages/BookDemo';
-import NotFound from '@/components/NotFound';
 import { AdminDashboard } from '@/components/dashboards/AdminDashboard';
 import { HRDashboard } from '@/components/dashboards/HRDashboard';
 import { HROverview } from '@/components/hr/HROverview';
@@ -92,7 +91,7 @@ export const SubdomainRouter = () => {
       <Route path="/admin/organizations/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><OrganizationDetail /></AppLayout></ProtectedRoute>} />
       <Route path="/admin/coaches" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Coaches /></AppLayout></ProtectedRoute>} />
       <Route path="/admin-dashboard/coaches/:coachId" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><CoachProfile /></AppLayout></ProtectedRoute>} />
-      <Route path="*" element={<NotFound />} />
+      <Route path="*" element={<Index />} />
     </Routes>
   );
 };
