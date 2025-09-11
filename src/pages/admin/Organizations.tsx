@@ -212,7 +212,43 @@ export default function Organizations() {
 
     setDeletingOrg(orgId);
     try {
-      // Delete the organization (cascade will handle related records)
+      // Check for related records that prevent deletion
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('organization_id', orgId)
+        .limit(1);
+
+      if (ordersError) throw ordersError;
+
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('organization_id', orgId)
+        .limit(1);
+
+      if (usersError) throw usersError;
+
+      // If there are related records, prevent deletion
+      if (orders && orders.length > 0) {
+        toast({
+          title: "Cannot Delete Organization",
+          description: `${orgName} has existing orders and cannot be deleted. Please contact support if you need to remove this organization.`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (users && users.length > 0) {
+        toast({
+          title: "Cannot Delete Organization",
+          description: `${orgName} has existing users and cannot be deleted. Please remove all users first or contact support.`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Delete the organization (safe to delete now)
       const { error } = await supabase
         .from('organizations')
         .delete()
@@ -240,11 +276,22 @@ export default function Organizations() {
       // Real-time update will handle UI refresh
     } catch (error) {
       console.error('Error deleting organization:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete organization",
-        variant: "destructive"
-      });
+      
+      // Check if it's a foreign key constraint error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('foreign key constraint') || errorMessage.includes('violates')) {
+        toast({
+          title: "Cannot Delete Organization",
+          description: `${orgName} has related data and cannot be deleted. Please remove all associated users, orders, and other data first.`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete organization",
+          variant: "destructive"
+        });
+      }
     } finally {
       setDeletingOrg(null);
     }
