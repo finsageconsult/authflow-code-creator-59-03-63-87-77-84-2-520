@@ -36,7 +36,7 @@ export default function Auth() {
   };
   
   const userType = getUserType();
-  const [activeTab, setActiveTab] = useState(['employer', 'hr'].includes(userType) ? 'access-code' : 'email');
+  const [activeTab, setActiveTab] = useState(['employer', 'hr', 'coach'].includes(userType) ? 'access-code' : 'email');
   const [accessCode, setAccessCode] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showOtpVerification, setShowOtpVerification] = useState(false);
@@ -63,7 +63,7 @@ export default function Auth() {
   
   useEffect(() => {
     // Update activeTab when userType changes
-    setActiveTab(['employer', 'hr'].includes(userType) ? 'access-code' : 'email');
+    setActiveTab(['employer', 'hr', 'coach'].includes(userType) ? 'access-code' : 'email');
     
     const codeFromUrl = searchParams.get('code') || searchParams.get('access_code');
     if (codeFromUrl) {
@@ -661,25 +661,25 @@ export default function Auth() {
       <div className="w-full max-w-md">
         <Card className="w-full shadow-professional-lg border-0 sm:border">
           <CardHeader className="space-y-3 text-center px-4 sm:px-6 pt-4 sm:pt-6 relative">
-            <div className="flex items-center justify-start mb-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/')}
-                className="text-muted-foreground hover:text-foreground p-1"
-              >
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Back
-              </Button>
-            </div>
+            {userType !== 'coach' && (
+              <div className="flex items-center justify-start mb-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/')}
+                  className="text-muted-foreground hover:text-foreground p-1"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back
+                </Button>
+              </div>
+            )}
             <CardTitle className="text-lg sm:text-2xl font-bold">
               Welcome to Finsage
             </CardTitle>
             <p className="text-sm text-muted-foreground px-2">
-              {userType === 'employer' || userType === 'hr'
+              {userType === 'employer' || userType === 'hr' || userType === 'coach'
                 ? 'Sign in with your organization access code'
-                : userType === 'coach' 
-                ? 'Sign in with your access code or email'
                 : 'Sign in to your account or create a new one'
               }
             </p>
@@ -690,13 +690,6 @@ export default function Auth() {
               {userType === 'individual' ? (
                 <>
                   <TabsList className="grid w-full grid-cols-1">
-                    <TabsTrigger value="email" className="text-xs sm:text-sm">Email Login</TabsTrigger>
-                  </TabsList>
-                </>
-              ) : userType === 'coach' ? (
-                <>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="access-code" className="text-xs sm:text-sm">Access Code</TabsTrigger>
                     <TabsTrigger value="email" className="text-xs sm:text-sm">Email Login</TabsTrigger>
                   </TabsList>
                 </>
@@ -748,7 +741,7 @@ export default function Auth() {
                 </TabsContent>
               )}
               
-              {(userType === 'individual' || userType === 'coach') && (
+              {userType === 'individual' && (
                 <TabsContent value="email" className="space-y-4">
                   <Button
                     variant="outline"
