@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import BookDemo from '@/pages/BookDemo';
@@ -34,6 +34,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import RoleRedirect from '@/pages/RoleRedirect';
 
+// Helper function to detect subdomain
+const getSubdomain = () => {
+  const hostname = window.location.hostname;
+  const parts = hostname.split('.');
+  if (parts.length > 2) {
+    return parts[0]; // Return the subdomain part
+  }
+  return null;
+};
+
 const getRoleDashboardUrl = (role: string) => {
   switch (role) {
     case 'ADMIN': return '/admin-dashboard';
@@ -45,8 +55,36 @@ const getRoleDashboardUrl = (role: string) => {
 };
 
 export const SubdomainRouter = () => {
+  const subdomain = getSubdomain();
+  
+  // Handle subdomain-based routing
+  useEffect(() => {
+    if (subdomain) {
+      const currentPath = window.location.pathname;
+      
+      // Redirect subdomain users to appropriate dashboards if on root
+      if (currentPath === '/') {
+        switch (subdomain) {
+          case 'admin':
+            window.location.replace('/admin-dashboard');
+            break;
+          case 'hr':
+            window.location.replace('/hr-dashboard');
+            break;
+          case 'coach':
+            window.location.replace('/coach-dashboard');
+            break;
+          case 'employee':
+            window.location.replace('/employee-dashboard');
+            break;
+        }
+      }
+    }
+  }, [subdomain]);
+
   return (
     <Routes>
+      {/* Main domain routes */}
       <Route path="/" element={<Index />} />
       <Route path="/auth/individual" element={<Auth />} />
       <Route path="/auth/employee" element={<Auth />} />
@@ -54,7 +92,15 @@ export const SubdomainRouter = () => {
       <Route path="/auth" element={<Auth />} />
       <Route path="/role-redirect" element={<RoleRedirect />} />
       <Route path="/book-demo" element={<BookDemo />} />
+      
+      {/* Admin routes - accessible from admin subdomain or main domain */}
       <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><AdminDashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin/organizations" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Organizations /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin/organizations/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><OrganizationDetail /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin/coaches" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Coaches /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin-dashboard/coaches/:coachId" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><CoachProfile /></AppLayout></ProtectedRoute>} />
+      
+      {/* HR routes - accessible from hr subdomain or main domain */}
       <Route path="/hr-dashboard" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HROverview /></AppLayout></ProtectedRoute>} />
       <Route path="/hr-dashboard/people" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRPeople /></AppLayout></ProtectedRoute>} />
       <Route path="/hr-dashboard/credits" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRCredits /></AppLayout></ProtectedRoute>} />
@@ -62,11 +108,19 @@ export const SubdomainRouter = () => {
       <Route path="/hr-dashboard/insights" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRInsights /></AppLayout></ProtectedRoute>} />
       <Route path="/hr-dashboard/support" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRSupport /></AppLayout></ProtectedRoute>} />
       <Route path="/hr-dashboard/invoices" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HRInvoices /></AppLayout></ProtectedRoute>} />
+      
+      {/* Employee routes - accessible from employee subdomain or main domain */}
       <Route path="/employee-dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeLayout><EmployeeDashboard /></EmployeeLayout></ProtectedRoute>} />
       <Route path="/employee-dashboard/content/:id" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeLayout><ContentDetail /></EmployeeLayout></ProtectedRoute>} />
       <Route path="/employee-dashboard/blog/:id" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeLayout><BlogDetail /></EmployeeLayout></ProtectedRoute>} />
+      
+      {/* Coach routes - accessible from coach subdomain or main domain */}
       <Route path="/coach-dashboard" element={<ProtectedRoute allowedRoles={['COACH']}><AppLayout><CoachDashboard /></AppLayout></ProtectedRoute>} />
+      
+      {/* Individual routes */}
       <Route path="/individual-dashboard" element={<ProtectedRoute allowedRoles={['INDIVIDUAL']}><SimpleLayout><IndividualDashboard /></SimpleLayout></ProtectedRoute>} />
+      
+      {/* Common routes accessible from all subdomains */}
       <Route path="/catalog" element={<ProtectedRoute><RoleBasedLayout><div>Catalog Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/coaching" element={<ProtectedRoute><RoleBasedLayout><div>Coaching Coming Soon</div></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/assignments" element={<ProtectedRoute><RoleBasedLayout><AssignmentsList /></RoleBasedLayout></ProtectedRoute>} />
@@ -75,10 +129,8 @@ export const SubdomainRouter = () => {
       <Route path="/tools/:toolId" element={<ProtectedRoute><RoleBasedLayout><ToolPage /></RoleBasedLayout></ProtectedRoute>} />
       <Route path="/team" element={<ProtectedRoute allowedRoles={['ADMIN','HR']}><AppLayout><div>Team Coming Soon</div></AppLayout></ProtectedRoute>} />
       <Route path="/billing" element={<ProtectedRoute allowedRoles={['ADMIN','HR']}><AppLayout><div>Billing Coming Soon</div></AppLayout></ProtectedRoute>} />
-      <Route path="/admin/organizations" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Organizations /></AppLayout></ProtectedRoute>} />
-      <Route path="/admin/organizations/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><OrganizationDetail /></AppLayout></ProtectedRoute>} />
-      <Route path="/admin/coaches" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><Coaches /></AppLayout></ProtectedRoute>} />
-      <Route path="/admin-dashboard/coaches/:coachId" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><CoachProfile /></AppLayout></ProtectedRoute>} />
+      
+      {/* Fallback route */}
       <Route path="*" element={<Index />} />
     </Routes>
   );

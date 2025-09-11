@@ -1,0 +1,5 @@
+# Netlify/Vercel style redirects for SPA
+/*    /index.html   200
+
+# Handle subdomain routing - all subdomains should serve the same app
+# This ensures that admin.yourdomain.com, hr.yourdomain.com, etc. all serve the React app

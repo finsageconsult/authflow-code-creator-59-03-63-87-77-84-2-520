@@ -1,0 +1,13 @@
+# Apache configuration for React SPA with subdomain support
+Options -MultiViews
+RewriteEngine On
+
+# Handle subdomain routing - all requests should go to index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+
+# Enable CORS for subdomains
+Header always set Access-Control-Allow-Origin "*"
+Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header always set Access-Control-Allow-Headers "Content-Type, Authorization"
