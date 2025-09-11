@@ -176,7 +176,7 @@ export default function Auth() {
           }
           
           toast.success('Successfully signed in!');
-          navigate('/role-redirect', { replace: true });
+          // Let the auth provider handle the redirect
         }
       }
     } catch (error) {

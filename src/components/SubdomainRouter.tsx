@@ -32,6 +32,7 @@ import AssignmentsList from '@/components/assignments/AssignmentsList';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import RoleRedirect from '@/pages/RoleRedirect';
 
 const getRoleDashboardUrl = (role: string) => {
   switch (role) {
@@ -43,21 +44,6 @@ const getRoleDashboardUrl = (role: string) => {
   }
 };
 
-const RoleRedirect = () => {
-  const { user, userProfile, profileReady } = useAuth();
-  useEffect(() => {
-    if (!user || !profileReady) return;
-    const target = getRoleDashboardUrl(userProfile?.role || 'INDIVIDUAL');
-    window.location.replace(target);
-  }, [user, userProfile, profileReady]);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="w-8 h-8 animate-spin" />
-    </div>
-  );
-};
-
 export const SubdomainRouter = () => {
   return (
     <Routes>
@@ -65,6 +51,8 @@ export const SubdomainRouter = () => {
       <Route path="/auth/individual" element={<Auth />} />
       <Route path="/auth/employee" element={<Auth />} />
       <Route path="/auth/employer" element={<Auth />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/role-redirect" element={<RoleRedirect />} />
       <Route path="/book-demo" element={<BookDemo />} />
       <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><AppLayout><AdminDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/hr-dashboard" element={<ProtectedRoute allowedRoles={['HR']}><AppLayout><HROverview /></AppLayout></ProtectedRoute>} />

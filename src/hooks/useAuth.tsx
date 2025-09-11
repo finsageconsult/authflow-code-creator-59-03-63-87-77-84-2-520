@@ -53,7 +53,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Auto-redirect to role-specific dashboard after login
-      if (location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/dashboard') {
+      const authPaths = ['/auth', '/auth/individual', '/auth/employee', '/auth/employer'];
+      if (location.pathname === '/' || authPaths.includes(location.pathname) || location.pathname === '/dashboard' || location.pathname === '/role-redirect') {
         const dashboardUrl = profile ? getRoleDashboardUrl(profile.role) : '/individual-dashboard';
         console.log(`Initial redirect: ${profile?.role} -> ${dashboardUrl}`);
         navigate(dashboardUrl, { replace: true });
