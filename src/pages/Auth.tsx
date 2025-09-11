@@ -39,7 +39,7 @@ export default function Auth() {
   };
   
   const userType = getUserType();
-  const [activeTab, setActiveTab] = useState(['employer', 'hr', 'coach', 'admin'].includes(userType) ? 'access-code' : 'email');
+  const [activeTab, setActiveTab] = useState(['employer', 'hr', 'coach'].includes(userType) ? 'access-code' : 'email');
   const [accessCode, setAccessCode] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showOtpVerification, setShowOtpVerification] = useState(false);
@@ -66,7 +66,7 @@ export default function Auth() {
   
   useEffect(() => {
     // Update activeTab when userType changes
-    setActiveTab(['employer', 'hr', 'coach', 'admin'].includes(userType) ? 'access-code' : 'email');
+    setActiveTab(['employer', 'hr', 'coach'].includes(userType) ? 'access-code' : 'email');
     
     const codeFromUrl = searchParams.get('code') || searchParams.get('access_code');
     if (codeFromUrl) {
@@ -681,7 +681,7 @@ export default function Auth() {
               Welcome to Finsage
             </CardTitle>
             <p className="text-sm text-muted-foreground px-2">
-              {userType === 'employer' || userType === 'hr' || userType === 'coach' || userType === 'admin'
+              {userType === 'employer' || userType === 'hr' || userType === 'coach'
                 ? 'Sign in with your organization access code'
                 : 'Sign in to your account or create a new one'
               }
@@ -705,7 +705,7 @@ export default function Auth() {
               )}
               
               {/* Conditionally show tab content based on user type */}
-              {(userType === 'employer' || userType === 'hr' || userType === 'coach' || userType === 'admin') && (
+              {(userType === 'employer' || userType === 'hr' || userType === 'coach') && (
                 <TabsContent value="access-code" className="space-y-4">
                   <form onSubmit={handleAccessCodeLogin} className="space-y-4">
                     <div className="space-y-2">
