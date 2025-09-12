@@ -265,6 +265,13 @@ export default function Auth() {
 
                 if (updateError) {
                   console.error('Failed to update employee profile:', updateError);
+                } else {
+                  // Force immediate redirect to employee dashboard
+                  toast.success('Welcome to your organization! Redirecting to employee dashboard...');
+                  setTimeout(() => {
+                    window.location.href = '/employee-dashboard';
+                  }, 1000);
+                  return; // Don't continue with normal flow
                 }
               }
             } catch (profileError) {
