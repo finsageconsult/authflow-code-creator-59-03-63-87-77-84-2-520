@@ -77,10 +77,14 @@ export default function Auth() {
 
   // Auto-detect organization from email for employees
   useEffect(() => {
-    if (userType === 'employer' && formData.email && isSignUp) {
+    if (userType === 'employer' && formData.email) {
       const emailDomain = formData.email.split('@')[1]?.toLowerCase();
       if (emailDomain) {
-        const matchedOrg = organizations.find(org => org.domain === emailDomain);
+        const matchedOrg = organizations.find(org => {
+          const orgDomain = org.domain?.toLowerCase();
+          // Handle domains stored with or without @ symbol
+          return orgDomain === emailDomain || orgDomain === `@${emailDomain}`;
+        });
         if (matchedOrg) {
           setDetectedOrganization(matchedOrg.name);
           setFormData(prev => ({ ...prev, organizationId: matchedOrg.id }));
@@ -88,9 +92,12 @@ export default function Auth() {
           setDetectedOrganization(null);
           setFormData(prev => ({ ...prev, organizationId: '' }));
         }
+      } else {
+        setDetectedOrganization(null);
+        setFormData(prev => ({ ...prev, organizationId: '' }));
       }
     }
-  }, [formData.email, organizations, userType, isSignUp]);
+  }, [formData.email, organizations, userType]);
 
   useEffect(() => {
     // Update activeTab when userType changes - employees use email only
