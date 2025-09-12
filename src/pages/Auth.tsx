@@ -197,14 +197,21 @@ export default function Auth() {
         return false;
       }
 
-      // Extract domain and check if organization exists
+      // Extract domain and check if organization exists (normalize leading @)
       const domain = email.split('@')[1]?.toLowerCase();
-      const matchedOrg = organizations.find(org => org.domain === domain);
+      const matchedOrg = organizations.find(org => {
+        const orgDomain = org.domain?.toLowerCase();
+        return orgDomain === domain || orgDomain === `@${domain}`;
+      });
       
       if (!matchedOrg) {
         toast.error(`No organization found for domain @${domain}. Please contact your HR team.`);
         return false;
       }
+
+      // Ensure form is aligned with the matched org
+      setDetectedOrganization(matchedOrg.name);
+      setFormData(prev => ({ ...prev, organizationId: matchedOrg.id }));
 
       return true;
     } catch (error) {
