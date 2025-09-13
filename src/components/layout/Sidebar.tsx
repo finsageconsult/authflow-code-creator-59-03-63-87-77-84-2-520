@@ -3,7 +3,7 @@ import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroup
 import { useAuth } from '@/hooks/useAuth';
 import { hasRole } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock, HelpCircle, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Calendar, Wrench, CreditCard, Shield, GraduationCap, BarChart3, Coins, FileText, ShieldCheck, X, UserCheck, Clock, HelpCircle, MessageSquare, DollarSign } from 'lucide-react';
 
 const menuItems = [{
   title: 'Dashboard',
@@ -110,6 +110,11 @@ const adminMenuItems = [{
   title: 'Support',
   url: '/admin-dashboard?tab=support',
   icon: HelpCircle,
+  roles: ['ADMIN']
+}, {
+  title: 'Payouts',
+  url: '/admin-dashboard?tab=payouts',
+  icon: DollarSign,
   roles: ['ADMIN']
 }];
 

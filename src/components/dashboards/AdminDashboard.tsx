@@ -22,6 +22,7 @@ import { SecurityAuditDashboard } from '@/components/security/SecurityAuditDashb
 import { AdminSupportManager } from '@/components/support/AdminSupportManager';
 import { DemoRequestsManager } from '@/components/admin/DemoRequestsManager';
 import { BlogManager } from '@/components/cms/BlogManager';
+import { PayoutDashboard } from '@/components/admin/PayoutDashboard';
 
 interface PlatformStats {
   totalOrganizations: number;
@@ -390,6 +391,10 @@ export const AdminDashboard = () => {
 
   if (activeTab === 'demo-requests') {
     return <DemoRequestsManager />;
+  }
+
+  if (activeTab === 'payouts') {
+    return <PayoutDashboard />;
   }
 
   // Default overview content

@@ -484,6 +484,50 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_payout_settings: {
+        Row: {
+          bank_details: Json | null
+          coach_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          payment_currency: string
+          payment_rate_per_student: number
+          tax_details: Json | null
+          updated_at: string
+        }
+        Insert: {
+          bank_details?: Json | null
+          coach_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          payment_currency?: string
+          payment_rate_per_student?: number
+          tax_details?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          bank_details?: Json | null
+          coach_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          payment_currency?: string
+          payment_rate_per_student?: number
+          tax_details?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_payout_settings_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_time_slots: {
         Row: {
           coach_id: string
@@ -1689,6 +1733,138 @@ export type Database = {
           },
         ]
       }
+      payout_line_items: {
+        Row: {
+          amount: number
+          course_title: string
+          created_at: string
+          enrollment_date: string
+          enrollment_id: string | null
+          id: string
+          payout_id: string
+          purchase_id: string | null
+          student_email: string
+          student_name: string
+        }
+        Insert: {
+          amount: number
+          course_title: string
+          created_at?: string
+          enrollment_date: string
+          enrollment_id?: string | null
+          id?: string
+          payout_id: string
+          purchase_id?: string | null
+          student_email: string
+          student_name: string
+        }
+        Update: {
+          amount?: number
+          course_title?: string
+          created_at?: string
+          enrollment_date?: string
+          enrollment_id?: string | null
+          id?: string
+          payout_id?: string
+          purchase_id?: string | null
+          student_email?: string
+          student_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_line_items_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_line_items_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "payouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_line_items_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "individual_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          coach_id: string
+          created_at: string
+          currency: string
+          gross_amount: number
+          id: string
+          metadata: Json | null
+          net_amount: number
+          notes: string | null
+          payment_date: string | null
+          payment_rate_per_student: number
+          payment_reference: string | null
+          payout_number: string
+          period_end: string
+          period_start: string
+          status: string
+          tax_amount: number
+          total_students: number
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          currency?: string
+          gross_amount?: number
+          id?: string
+          metadata?: Json | null
+          net_amount?: number
+          notes?: string | null
+          payment_date?: string | null
+          payment_rate_per_student: number
+          payment_reference?: string | null
+          payout_number: string
+          period_end: string
+          period_start: string
+          status?: string
+          tax_amount?: number
+          total_students?: number
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          currency?: string
+          gross_amount?: number
+          id?: string
+          metadata?: Json | null
+          net_amount?: number
+          notes?: string | null
+          payment_date?: string | null
+          payment_rate_per_student?: number
+          payment_reference?: string | null
+          payout_number?: string
+          period_end?: string
+          period_start?: string
+          status?: string
+          tax_amount?: number
+          total_students?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       privacy_consents: {
         Row: {
           consent_given: boolean
@@ -2241,6 +2417,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_coach_payout: {
+        Args: {
+          p_coach_id: string
+          p_period_end: string
+          p_period_start: string
+        }
+        Returns: {
+          enrollment_details: Json
+          gross_amount: number
+          total_students: number
+        }[]
+      }
       calculate_next_run_at: {
         Args: { freq: string; last_sent?: string }
         Returns: string
@@ -2277,6 +2465,10 @@ export type Database = {
         Returns: string
       }
       generate_order_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_payout_number: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
