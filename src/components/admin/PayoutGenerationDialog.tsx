@@ -114,7 +114,7 @@ export const PayoutGenerationDialog: React.FC<PayoutGenerationDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>Generate Coach Payout</DialogTitle>
           <DialogDescription>
@@ -122,7 +122,7 @@ export const PayoutGenerationDialog: React.FC<PayoutGenerationDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2">
           {/* Coach Selection */}
           <div className="space-y-2">
             <Label htmlFor="coach">Coach *</Label>
